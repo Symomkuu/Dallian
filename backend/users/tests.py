@@ -27,6 +27,7 @@ PASSWORD = "S3cure!Pass99"
 NEW_PASSWORD = "N3w!Secure#Pass7"
 EMAIL = "ann@example.com"
 
+
 GOOGLE_VERIFY = "users.services.id_token.verify_oauth2_token"
 GOOGLE_TOKEN = {"email": "Gina@Example.com", "email_verified": True, "name": "Gina Google"}
 GOOGLE_EMAIL = "gina@example.com"
