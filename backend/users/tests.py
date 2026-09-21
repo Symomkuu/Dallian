@@ -22,6 +22,7 @@ from rest_framework.throttling import SimpleRateThrottle
 from users.cookies import ACCESS_COOKIE, REFRESH_COOKIE
 from users.models import OTP, User
 
+
 PASSWORD = "S3cure!Pass99"
 NEW_PASSWORD = "N3w!Secure#Pass7"
 EMAIL = "ann@example.com"
