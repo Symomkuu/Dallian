@@ -1,0 +1,7 @@
+[MASTER]
+load-plugins=pylint_django
+django-settings-module=config.settings
+ignore=migrations,venv
+
+[MESSAGES CONTROL]
+disable=too-few-public-methods
