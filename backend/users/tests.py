@@ -14,13 +14,16 @@ from django.core import mail
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
-from django.urls import reverse
+from django.urls import include, path, reverse
 from django.utils import timezone
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.response import Response
+from rest_framework.test import APIClient, APIRequestFactory, APITestCase, force_authenticate
 from rest_framework.throttling import SimpleRateThrottle
+from rest_framework.views import APIView
 
 from users.cookies import ACCESS_COOKIE, REFRESH_COOKIE
 from users.models import OTP, User
+from users.permissions import IsStaffRole
 
 
 PASSWORD = "S3cure!Pass99"
@@ -668,3 +671,92 @@ class ThrottleTests(AuthTestCase):
                 for _ in range(3)
             ]
         self.assertEqual(statuses, [200, 200, 429])
+
+# ------------------------------------------------------ dashboard permission
+
+
+class DashboardProbeView(APIView):
+    """A stand-in dashboard endpoint, used only to exercise IsStaffRole."""
+
+    permission_classes = [IsStaffRole]
+
+    def get(self, _request):
+        """Return 200 for anyone the permission lets through."""
+        return Response({"ok": True})
+
+
+# Test-only URL config: the real auth routes plus the probe (see override_settings below)
+urlpatterns = [
+    path("api/auth/", include("users.urls")),
+    path("probe/", DashboardProbeView.as_view(), name="dashboard-probe"),
+]
+
+
+@override_settings(ROOT_URLCONF="users.tests")
+class IsStaffRoleTests(AuthTestCase):
+    """Only active staff-role users may use dashboard endpoints."""
+
+    def probe(self):
+        """GET the stand-in dashboard endpoint with the current client's cookies."""
+        return self.client.get(reverse("dashboard-probe"))
+
+    def login_as(self, **extra):
+        """Create a user with the given fields, log them in and return them."""
+        user = make_user(**extra)
+        self.assertEqual(self.login().status_code, 200)
+        return user
+
+    def test_anonymous_gets_401(self):
+        """Someone who isn't logged in is asked to log in."""
+        self.assertEqual(self.probe().status_code, 401)
+
+    def test_customer_gets_403(self):
+        """A logged-in customer is refused, with our message."""
+        self.login_as(role=User.ROLE_CUSTOMER)
+        resp = self.probe()
+        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(str(resp.data["detail"]), IsStaffRole.message)
+
+    def test_staff_is_allowed(self):
+        """A staff-role user gets through."""
+        self.login_as(role=User.ROLE_STAFF)
+        self.assertEqual(self.probe().status_code, 200)
+
+    def test_staff_does_not_need_django_admin_access(self):
+        """Dashboard staff have is_staff=False, so they can't enter Django admin."""
+        user = self.login_as(role=User.ROLE_STAFF)
+        self.assertFalse(user.is_staff)
+        self.assertEqual(self.probe().status_code, 200)
+
+    def test_django_admin_access_alone_does_not_grant_the_dashboard(self):
+        """is_staff (Django admin) without the staff role is still refused."""
+        self.login_as(role=User.ROLE_CUSTOMER, is_staff=True)
+        self.assertEqual(self.probe().status_code, 403)
+
+    def test_superuser_is_allowed(self):
+        """create_superuser gives the staff role, so the owner can use the dashboard."""
+        User.objects.create_superuser(EMAIL, password=PASSWORD)
+        self.assertEqual(self.login().status_code, 200)
+        self.assertEqual(self.probe().status_code, 200)
+
+    def test_changing_the_role_takes_effect_on_the_next_request(self):
+        """Demoting staff removes dashboard access even though their token is still valid."""
+        user = self.login_as(role=User.ROLE_STAFF)
+        self.assertEqual(self.probe().status_code, 200)
+
+        user.role = User.ROLE_CUSTOMER
+        user.save(update_fields=["role"])
+        self.assertEqual(self.probe().status_code, 403)
+
+    def test_disabling_staff_locks_them_out_despite_a_valid_token(self):
+        """A disabled account is rejected by the token layer, before the permission runs."""
+        user = self.login_as(role=User.ROLE_STAFF)
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        self.assertEqual(self.probe().status_code, 401)
+
+    def test_permission_itself_refuses_a_disabled_staff_user(self):
+        """Second line of defense: the permission checks is_active on its own."""
+        request = APIRequestFactory().get("/probe/")
+        force_authenticate(request, user=make_user(role=User.ROLE_STAFF, is_active=False))
+        self.assertEqual(DashboardProbeView.as_view()(request).status_code, 403)
