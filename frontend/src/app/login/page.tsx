@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from '@/components/RouterCompat';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { imagery } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
 import { TextField } from '@/components/ui/TextField';
 import { Button } from '@/components/ui/Button';
 
-export function Login() {
+export default function LoginPage() {
   const { signIn, pushToast } = useStore();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -27,7 +28,7 @@ export function Login() {
       signIn(email.split('@')[0].replace(/^./, (c) => c.toUpperCase()), email);
       pushToast({ title: 'Signed in.', body: 'Welcome back to Dallian Luxe Hair.', tone: 'success' });
       setLoading(false);
-      navigate('/account');
+      router.push('/account');
     }, 700);
   };
 
@@ -57,16 +58,18 @@ export function Login() {
               value={email}
               error={errors.email}
               onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email" />
-            
+              autoComplete="email"
+            />
+
             <TextField
               label="Password"
               type="password"
               value={password}
               error={errors.password}
               onChange={(event) => setPassword(event.target.value)}
-              autoComplete="current-password" />
-            
+              autoComplete="current-password"
+            />
+
             <div className="flex items-center justify-between text-xs">
               <label className="flex items-center gap-2 text-ink/60">
                 <input type="checkbox" className="h-3.5 w-3.5 accent-chestnut" />
@@ -82,19 +85,19 @@ export function Login() {
           </form>
           <p className="mt-6 text-sm text-ink/60">
             New to Dallian Luxe Hair?{' '}
-            <Link to="/register" className="text-chestnut underline underline-offset-4">
+            <Link href="/register" className="text-chestnut underline underline-offset-4">
               Create an account
             </Link>
           </p>
           <p className="mt-2 text-sm text-ink/60">
             Or{' '}
-            <Link to="/shop" className="text-chestnut underline underline-offset-4">
+            <Link href="/shop" className="text-chestnut underline underline-offset-4">
               continue as a guest
             </Link>
             .
           </p>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }

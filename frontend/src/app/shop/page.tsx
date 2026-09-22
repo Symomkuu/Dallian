@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   SearchX as SearchXIcon,
@@ -26,10 +26,7 @@ const sortOptions = [
   { value: 'popular', label: 'Popular' },
 ];
 
-function matchesLength(
-  lengths: number[],
-  buckets: string[]
-): boolean {
+function matchesLength(lengths: number[], buckets: string[]): boolean {
   if (buckets.length === 0) return true;
 
   return buckets.some((bucket) => {
@@ -45,13 +42,14 @@ function matchesLength(
   });
 }
 
-export default function Shop() {
+export default function ShopPage() {
   const searchParams = useSearchParams();
 
   const query = searchParams.get('q') ?? '';
   const badge = searchParams.get('badge');
 
-  const filters = useMemo<FilterState>(() => {
+  // Interactive filter state state initialized from URL params
+  const [filters, setFilters] = useState<FilterState>(() => {
     const category = searchParams.get('category');
     const style = searchParams.get('style');
 
@@ -60,12 +58,9 @@ export default function Shop() {
       categories: category ? [category] : [],
       styles: style ? [style] : [],
     };
-  }, [searchParams]);
+  });
 
-  const [sort, setSort] = useState(
-    searchParams.get('sort') ?? 'featured'
-  );
-
+  const [sort, setSort] = useState(searchParams.get('sort') ?? 'featured');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -87,47 +82,34 @@ export default function Shop() {
         return false;
       }
 
-      if (
-        !matchesLength(
-          product.lengths,
-          filters.lengths
-        )
-      ) {
+      if (!matchesLength(product.lengths, filters.lengths)) {
         return false;
       }
 
       if (
         filters.colors.length &&
-        !product.colors.some((color) =>
-          filters.colors.includes(color.name)
-        )
+        !product.colors.some((color) => filters.colors.includes(color.name))
       ) {
         return false;
       }
 
       if (
         filters.availability.length &&
-        !filters.availability.includes(
-          product.availability
-        )
+        !filters.availability.includes(product.availability)
       ) {
         return false;
       }
 
       if (
         filters.laceTypes.length &&
-        !product.laceTypes.some((lace) =>
-          filters.laceTypes.includes(lace)
-        )
+        !product.laceTypes.some((lace) => filters.laceTypes.includes(lace))
       ) {
         return false;
       }
 
       if (
         filters.capTypes.length &&
-        !product.capTypes.some((cap) =>
-          filters.capTypes.includes(cap)
-        )
+        !product.capTypes.some((cap) => filters.capTypes.includes(cap))
       ) {
         return false;
       }
@@ -172,15 +154,11 @@ export default function Shop() {
     }
 
     if (sort === 'newest') {
-      sorted.sort((a, b) =>
-        b.createdAt.localeCompare(a.createdAt)
-      );
+      sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     }
 
     if (sort === 'popular') {
-      sorted.sort(
-        (a, b) => b.popularity - a.popularity
-      );
+      sorted.sort((a, b) => b.popularity - a.popularity);
     }
 
     if (sort === 'featured') {
@@ -195,32 +173,20 @@ export default function Shop() {
   }, [filters, sort, query, badge]);
 
   const activeCategory =
-    filters.categories.length === 1
-      ? filters.categories[0]
-      : null;
+    filters.categories.length === 1 ? filters.categories[0] : null;
 
-  const updateParams = (
-    updates: Record<string, string | null>
-  ) => {
-    const next = new URLSearchParams(
-      searchParams.toString()
-    );
+  const updateParams = (updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(searchParams.toString());
 
-    Object.entries(updates).forEach(
-      ([key, value]) => {
-        if (value === null) {
-          next.delete(key);
-        } else {
-          next.set(key, value);
-        }
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null) {
+        next.delete(key);
+      } else {
+        next.set(key, value);
       }
-    );
+    });
 
-    window.history.replaceState(
-      null,
-      '',
-      `?${next.toString()}`
-    );
+    window.history.replaceState(null, '', `?${next.toString()}`);
   };
 
   return (
@@ -231,8 +197,8 @@ export default function Shop() {
           activeCategory === 'human-hair'
             ? 'Premium Human Hair'
             : activeCategory === 'futura'
-              ? 'Japanese Futura Fibre'
-              : 'Shop All Wigs'
+            ? 'Japanese Futura Fibre'
+            : 'Shop All Wigs'
         }
         body={
           query
@@ -262,9 +228,7 @@ export default function Shop() {
               {loading
                 ? 'Loading pieces…'
                 : `${results.length} ${
-                    results.length === 1
-                      ? 'piece'
-                      : 'pieces'
+                    results.length === 1 ? 'piece' : 'pieces'
                   }`}
             </p>
 
@@ -275,10 +239,7 @@ export default function Shop() {
                 className="lg:hidden"
                 onClick={() => setDrawerOpen(true)}
               >
-                <SlidersHorizontalIcon
-                  width={14}
-                  height={14}
-                />
+                <SlidersHorizontalIcon width={14} height={14} />
                 Filters
               </Button>
 
@@ -289,11 +250,8 @@ export default function Shop() {
                 options={sortOptions}
                 onChange={(event) => {
                   const value = event.target.value;
-
                   setSort(value);
-                  updateParams({
-                    sort: value,
-                  });
+                  updateParams({ sort: value });
                 }}
                 className="w-44"
               />
@@ -303,10 +261,7 @@ export default function Shop() {
           {!loading && results.length === 0 ? (
             <div className="flex flex-col items-center justify-center border border-dashed border-ink/15 bg-white px-8 py-16 text-center">
               <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 text-chestnut">
-                <SearchXIcon
-                  width={22}
-                  height={22}
-                />
+                <SearchXIcon width={22} height={22} />
               </div>
 
               <h2 className="font-serif text-2xl text-ink">
@@ -314,36 +269,23 @@ export default function Shop() {
               </h2>
 
               <p className="mt-2 max-w-sm text-sm leading-relaxed text-ink/60">
-                Try widening the price range or
-                clearing a filter. Our team can also
-                recommend something close to what you
-                have in mind.
+                Try widening the price range or clearing a filter. Our team can
+                also recommend something close to what you have in mind.
               </p>
 
               <Button
                 className="mt-7"
                 onClick={() => {
                   setFilters(emptyFilters);
-
-                  window.history.replaceState(
-                    null,
-                    '',
-                    '/shop'
-                  );
-
-                  window.dispatchEvent(
-                    new PopStateEvent('popstate')
-                  );
+                  window.history.replaceState(null, '', '/shop');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
                 }}
               >
                 Clear Filters
               </Button>
             </div>
           ) : (
-            <ProductGrid
-              products={results}
-              loading={loading}
-            />
+            <ProductGrid products={results} loading={loading} />
           )}
         </div>
       </div>
