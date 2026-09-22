@@ -1,12 +1,14 @@
+'use client';
+
 import React from 'react';
 import { CheckIcon, MailIcon, PhoneIcon, ShoppingBagIcon } from 'lucide-react';
-import { brand } from '../data/brand';
-import { useStore } from '../contexts/StoreContext';
-import { formatKsh } from '../utils/format';
-import { LinkButton } from '../components/ui/Button';
-import { EmptyState } from '../components/ui/EmptyState';
+import { brand } from '@/data/brand';
+import { useStore } from '@/contexts/StoreContext';
+import { formatKsh } from '@/utils/format';
+import { LinkButton } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 
-export function OrderConfirmation() {
+export default function OrderConfirmedPage() {
   const { lastOrder } = useStore();
 
   if (!lastOrder) {
@@ -17,10 +19,10 @@ export function OrderConfirmation() {
           title="No recent order to show"
           body="Once you place an order, your confirmation and order number appear here."
           actionLabel="Shop Wigs"
-          actionTo="/shop" />
-        
-      </div>);
-
+          actionTo="/shop"
+        />
+      </div>
+    );
   }
 
   return (
@@ -58,8 +60,8 @@ export function OrderConfirmation() {
           <div className="border-t border-ink/10 p-6">
             <h2 className="label-luxe text-ink/50">Items</h2>
             <ul className="mt-4 divide-y divide-ink/10">
-              {lastOrder.items.map((item) =>
-              <li key={item.name + item.options} className="flex items-center gap-4 py-4">
+              {lastOrder.items.map((item) => (
+                <li key={item.name + item.options} className="flex items-center gap-4 py-4">
                   <img src={item.image} alt="" className="h-20 w-16 object-cover" loading="lazy" />
                   <div className="min-w-0 flex-1">
                     <p className="font-serif text-base text-ink">{item.name}</p>
@@ -68,7 +70,7 @@ export function OrderConfirmation() {
                   </div>
                   <p className="text-sm text-ink">{formatKsh(item.price * item.quantity)}</p>
                 </li>
-              )}
+              ))}
             </ul>
           </div>
 
@@ -102,6 +104,6 @@ export function OrderConfirmation() {
           </LinkButton>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }

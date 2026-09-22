@@ -1,10 +1,10 @@
-
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import './globals.css';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Providers } from '@/components/Provider';
+import { CartDrawer } from '@/components/CartDrawer'; // 1. Import CartDrawer
 
 export const metadata: Metadata = {
   title: 'Dallian Luxe Hair E-Commerce Platform',
@@ -26,9 +26,11 @@ export default function RootLayout({
           </Suspense>
           <main className="flex-grow">{children}</main>
           <Footer />
+          
+          {/* 2. Add CartDrawer here so it listens to store state globally */}
+          <CartDrawer />
         </Providers>
       </body>
     </html>
   );
 }
-

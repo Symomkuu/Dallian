@@ -20,17 +20,17 @@ interface LinkButtonProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'border border-ink bg-ink text-cream hover:bg-chestnut-deep hover:border-chestnut-deep',
-  secondary: 'border border-ink/20 bg-white text-ink hover:border-ink hover:bg-cream',
-  gold: 'border border-gold bg-gold text-ink hover:bg-gold/90',
-  onDark: 'border border-gold/60 bg-transparent text-cream hover:border-gold hover:bg-gold/10',
-  ghost: 'border border-transparent bg-transparent text-ink hover:bg-ink/5',
+  primary: 'bg-black text-white hover:bg-neutral-800 hover:border-neutral-800 border border-black',
+  secondary: 'border border-neutral-300 bg-white text-black hover:bg-neutral-100',
+  gold: 'bg-[#D99B26] text-black border border-[#D99B26] hover:bg-[#c88d1f] font-semibold',
+  onDark: 'border border-[#D99B26]/80 bg-transparent text-white hover:bg-[#D99B26] hover:text-black hover:border-[#D99B26] font-medium',
+  ghost: 'border border-transparent bg-transparent text-white hover:bg-white/10',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'h-9 px-3.5 text-xs',
-  md: 'h-10 px-4 text-sm',
-  lg: 'h-11 px-5 text-sm',
+  sm: 'h-9 px-4 text-xs tracking-wider uppercase',
+  md: 'h-10 px-5 text-xs tracking-widest uppercase',
+  lg: 'h-12 px-7 text-xs tracking-[0.2em] uppercase',
 };
 
 export function Button({
@@ -45,10 +45,10 @@ export function Button({
     <button
       type={type}
       className={cx(
-        'label-luxe inline-flex items-center justify-center gap-2 transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60',
+        'inline-flex items-center justify-center rounded-none transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60',
         variantClasses[variant],
         sizeClasses[size],
-        className,
+        className
       )}
       {...props}
     >
@@ -69,10 +69,10 @@ export function LinkButton({
     <Link
       href={to}
       className={cx(
-        'label-luxe inline-flex items-center justify-center gap-2 transition-colors duration-200',
+        'inline-flex items-center justify-center rounded-none transition-all duration-300',
         variantClasses[variant],
         sizeClasses[size],
-        className,
+        className
       )}
       {...props}
     >

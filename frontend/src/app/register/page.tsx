@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from '@/components/RouterCompat';
-import { imagery } from '../data/brand';
-import { useStore } from '../contexts/StoreContext';
-import { TextField } from '../components/ui/TextField';
-import { Button } from '../components/ui/Button';
+'use client';
 
-export function Register() {
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { imagery } from '@/data/brand';
+import { useStore } from '@/contexts/StoreContext';
+import { TextField } from '@/components/ui/TextField';
+import { Button } from '@/components/ui/Button';
+
+export default function RegisterPage() {
   const { signIn, pushToast } = useStore();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -21,12 +24,13 @@ export function Register() {
     if (form.password.length < 6) next.password = 'Use at least 6 characters.';
     setErrors(next);
     if (Object.keys(next).length > 0) return;
+
     setLoading(true);
     window.setTimeout(() => {
       signIn(form.name, form.email);
       pushToast({ title: 'Account created.', body: 'You are signed in.', tone: 'success' });
       setLoading(false);
-      navigate('/account');
+      router.push('/account');
     }, 700);
   };
 
@@ -44,24 +48,27 @@ export function Register() {
               value={form.name}
               error={errors.name}
               onChange={(event) => setForm({ ...form, name: event.target.value })}
-              autoComplete="name" />
-            
+              autoComplete="name"
+            />
+
             <TextField
               label="Email"
               type="email"
               value={form.email}
               error={errors.email}
               onChange={(event) => setForm({ ...form, email: event.target.value })}
-              autoComplete="email" />
-            
+              autoComplete="email"
+            />
+
             <TextField
               label="Phone Number"
               value={form.phone}
               error={errors.phone}
               onChange={(event) => setForm({ ...form, phone: event.target.value })}
               inputMode="tel"
-              autoComplete="tel" />
-            
+              autoComplete="tel"
+            />
+
             <TextField
               label="Password"
               type="password"
@@ -69,15 +76,16 @@ export function Register() {
               error={errors.password}
               hint="At least 6 characters"
               onChange={(event) => setForm({ ...form, password: event.target.value })}
-              autoComplete="new-password" />
-            
+              autoComplete="new-password"
+            />
+
             <Button type="submit" size="lg" className="w-full" disabled={loading}>
               {loading ? 'Creating account…' : 'Create Account'}
             </Button>
           </form>
           <p className="mt-6 text-sm text-ink/60">
             Already have an account?{' '}
-            <Link to="/login" className="text-chestnut underline underline-offset-4">
+            <Link href="/login" className="text-chestnut underline underline-offset-4">
               Sign in
             </Link>
           </p>
@@ -94,6 +102,6 @@ export function Register() {
           </h2>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }

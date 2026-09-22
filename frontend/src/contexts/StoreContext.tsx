@@ -39,12 +39,12 @@ interface StoreValue {
   toasts: ToastMessage[];
   pushToast: (toast: Omit<ToastMessage, 'id'>) => void;
   dismissToast: (id: number) => void;
-  user: {name: string;email: string;} | null;
+  user: { name: string; email: string } | null;
   signIn: (name: string, email: string) => void;
   signOut: () => void;
   lastOrder: Order | null;
   placeOrder: (order: Order) => void;
-  discount: {code: string;amount: number;} | null;
+  discount: { code: string; amount: number } | null;
   applyDiscount: (code: string) => boolean;
 }
 
@@ -52,15 +52,15 @@ const StoreContext = createContext<StoreValue | null>(null);
 
 let toastId = 0;
 
-export function StoreProvider({ children }: {children: React.ReactNode;}) {
+export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const [user, setUser] = useState<{name: string;email: string;} | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
-  const [discount, setDiscount] = useState<{code: string;amount: number;} | null>(null);
+  const [discount, setDiscount] = useState<{ code: string; amount: number } | null>(null);
 
   const pushToast = useCallback((toast: Omit<ToastMessage, 'id'>) => {
     const id = ++toastId;
@@ -79,25 +79,25 @@ export function StoreProvider({ children }: {children: React.ReactNode;}) {
         const existing = prev.find((item) => item.key === key && !item.savedForLater);
         if (existing) {
           return prev.map((item) =>
-          item.key === key ?
-          { ...item, quantity: item.quantity + (options.quantity ?? 1) } :
-          item
+            item.key === key
+              ? { ...item, quantity: item.quantity + (options.quantity ?? 1) }
+              : item
           );
         }
         return [
-        ...prev,
-        {
-          key,
-          productId: product.id,
-          name: product.name,
-          image: product.images[0],
-          price: product.price,
-          quantity: options.quantity ?? 1,
-          length: options.length,
-          color: options.color,
-          capType: options.capType
-        }];
-
+          ...prev,
+          {
+            key,
+            productId: product.id,
+            name: product.name,
+            image: product.images[0],
+            price: product.price,
+            quantity: options.quantity ?? 1,
+            length: options.length,
+            color: options.color,
+            capType: options.capType,
+          },
+        ];
       });
       setCartOpen(true);
       pushToast({ title: 'Added to your bag.', body: product.name, tone: 'success' });
@@ -107,7 +107,7 @@ export function StoreProvider({ children }: {children: React.ReactNode;}) {
 
   const updateQuantity = useCallback((key: string, quantity: number) => {
     setCart((prev) =>
-    prev.map((item) => item.key === key ? { ...item, quantity: Math.max(1, quantity) } : item)
+      prev.map((item) => (item.key === key ? { ...item, quantity: Math.max(1, quantity) } : item))
     );
   }, []);
 
@@ -116,11 +116,11 @@ export function StoreProvider({ children }: {children: React.ReactNode;}) {
   }, []);
 
   const saveForLater = useCallback((key: string) => {
-    setCart((prev) => prev.map((item) => item.key === key ? { ...item, savedForLater: true } : item));
+    setCart((prev) => prev.map((item) => (item.key === key ? { ...item, savedForLater: true } : item)));
   }, []);
 
   const moveToCart = useCallback((key: string) => {
-    setCart((prev) => prev.map((item) => item.key === key ? { ...item, savedForLater: false } : item));
+    setCart((prev) => prev.map((item) => (item.key === key ? { ...item, savedForLater: false } : item)));
   }, []);
 
   const clearCart = useCallback(() => setCart([]), []);
@@ -132,7 +132,7 @@ export function StoreProvider({ children }: {children: React.ReactNode;}) {
         pushToast({
           title: exists ? 'Removed from wishlist.' : 'Saved to wishlist.',
           body: product.name,
-          tone: 'info'
+          tone: 'info',
         });
         return exists ? prev.filter((id) => id !== product.id) : [...prev, product.id];
       });
@@ -158,14 +158,11 @@ export function StoreProvider({ children }: {children: React.ReactNode;}) {
     [pushToast]
   );
 
-  const placeOrder = useCallback(
-    (order: Order) => {
-      setLastOrder(order);
-      setCart([]);
-      setDiscount(null);
-    },
-    []
-  );
+  const placeOrder = useCallback((order: Order) => {
+    setLastOrder(order);
+    setCart([]);
+    setDiscount(null);
+  }, []);
 
   const activeCart = useMemo(() => cart.filter((i) => !i.savedForLater), [cart]);
   const savedItems = useMemo(() => cart.filter((i) => i.savedForLater), [cart]);
@@ -198,7 +195,7 @@ export function StoreProvider({ children }: {children: React.ReactNode;}) {
     lastOrder,
     placeOrder,
     discount,
-    applyDiscount
+    applyDiscount,
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
