@@ -75,7 +75,7 @@ export default function LoginPage() {
                 <input type="checkbox" className="h-3.5 w-3.5 accent-chestnut" />
                 Keep me signed in
               </label>
-              <button type="button" className="text-chestnut underline-offset-4 hover:underline">
+              <button type="button" className="text-chestnut underline-offset-4 hover:opacity-80 transition-opacity">
                 Forgot password?
               </button>
             </div>
@@ -85,13 +85,13 @@ export default function LoginPage() {
           </form>
           <p className="mt-6 text-sm text-ink/60">
             New to Dallian Luxe Hair?{' '}
-            <Link href="/register" className="text-chestnut underline underline-offset-4">
+            <Link href="/register" className="text-chestnut underline underline-offset-4 hover:opacity-80 transition-opacity">
               Create an account
             </Link>
           </p>
           <p className="mt-2 text-sm text-ink/60">
             Or{' '}
-            <Link href="/shop" className="text-chestnut underline underline-offset-4">
+            <Link href="/shop" className="text-chestnut underline underline-offset-4 hover:opacity-80 transition-opacity">
               continue as a guest
             </Link>
             .

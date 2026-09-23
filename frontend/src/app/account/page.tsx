@@ -35,7 +35,7 @@ const sections = [
 type SectionId = (typeof sections)[number]['id'];
 
 export default function AccountPage() {
-  const { user, signOut, lastOrder, wishlist, recentlyViewed, pushToast } =
+  const { user, signOut, lastOrder, wishlist, recentlyViewed, pushToast, addToCart } =
     useStore();
   const router = useRouter();
   const [active, setActive] = useState<SectionId>('profile');
@@ -48,6 +48,42 @@ export default function AccountPage() {
   const viewedProducts = recentlyViewed
     .map((id) => products.find((p) => p.id === id))
     .filter((p): p is (typeof products)[number] => Boolean(p));
+
+  const handleBuyAgain = (orderItems: typeof sampleOrders[0]['items']) => {
+    console.log('Order items to re-buy:', orderItems);
+    console.log('Available products:', products);
+
+    let addedCount = 0;
+
+    orderItems.forEach((item) => {
+      const targetName = item.name.trim().toLowerCase();
+      const matchedProduct = products.find(
+        (p) => p.name.trim().toLowerCase() === targetName
+      );
+
+      console.log(`Matching "${item.name}" -> Found:`, matchedProduct);
+
+      if (matchedProduct && addToCart) {
+        addToCart(matchedProduct, item.quantity || 1);
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      pushToast({ 
+        title: 'Items added to bag', 
+        body: `${addedCount} product(s) from this order have been added to your bag.`, 
+        tone: 'success' 
+      });
+      router.push('/cart');
+    } else {
+      pushToast({ 
+        title: 'Could not add items', 
+        body: 'The products from this order could not be matched to the current catalog.', 
+        tone: 'error' 
+      });
+    }
+  };
 
   return (
     <>
@@ -168,10 +204,11 @@ export default function AccountPage() {
                         {formatKsh(order.total)}
                       </p>
                     </div>
+
                     <ul className="mt-5 flex flex-wrap gap-3">
-                      {order.items.map((item) => (
+                      {order.items.map((item, idx) => (
                         <li
-                          key={item.name + item.options}
+                          key={item.name + (item.options || idx)}
                           className="flex items-center gap-3"
                         >
                           <img
@@ -189,13 +226,18 @@ export default function AccountPage() {
                         </li>
                       ))}
                     </ul>
-                    <div className="mt-5 flex gap-2.5">
-                      <LinkButton to="/track" size="sm" variant="secondary">
+
+                    <div className="mt-5 flex items-center gap-2.5">
+                      <LinkButton href="/track" size="sm" variant="secondary">
                         Track Order
                       </LinkButton>
-                      <LinkButton to="/shop" size="sm" variant="ghost">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => handleBuyAgain(order.items)}
+                      >
                         Buy Again
-                      </LinkButton>
+                      </Button>
                     </div>
                   </li>
                 ))}
@@ -210,7 +252,7 @@ export default function AccountPage() {
                 Use your order number with the phone number or email on the
                 order.
               </p>
-              <LinkButton to="/track" className="mt-6">
+              <LinkButton href="/track" className="mt-6">
                 Open Order Tracking
               </LinkButton>
             </div>
@@ -271,7 +313,7 @@ export default function AccountPage() {
                 Payment Information
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-ink/60">
-                Available payment methods are configured by Urban Steps and shown at checkout. No card or M-Pesa details are stored on your profile.
+                Available payment methods are configured and shown at checkout. No card or M-Pesa details are stored on your profile.
               </p>
               <ul className="mt-6 divide-y divide-ink/10 border-y border-ink/10 text-sm text-ink/70">
                 <li className="py-3.5">M-Pesa</li>

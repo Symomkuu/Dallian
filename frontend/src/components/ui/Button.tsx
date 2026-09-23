@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from 'react';
-
 import { cx } from '@/utils/format';
 
 type ButtonVariant = 'primary' | 'secondary' | 'gold' | 'onDark' | 'ghost';
