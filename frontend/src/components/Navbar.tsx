@@ -19,10 +19,8 @@ import { Logo } from './Logo';
 import { SearchOverlay } from './SearchOverlay';
 
 const navLinks = [
-  { label: 'Home', to: '/' },
-  { label: 'Shop', to: '/shop' },
-  { label: 'Human Hair', to: '/shop?category=human-hair' },
-  { label: 'Japanese Futura', to: '/shop?category=futura' },
+  { label: 'Home', to: '/home' },
+  { label: 'Shop', to: '/' },
   { label: 'Wig Care', to: '/wig-care' },
   { label: 'About Us', to: '/about' },
   { label: 'Contact', to: '/contact' },

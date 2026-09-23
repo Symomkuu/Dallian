@@ -110,7 +110,7 @@ export function SearchOverlay({
             event.preventDefault();
 
             router.push(
-              `/shop?q=${encodeURIComponent(query)}`
+              `/?q=${encodeURIComponent(query)}`
             );
 
             onClose();

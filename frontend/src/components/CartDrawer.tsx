@@ -58,7 +58,7 @@ export function CartDrawer() {
                 <p className="mt-2 text-sm text-stone-500">
                   Explore the signature collection to find your next look.
                 </p>
-                <LinkButton to="/shop" className="mt-6" onClick={() => setCartOpen(false)}>
+                <LinkButton to="/" className="mt-6" onClick={() => setCartOpen(false)}>
                   Shop Wigs
                 </LinkButton>
               </div>

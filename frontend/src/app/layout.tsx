@@ -1,10 +1,8 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import './globals.css';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
 import { Providers } from '@/components/Provider';
-import { CartDrawer } from '@/components/CartDrawer'; // 1. Import CartDrawer
+import { SiteChrome } from '@/components/SiteChrome';
 
 export const metadata: Metadata = {
   title: 'Dallian Luxe Hair E-Commerce Platform',
@@ -22,13 +20,8 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col justify-between antialiased">
         <Providers>
           <Suspense fallback={null}>
-            <Navbar />
+            <SiteChrome>{children}</SiteChrome>
           </Suspense>
-          <main className="flex-grow">{children}</main>
-          <Footer />
-          
-          {/* 2. Add CartDrawer here so it listens to store state globally */}
-          <CartDrawer />
         </Providers>
       </body>
     </html>

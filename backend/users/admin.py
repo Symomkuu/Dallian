@@ -89,12 +89,10 @@ class OTPAdmin(admin.ModelAdmin):
     """Read-only view of one-time codes, useful for debugging."""
 
     ordering = ("-created_at",)
-    list_display = ("user", "purpose", "is_used", "attempts", "expires_at", "created_at")
+    list_display = ("user", "code", "purpose", "is_used", "attempts", "expires_at", "created_at")
     list_filter = ("purpose", "is_used")
-    search_fields = ("user__email",)
-    # The code itself is deliberately not shown
-    exclude = ("code",)
-    readonly_fields = ("user", "purpose", "expires_at", "is_used", "attempts", "created_at")
+    search_fields = ("user__email", "code")
+    readonly_fields = ("user", "code", "purpose", "expires_at", "is_used", "attempts", "created_at")
 
     def has_add_permission(self, request):
         return False
