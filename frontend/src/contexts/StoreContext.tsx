@@ -17,6 +17,8 @@ import {
   resendVerificationCode,
   verifyEmail as apiVerifyEmail,
   type AuthUser,
+  type MessageResponse,
+  setCsrfTokenGetter,
 } from '../utils/api';
 
 interface ToastMessage {
@@ -72,6 +74,7 @@ interface StoreValue {
   placeOrder: (order: Order) => void;
   discount: { code: string; amount: number } | null;
   applyDiscount: (code: string) => boolean;
+  csrfToken: string | null;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -87,7 +90,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
+
+  // Provide CSRF token to API client
+  useEffect(() => {
+    setCsrfTokenGetter(() => csrfToken);
+  }, [csrfToken]);
   const [discount, setDiscount] = useState<{ code: string; amount: number } | null>(null);
 
   // On first load, see if the browser already carries a valid session cookie
@@ -112,7 +121,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     setAuthLoading(true);
     try {
-      await apiLogin({ email, password });
+      const response = await apiLogin({ email, password });
+      setCsrfToken(response.csrfToken);
       const me = await fetchCurrentUser();
       setUser(me);
       return me;
@@ -130,7 +140,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const verifyEmail = useCallback(async (email: string, code: string) => {
     setAuthLoading(true);
     try {
-      await apiVerifyEmail({ email, code });
+      const response = await apiVerifyEmail({ email, code });
+      setCsrfToken(response.csrfToken);
       const me = await fetchCurrentUser();
       setUser(me);
       return me;
@@ -150,6 +161,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       // Even if the network call fails, clear the local session.
     }
     setUser(null);
+    setCsrfToken(null);
   }, []);
 
   const pushToast = useCallback((toast: Omit<ToastMessage, 'id'>) => {
@@ -291,6 +303,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     placeOrder,
     discount,
     applyDiscount,
+    csrfToken,
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

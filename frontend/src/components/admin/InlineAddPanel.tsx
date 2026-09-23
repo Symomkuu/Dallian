@@ -60,7 +60,7 @@ export default function InlineAddPanel({
             'focus:border-chestnut focus:outline-none disabled:opacity-50'
           )}
         />
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="submit"
             disabled={isCreating}

@@ -10,6 +10,12 @@ export const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
 ).replace(/\/$/, '');
 
+let csrfTokenGetter: (() => string | null) | null = null;
+
+export function setCsrfTokenGetter(getter: () => string | null) {
+  csrfTokenGetter = getter;
+}
+
 export interface ApiErrorPayload {
   detail?: string;
   code?: string;
@@ -44,13 +50,24 @@ function firstFieldError(payload: ApiErrorPayload | null | undefined): string | 
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const method = (options.method || 'GET').toUpperCase();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options.headers as Record<string, string>,
+  };
+
+  // Add CSRF token for non-GET requests
+  if (method !== 'GET' && csrfTokenGetter) {
+    const token = csrfTokenGetter();
+    if (token) {
+      headers['X-CSRFToken'] = token;
+    }
+  }
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   });
 
   const text = await response.text();
@@ -93,7 +110,7 @@ export interface AuthUser {
 
 interface MessageResponse {
   message: string;
-  csrfToken?: string;
+  csrfToken: string;
 }
 
 // --- Auth endpoints ---
