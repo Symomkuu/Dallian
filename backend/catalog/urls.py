@@ -2,11 +2,11 @@
 
 from django.urls import path
 
-from catalog.views import BrandListView, CategoryListView, ProductDetailView, ProductListView
+from catalog.views import CategoryListView, HairStyleListView, ProductDetailView, ProductListView
 
 urlpatterns = [
     path("categories/", CategoryListView.as_view(), name="store-categories"),
-    path("brands/", BrandListView.as_view(), name="store-brands"),
+    path("hairstyles/", HairStyleListView.as_view(), name="store-hairstyles"),
     path("products/", ProductListView.as_view(), name="store-products"),
     path("products/<slug:slug>/", ProductDetailView.as_view(), name="store-product-detail"),
 ]

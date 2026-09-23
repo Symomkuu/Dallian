@@ -1,4 +1,4 @@
-"""Catalog models: categories, brands, products and product images.
+"""Catalog models: categories, hairstyles, products and product images.
 
 This file only defines the data. The rules (slugs, primary images) are in services.py.
 """
@@ -61,8 +61,8 @@ class Category(SluggedModel):
         ]
 
 
-class Brand(SluggedModel):
-    """The label a product is sold under. Optional on products."""
+class HairStyle(SluggedModel):
+    """The style or texture of the wig (e.g. Straight, Body Wave). Optional on products."""
 
     logo_url = models.URLField(max_length=500, blank=True)
     seo_name = models.CharField(
@@ -77,7 +77,7 @@ class Brand(SluggedModel):
     class Meta:
         ordering = ["sort_order", "name"]
         constraints = [
-            models.UniqueConstraint(Lower("name"), name="unique_brand_name_ci"),
+            models.UniqueConstraint(Lower("name"), name="unique_hairstyle_name_ci"),
         ]
 
 
@@ -87,8 +87,8 @@ class Product(SluggedModel):
     category = models.ForeignKey(
         Category, on_delete=models.PROTECT, related_name="products"
     )
-    brand = models.ForeignKey(
-        Brand, on_delete=models.PROTECT, related_name="products", null=True, blank=True
+    hairstyle = models.ForeignKey(
+        HairStyle, on_delete=models.PROTECT, related_name="products", null=True, blank=True
     )
 
     sku = models.CharField(max_length=64, blank=True)
@@ -127,7 +127,7 @@ class Product(SluggedModel):
         ]
         indexes = [
             models.Index(fields=["is_active", "category", "-created_at"], name="idx_product_category"),
-            models.Index(fields=["is_active", "brand", "-created_at"], name="idx_product_brand"),
+            models.Index(fields=["is_active", "hairstyle", "-created_at"], name="idx_product_hairstyle"),
             models.Index(fields=["is_active", "price"], name="idx_product_price"),
         ]
 

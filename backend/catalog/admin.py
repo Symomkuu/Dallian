@@ -9,7 +9,7 @@ one-primary-image rule always holds.
 from django.contrib import admin
 from django.utils.html import format_html
 
-from catalog.models import Brand, Category, Product, ProductImage
+from catalog.models import Category, HairStyle, Product, ProductImage
 from catalog.services import add_product_image, assign_slug, delete_product_image, set_primary_image
 
 
@@ -50,9 +50,9 @@ class CategoryAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-@admin.register(Brand)
-class BrandAdmin(admin.ModelAdmin):
-    """Admin for product brands."""
+@admin.register(HairStyle)
+class HairStyleAdmin(admin.ModelAdmin):
+    """Admin for product hairstyles."""
 
     ordering = ("sort_order", "name")
     list_display = ("name", "slug", "is_active", "sort_order", "created_at")
@@ -74,17 +74,17 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "category",
-        "brand",
+        "hairstyle",
         "price",
         "stock_quantity",
         "is_active",
         "is_featured",
         "created_at",
     )
-    list_filter = ("is_active", "is_featured", "category", "brand")
+    list_filter = ("is_active", "is_featured", "category", "hairstyle")
     search_fields = ("name", "sku")
     readonly_fields = ("slug", "created_at", "updated_at")
-    autocomplete_fields = ("category", "brand")
+    autocomplete_fields = ("category", "hairstyle")
     inlines = [ProductImageInline]
 
     def save_model(self, request, obj, form, change):

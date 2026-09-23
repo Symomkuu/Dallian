@@ -139,3 +139,118 @@ export function forgotPassword(payload: { email: string }) {
 export function resetPassword(payload: { email: string; code: string; new_password: string }) {
   return post<MessageResponse>('/api/auth/password/reset/', payload);
 }
+
+// --- Dashboard: catalog types ---
+
+export interface DashboardCategory {
+  id: number;
+  name: string;
+  slug: string;
+  image_url: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export interface DashboardHairStyle {
+  id: number;
+  name: string;
+  slug: string;
+  logo_url: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export interface DashboardProductImage {
+  id: number;
+  product: number;
+  image_url: string;
+  public_id: string;
+  width: number | null;
+  height: number | null;
+  format: string;
+  alt_text: string;
+  sort_order: number;
+  is_primary: boolean;
+}
+
+export interface DashboardProduct {
+  id: number;
+  name: string;
+  slug: string;
+  category: number;
+  hairstyle: number | null;
+  sku: string;
+  description: string;
+  price: string;
+  previous_price: string | null;
+  stock_quantity: number;
+  is_active: boolean;
+  is_featured: boolean;
+  images: DashboardProductImage[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CloudinarySignature {
+  cloud_name: string;
+  api_key: string;
+  timestamp: number;
+  folder: string;
+  public_id: string;
+  signature: string;
+}
+
+// --- Dashboard: catalog endpoints ---
+
+export function fetchDashboardCategories() {
+  return get<DashboardCategory[]>('/api/dashboard/categories/');
+}
+
+export function createDashboardCategory(name: string) {
+  return post<DashboardCategory>('/api/dashboard/categories/', { name });
+}
+
+export function fetchDashboardHairStyles() {
+  return get<DashboardHairStyle[]>('/api/dashboard/hairstyles/');
+}
+
+export function createDashboardHairStyle(name: string) {
+  return post<DashboardHairStyle>('/api/dashboard/hairstyles/', { name });
+}
+
+export function fetchDashboardProducts() {
+  return get<DashboardProduct[]>('/api/dashboard/products/');
+}
+
+export function createDashboardProduct(payload: {
+  name: string;
+  description?: string;
+  category: number;
+  hairstyle?: number | null;
+  sku?: string;
+  price: string;
+  previous_price?: string | null;
+  stock_quantity: number;
+  is_active?: boolean;
+  is_featured?: boolean;
+}) {
+  return post<DashboardProduct>('/api/dashboard/products/', payload);
+}
+
+export function createDashboardProductImage(payload: {
+  product: number;
+  image_url: string;
+  public_id?: string;
+  width?: number | null;
+  height?: number | null;
+  format?: string;
+  alt_text?: string;
+  sort_order?: number;
+  is_primary?: boolean;
+}) {
+  return post<DashboardProductImage>('/api/dashboard/product-images/', payload);
+}
+
+export function fetchCloudinaryUploadSignature() {
+  return post<CloudinarySignature>('/api/dashboard/media/upload-signature/');
+}

@@ -1,14 +1,20 @@
-"""Dashboard views: staff-only CRUD for categories, brands, products and their images."""
+"""Dashboard views: staff-only CRUD for categories, hairstyles, products and their images."""
 
+from hashlib import sha256
+from time import time
+from uuid import uuid4
+
+from django.conf import settings
 from django.db.models.deletion import ProtectedError
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from catalog.models import Brand, Category, Product, ProductImage
+from catalog.models import Category, HairStyle, Product, ProductImage
 from catalog.serializers import (
-    BrandAdminSerializer,
     CategoryAdminSerializer,
+    HairStyleAdminSerializer,
     ProductAdminSerializer,
     ProductImageAdminSerializer,
 )
@@ -16,10 +22,56 @@ from catalog.services import delete_product_image, set_primary_image
 from users.permissions import IsStaffRole
 
 
+def build_cloudinary_signature(payload: dict[str, str | int]) -> str:
+    """Return Cloudinary SHA256 signature for sorted payload values."""
+    message = "&".join(f"{key}={payload[key]}" for key in sorted(payload) if payload[key] not in [None, ""])
+    return sha256(f"{message}{settings.CLOUDINARY_API_SECRET}".encode("utf-8")).hexdigest()
+
+
+class CloudinaryUploadSignatureView(APIView):
+    """Issue signed Cloudinary upload payloads for authenticated staff."""
+
+    permission_classes = [IsStaffRole]
+
+    def post(self, request):
+        """Return signed upload values for direct Cloudinary upload."""
+        if (
+            not getattr(settings, "CLOUDINARY_CLOUD_NAME", None)
+            or not getattr(settings, "CLOUDINARY_API_KEY", None)
+            or not getattr(settings, "CLOUDINARY_API_SECRET", None)
+        ):
+            return Response(
+                {"detail": "Cloudinary signed uploads are not configured."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        timestamp = int(time())
+        folder = "dallian/products"
+        public_id = f"product-{uuid4().hex}"
+        signature_payload = {
+            "folder": folder,
+            "public_id": public_id,
+            "timestamp": timestamp,
+        }
+        signature = build_cloudinary_signature(signature_payload)
+
+        return Response(
+            {
+                "cloud_name": settings.CLOUDINARY_CLOUD_NAME,
+                "api_key": settings.CLOUDINARY_API_KEY,
+                "timestamp": timestamp,
+                "folder": folder,
+                "public_id": public_id,
+                "signature": signature,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class ProtectedDestroyMixin:
     """Turn a ProtectedError from delete() into a clean 400 instead of a 500.
 
-    Category and Brand use PROTECT on their product foreign keys, so
+    Category and HairStyle use PROTECT on their product foreign keys, so
     deleting one that's still in use raises this. The dashboard should show
     a message, not crash.
     """
@@ -44,11 +96,11 @@ class CategoryViewSet(ProtectedDestroyMixin, viewsets.ModelViewSet):
     permission_classes = [IsStaffRole]
 
 
-class BrandViewSet(ProtectedDestroyMixin, viewsets.ModelViewSet):
-    """Full CRUD for brands."""
+class HairStyleViewSet(ProtectedDestroyMixin, viewsets.ModelViewSet):
+    """Full CRUD for hairstyles."""
 
-    queryset = Brand.objects.all()
-    serializer_class = BrandAdminSerializer
+    queryset = HairStyle.objects.all()
+    serializer_class = HairStyleAdminSerializer
     permission_classes = [IsStaffRole]
 
 
@@ -56,7 +108,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     """Full CRUD for products. The list includes inactive products too."""
 
     queryset = (
-        Product.objects.all().select_related("category", "brand").prefetch_related("images")
+        Product.objects.all().select_related("category", "hairstyle").prefetch_related("images")
     )
     serializer_class = ProductAdminSerializer
     permission_classes = [IsStaffRole]

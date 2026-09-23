@@ -7,7 +7,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 from django.test import TestCase
 
-from catalog.models import Brand, Category, Product, ProductImage
+from catalog.models import Category, HairStyle, Product, ProductImage
 from catalog.services import (
     add_product_image,
     assign_slug,
@@ -25,12 +25,12 @@ def make_category(name="Lace Front", **extra):
     return category
 
 
-def make_brand(name="Outre", **extra):
-    """Create and save a Brand with a generated slug."""
-    brand = Brand(name=name, **extra)
-    assign_slug(brand)
-    brand.save()
-    return brand
+def make_hairstyle(name="Body Wave", **extra):
+    """Create and save a HairStyle with a generated slug."""
+    hairstyle = HairStyle(name=name, **extra)
+    assign_slug(hairstyle)
+    hairstyle.save()
+    return hairstyle
 
 
 def make_product(name="Body Wave Wig", price=15000, **extra):
@@ -104,29 +104,29 @@ class CategoryModelTests(TestCase):
         self.assertFalse(Category.objects.filter(pk=category.pk).exists())
 
 
-# ------------------------------------------------------------------ brand
+# --------------------------------------------------------------- hairstyle
 
 
-class BrandModelTests(TestCase):
-    """Brand rules: unique name, protection from deletion while in use, optional on products."""
+class HairStyleModelTests(TestCase):
+    """HairStyle rules: unique name, protection from deletion while in use, optional on products."""
 
     def test_name_is_unique_ignoring_case(self):
-        """'Outre' and 'outre' can't both exist."""
-        make_brand(name="Outre")
+        """'Body Wave' and 'body wave' can't both exist."""
+        make_hairstyle(name="Body Wave")
         with self.assertRaises(IntegrityError), transaction.atomic():
-            make_brand(name="outre")
+            make_hairstyle(name="body wave")
 
-    def test_brand_in_use_cannot_be_deleted(self):
-        """A brand with a product can only be deactivated, not deleted."""
-        brand = make_brand()
-        make_product(brand=brand)
+    def test_hairstyle_in_use_cannot_be_deleted(self):
+        """A hairstyle with a product can only be deactivated, not deleted."""
+        hairstyle = make_hairstyle()
+        make_product(hairstyle=hairstyle)
         with self.assertRaises(ProtectedError):
-            brand.delete()
+            hairstyle.delete()
 
-    def test_product_can_be_created_without_a_brand(self):
-        """Brand is optional on a product."""
+    def test_product_can_be_created_without_a_hairstyle(self):
+        """HairStyle is optional on a product."""
         product = make_product()
-        self.assertIsNone(product.brand)
+        self.assertIsNone(product.hairstyle)
 
 
 # ---------------------------------------------------------------- product

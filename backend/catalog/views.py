@@ -1,4 +1,4 @@
-"""Storefront views: public, read-only endpoints for categories, brands and products."""
+"""Storefront views: public, read-only endpoints for categories, hairstyles and products."""
 
 from decimal import Decimal, InvalidOperation
 
@@ -7,10 +7,10 @@ from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 
-from catalog.models import Brand, Category, Product
+from catalog.models import Category, HairStyle, Product
 from catalog.serializers import (
-    BrandSerializer,
     CategorySerializer,
+    HairStyleSerializer,
     ProductDetailSerializer,
     ProductListSerializer,
 )
@@ -53,15 +53,15 @@ class CategoryListView(PublicReadOnlyAPIView, generics.ListAPIView):
     queryset = Category.objects.filter(is_active=True)
 
 
-class BrandListView(PublicReadOnlyAPIView, generics.ListAPIView):
-    """List active brands that have at least one active product."""
+class HairStyleListView(PublicReadOnlyAPIView, generics.ListAPIView):
+    """List active hairstyles that have at least one active product."""
 
-    serializer_class = BrandSerializer
+    serializer_class = HairStyleSerializer
     pagination_class = None
 
     def get_queryset(self):
-        """Only brands with at least one visible product are worth showing in a filter menu."""
-        return Brand.objects.filter(is_active=True, products__is_active=True).distinct()
+        """Only hairstyles with at least one visible product are worth showing in a filter menu."""
+        return HairStyle.objects.filter(is_active=True, products__is_active=True).distinct()
 
 
 class ProductListView(PublicReadOnlyAPIView, generics.ListAPIView):
@@ -69,10 +69,10 @@ class ProductListView(PublicReadOnlyAPIView, generics.ListAPIView):
 
     Query params:
       category=<slug>          only products in this category
-      brand=<slug>              only products of this brand
+      hairstyle=<slug>         only products of this hairstyle
       min_price / max_price     price range (inclusive)
       in_stock=true               only products with stock
-      q=<text>                      search name, description, sku and brand name
+      q=<text>                      search name, description, sku and hairstyle name
       ordering=newest|price_asc|price_desc   default: newest
     """
 
@@ -84,7 +84,7 @@ class ProductListView(PublicReadOnlyAPIView, generics.ListAPIView):
         params = self.request.query_params
         queryset = (
             Product.objects.filter(is_active=True)
-            .select_related("category", "brand")
+            .select_related("category", "hairstyle")
             .prefetch_related("images")
         )
 
@@ -92,9 +92,9 @@ class ProductListView(PublicReadOnlyAPIView, generics.ListAPIView):
         if category_slug:
             queryset = queryset.filter(category__slug=category_slug)
 
-        brand_slug = params.get("brand")
-        if brand_slug:
-            queryset = queryset.filter(brand__slug=brand_slug)
+        hairstyle_slug = params.get("hairstyle") or params.get("brand")
+        if hairstyle_slug:
+            queryset = queryset.filter(hairstyle__slug=hairstyle_slug)
 
         min_price = _parse_price(params.get("min_price"))
         if min_price is not None:
@@ -113,7 +113,7 @@ class ProductListView(PublicReadOnlyAPIView, generics.ListAPIView):
                 Q(name__icontains=search)
                 | Q(description__icontains=search)
                 | Q(sku__icontains=search)
-                | Q(brand__name__icontains=search)
+                | Q(hairstyle__name__icontains=search)
             )
 
         ordering = ORDERING_FIELDS.get(params.get("ordering"), ORDERING_FIELDS["newest"])
@@ -130,6 +130,6 @@ class ProductDetailView(PublicReadOnlyAPIView, generics.RetrieveAPIView):
         """Only active products are visible on the storefront."""
         return (
             Product.objects.filter(is_active=True)
-            .select_related("category", "brand")
+            .select_related("category", "hairstyle")
             .prefetch_related("images")
         )

@@ -1,21 +1,27 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckIcon, ImageIcon, UploadIcon } from 'lucide-react';
 import { useStore } from '@/contexts/StoreContext';
 import { cx, formatKsh } from '@/utils/format';
-import type { Category, HairStyle } from '@/types';
+import InlineAddPanel from '@/components/admin/InlineAddPanel';
+import { uploadImageToCloudinary } from '@/utils/cloudinary';
+import {
+  createDashboardCategory,
+  createDashboardHairStyle,
+  createDashboardProduct,
+  createDashboardProductImage,
+  fetchDashboardCategories,
+  fetchDashboardHairStyles,
+  type DashboardCategory,
+  type DashboardHairStyle,
+} from '@/utils/api';
 
 const steps = ['Basic Info', 'Images', 'Pricing & Stock', 'Preview'] as const;
 type Step = (typeof steps)[number];
 
-const categoryOptions: { value: Category; label: string }[] = [
-  { value: 'human-hair', label: 'Human Hair' },
-  { value: 'futura', label: 'Japanese Futura' },
-];
-
-const styleOptions: HairStyle[] = ['Straight', 'Body Wave', 'Deep Wave', 'Curly', 'Bob'];
+const ADD_NEW_VALUE = '__add_new__';
 
 const inputClass =
   'w-full border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-ink/40 focus:border-chestnut focus:outline-none';
@@ -33,13 +39,24 @@ export default function NewProductPage() {
   const step: Step = steps[stepIndex];
   const [submitting, setSubmitting] = useState(false);
 
+  // ── Basic Info ──────────────────────────────────────────────────────────
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<Category | ''>('');
-  const [style, setStyle] = useState<HairStyle | ''>('');
 
+  const [categories, setCategories] = useState<DashboardCategory[]>([]);
+  const [categoryId, setCategoryId] = useState('');
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [addingCategory, setAddingCategory] = useState(false);
+
+  const [hairstyles, setHairstyles] = useState<DashboardHairStyle[]>([]);
+  const [hairstyleId, setHairstyleId] = useState('');
+  const [showAddHairstyle, setShowAddHairstyle] = useState(false);
+  const [addingHairstyle, setAddingHairstyle] = useState(false);
+
+  // ── Images ───────────────────────────────────────────────────────────────
   const [images, setImages] = useState<ImagePreview[]>([]);
 
+  // ── Pricing & Stock ──────────────────────────────────────────────────────
   const [price, setPrice] = useState('');
   const [compareAtPrice, setCompareAtPrice] = useState('');
   const [stock, setStock] = useState('');
@@ -47,15 +64,73 @@ export default function NewProductPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // ── Load categories & hairstyles from backend ────────────────────────────
   useEffect(() => {
-    // Revoke object URLs on unmount so previews don't leak memory.
-    return () => images.forEach((image) => URL.revokeObjectURL(image.url));
+    fetchDashboardCategories()
+      .then(setCategories)
+      .catch(() => {/* auth redirect will handle this */});
+    fetchDashboardHairStyles()
+      .then(setHairstyles)
+      .catch(() => {});
+  }, []);
+
+  // Revoke preview object URLs on unmount
+  useEffect(() => {
+    return () => images.forEach((img) => URL.revokeObjectURL(img.url));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Category add ─────────────────────────────────────────────────────────
+  const handleCategorySelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    if (event.target.value === ADD_NEW_VALUE) {
+      setShowAddCategory(true);
+    } else {
+      setCategoryId(event.target.value);
+      setShowAddCategory(false);
+    }
+  };
+
+  const handleAddCategory = useCallback(async (newName: string) => {
+    setAddingCategory(true);
+    try {
+      const created = await createDashboardCategory(newName);
+      setCategories((prev) => [...prev, created]);
+      setCategoryId(String(created.id));
+      setShowAddCategory(false);
+    } finally {
+      setAddingCategory(false);
+    }
+  }, []);
+
+  // ── Hairstyle add ─────────────────────────────────────────────────────────
+  const handleHairstyleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    if (event.target.value === ADD_NEW_VALUE) {
+      setShowAddHairstyle(true);
+    } else {
+      setHairstyleId(event.target.value);
+      setShowAddHairstyle(false);
+    }
+  };
+
+  const handleAddHairstyle = useCallback(async (newName: string) => {
+    setAddingHairstyle(true);
+    try {
+      const created = await createDashboardHairStyle(newName);
+      setHairstyles((prev) => [...prev, created]);
+      setHairstyleId(String(created.id));
+      setShowAddHairstyle(false);
+    } finally {
+      setAddingHairstyle(false);
+    }
+  }, []);
+
+  // ── Image handling ────────────────────────────────────────────────────────
   const handleFiles = (fileList: FileList | null) => {
     if (!fileList) return;
-    const next = Array.from(fileList).map((file) => ({ file, url: URL.createObjectURL(file) }));
+    const next = Array.from(fileList).map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
     setImages((prev) => [...prev, ...next]);
   };
 
@@ -66,19 +141,19 @@ export default function NewProductPage() {
     });
   };
 
+  // ── Validation ────────────────────────────────────────────────────────────
   const validateStep = (target: Step) => {
     const next: Record<string, string> = {};
     if (target === 'Basic Info') {
       if (!name.trim()) next.name = 'Enter a product name.';
-      if (!category) next.category = 'Select a category.';
-      if (!style) next.style = 'Select a style.';
+      if (!categoryId) next.category = 'Select a category.';
     }
     if (target === 'Images' && images.length === 0) {
       next.images = 'Add at least one product photo.';
     }
     if (target === 'Pricing & Stock') {
       if (!price || Number(price) <= 0) next.price = 'Enter a selling price.';
-      if (!stock || Number(stock) < 0) next.stock = 'Enter the stock quantity.';
+      if (stock === '' || Number(stock) < 0) next.stock = 'Enter the stock quantity.';
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -92,8 +167,6 @@ export default function NewProductPage() {
   const goPrevious = () => setStepIndex((i) => Math.max(i - 1, 0));
 
   const goToStep = (index: number) => {
-    // Only allow jumping to a step you've already reached, or one step ahead
-    // (which re-validates the current step first).
     if (index <= stepIndex) {
       setStepIndex(index);
     } else if (validateStep(step)) {
@@ -101,25 +174,71 @@ export default function NewProductPage() {
     }
   };
 
+  // ── Submit ────────────────────────────────────────────────────────────────
   const handleCreate = async () => {
     if (!validateStep('Pricing & Stock')) {
       setStepIndex(2);
       return;
     }
     setSubmitting(true);
-    // No backend endpoint exists yet for creating products, so this simply
-    // confirms the flow and returns to the catalogue.
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    setSubmitting(false);
-    pushToast({ title: 'Product created.', body: `${name} was added to your catalogue.`, tone: 'success' });
-    router.push('/admin/products');
+    try {
+      // 1. Create the product record
+      const product = await createDashboardProduct({
+        name: name.trim(),
+        description: description.trim() || undefined,
+        category: Number(categoryId),
+        hairstyle: hairstyleId ? Number(hairstyleId) : null,
+        price: Number(price).toFixed(2),
+        previous_price: compareAtPrice ? Number(compareAtPrice).toFixed(2) : null,
+        stock_quantity: Number(stock),
+        is_featured: featured,
+        is_active: true,
+      });
+
+      // 2. Upload each image to Cloudinary then register with the backend
+      await Promise.all(
+        images.map(async (img, index) => {
+          try {
+            const uploaded = await uploadImageToCloudinary(img.file);
+            await createDashboardProductImage({
+              product: product.id,
+              image_url: uploaded.secureUrl,
+              public_id: uploaded.publicId,
+              width: uploaded.width ?? null,
+              height: uploaded.height ?? null,
+              format: uploaded.format ?? '',
+              sort_order: index,
+              is_primary: index === 0,
+            });
+          } catch {
+            // Non-fatal — product is created; user can add images later
+          }
+        })
+      );
+
+      pushToast({
+        title: 'Product created.',
+        body: `${name} was added to your catalogue.`,
+        tone: 'success',
+      });
+      router.push('/admin/products');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      pushToast({ title: 'Failed to create product.', body: message, tone: 'error' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const previewPrice = Number(price) || 0;
   const previewCompareAt = Number(compareAtPrice) || 0;
+  const selectedCategory = categories.find((c) => String(c.id) === categoryId);
+  const selectedHairstyle = hairstyles.find((h) => String(h.id) === hairstyleId);
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <p className="label-luxe text-chestnut">Products</p>
@@ -130,6 +249,7 @@ export default function NewProductPage() {
         </p>
       </div>
 
+      {/* Step indicators */}
       <div className="flex items-center gap-4 overflow-x-auto border-b border-ink/10 pb-3">
         {steps.map((label, index) => {
           const active = index === stepIndex;
@@ -141,13 +261,19 @@ export default function NewProductPage() {
               onClick={() => goToStep(index)}
               className={cx(
                 'flex shrink-0 items-center gap-2 border-b-2 pb-2 text-sm transition-colors duration-200',
-                active ? 'border-chestnut text-chestnut' : 'border-transparent text-ink/45 hover:text-ink/70'
+                active
+                  ? 'border-chestnut text-chestnut'
+                  : 'border-transparent text-ink/45 hover:text-ink/70'
               )}
             >
               <span
                 className={cx(
                   'flex h-5 w-5 items-center justify-center rounded-full text-[11px]',
-                  done ? 'bg-chestnut text-white' : active ? 'border border-chestnut text-chestnut' : 'border border-ink/25'
+                  done
+                    ? 'bg-chestnut text-white'
+                    : active
+                      ? 'border border-chestnut text-chestnut'
+                      : 'border border-ink/25'
                 )}
               >
                 {done ? <CheckIcon width={11} height={11} /> : index + 1}
@@ -158,82 +284,116 @@ export default function NewProductPage() {
         })}
       </div>
 
+      {/* Step content */}
       <div className="border border-ink/10 bg-white p-5 sm:p-6">
+
+        {/* ── STEP 1: Basic Info ─────────────────────────────────────────── */}
         {step === 'Basic Info' && (
           <div className="max-w-2xl space-y-5">
             <h2 className="font-serif text-lg text-ink">Basic Information</h2>
+
+            {/* Name */}
             <div>
-              <label className={labelClass} htmlFor="product-name">
-                Product Name
-              </label>
+              <label className={labelClass} htmlFor="product-name">Product Name</label>
               <input
                 id="product-name"
                 className={inputClass}
                 placeholder="e.g. Luxury Body Wave"
                 value={name}
-                onChange={(event) => setName(event.target.value)}
+                onChange={(e) => setName(e.target.value)}
               />
               {errors.name && <p className="mt-1.5 text-xs text-red-700">{errors.name}</p>}
             </div>
 
+            {/* Description */}
             <div>
-              <label className={labelClass} htmlFor="product-description">
-                Description
-              </label>
+              <label className={labelClass} htmlFor="product-description">Description</label>
               <textarea
                 id="product-description"
                 rows={5}
                 className={cx(inputClass, 'resize-y')}
                 placeholder="Describe the piece — texture, finish, what makes it stand out."
                 value={description}
-                onChange={(event) => setDescription(event.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </div>
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              {/* Category */}
               <div>
-                <label className={labelClass} htmlFor="product-category">
-                  Category
-                </label>
+                <label className={labelClass} htmlFor="product-category">Category</label>
                 <select
                   id="product-category"
                   className={inputClass}
-                  value={category}
-                  onChange={(event) => setCategory(event.target.value as Category)}
+                  value={showAddCategory ? ADD_NEW_VALUE : categoryId}
+                  onChange={handleCategorySelectChange}
+                  disabled={addingCategory}
                 >
                   <option value="">— Select a category —</option>
-                  {categoryOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
+                  <option value={ADD_NEW_VALUE} className="font-semibold text-chestnut">
+                    + Add missing category
+                  </option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={String(cat.id)}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>
-                {errors.category && <p className="mt-1.5 text-xs text-red-700">{errors.category}</p>}
+                {showAddCategory && (
+                  <InlineAddPanel
+                    label="Category"
+                    placeholder="e.g. Lace Front, Bob, Braids…"
+                    isCreating={addingCategory}
+                    onConfirm={handleAddCategory}
+                    onCancel={() => {
+                      setShowAddCategory(false);
+                      setCategoryId('');
+                    }}
+                  />
+                )}
+                {errors.category && (
+                  <p className="mt-1.5 text-xs text-red-700">{errors.category}</p>
+                )}
               </div>
 
+              {/* Hairstyle */}
               <div>
-                <label className={labelClass} htmlFor="product-style">
-                  Style
-                </label>
+                <label className={labelClass} htmlFor="product-hairstyle">Hairstyle</label>
                 <select
-                  id="product-style"
+                  id="product-hairstyle"
                   className={inputClass}
-                  value={style}
-                  onChange={(event) => setStyle(event.target.value as HairStyle)}
+                  value={showAddHairstyle ? ADD_NEW_VALUE : hairstyleId}
+                  onChange={handleHairstyleSelectChange}
+                  disabled={addingHairstyle}
                 >
-                  <option value="">— Select a style —</option>
-                  {styleOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
+                  <option value="">— Select a hairstyle —</option>
+                  <option value={ADD_NEW_VALUE} className="font-semibold text-chestnut">
+                    + Add missing hairstyle
+                  </option>
+                  {hairstyles.map((hs) => (
+                    <option key={hs.id} value={String(hs.id)}>
+                      {hs.name}
                     </option>
                   ))}
                 </select>
-                {errors.style && <p className="mt-1.5 text-xs text-red-700">{errors.style}</p>}
+                {showAddHairstyle && (
+                  <InlineAddPanel
+                    label="Hairstyle"
+                    placeholder="e.g. Straight, Body Wave, Curly…"
+                    isCreating={addingHairstyle}
+                    onConfirm={handleAddHairstyle}
+                    onCancel={() => {
+                      setShowAddHairstyle(false);
+                      setHairstyleId('');
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>
         )}
 
+        {/* ── STEP 2: Images ────────────────────────────────────────────── */}
         {step === 'Images' && (
           <div className="max-w-2xl space-y-4">
             <h2 className="font-serif text-lg text-ink">Product Images</h2>
@@ -243,14 +403,16 @@ export default function NewProductPage() {
             >
               <UploadIcon width={22} height={22} className="text-ink/40" />
               <span className="text-sm text-chestnut underline underline-offset-4">Choose files</span>
-              <span className="text-xs text-ink/45">Upload product photos. Recommended: 1200x1200px</span>
+              <span className="text-xs text-ink/45">
+                Upload product photos. Recommended: 1200×1200 px
+              </span>
               <input
                 id="product-images"
                 type="file"
                 accept="image/*"
                 multiple
                 className="sr-only"
-                onChange={(event) => handleFiles(event.target.files)}
+                onChange={(e) => handleFiles(e.target.files)}
               />
             </label>
             {errors.images && <p className="text-xs text-red-700">{errors.images}</p>}
@@ -259,7 +421,10 @@ export default function NewProductPage() {
               <>
                 <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                   {images.map((image, index) => (
-                    <div key={image.url} className="group relative aspect-square overflow-hidden border border-ink/10">
+                    <div
+                      key={image.url}
+                      className="group relative aspect-square overflow-hidden border border-ink/10"
+                    >
                       <img src={image.url} alt="" className="h-full w-full object-cover" />
                       {index === 0 && (
                         <span className="absolute top-1 left-1 bg-black px-1.5 py-0.5 text-[9px] tracking-wide text-white uppercase">
@@ -278,13 +443,15 @@ export default function NewProductPage() {
                   ))}
                 </div>
                 <p className="text-xs text-ink/45">
-                  {images.length} file{images.length === 1 ? '' : 's'} selected — first image is the primary display image.
+                  {images.length} file{images.length === 1 ? '' : 's'} selected — first image is
+                  the primary display image.
                 </p>
               </>
             )}
           </div>
         )}
 
+        {/* ── STEP 3: Pricing & Stock ───────────────────────────────────── */}
         {step === 'Pricing & Stock' && (
           <div className="max-w-2xl space-y-6">
             <div>
@@ -301,9 +468,11 @@ export default function NewProductPage() {
                     className={inputClass}
                     placeholder="0.00"
                     value={price}
-                    onChange={(event) => setPrice(event.target.value)}
+                    onChange={(e) => setPrice(e.target.value)}
                   />
-                  {errors.price && <p className="mt-1.5 text-xs text-red-700">{errors.price}</p>}
+                  {errors.price && (
+                    <p className="mt-1.5 text-xs text-red-700">{errors.price}</p>
+                  )}
                 </div>
                 <div>
                   <label className={labelClass} htmlFor="product-compare-price">
@@ -316,7 +485,7 @@ export default function NewProductPage() {
                     className={inputClass}
                     placeholder="0.00"
                     value={compareAtPrice}
-                    onChange={(event) => setCompareAtPrice(event.target.value)}
+                    onChange={(e) => setCompareAtPrice(e.target.value)}
                   />
                 </div>
               </div>
@@ -333,9 +502,11 @@ export default function NewProductPage() {
                 className={cx(inputClass, 'max-w-xs')}
                 placeholder="0"
                 value={stock}
-                onChange={(event) => setStock(event.target.value)}
+                onChange={(e) => setStock(e.target.value)}
               />
-              {errors.stock && <p className="mt-1.5 text-xs text-red-700">{errors.stock}</p>}
+              {errors.stock && (
+                <p className="mt-1.5 text-xs text-red-700">{errors.stock}</p>
+              )}
             </div>
 
             <label className="flex items-center justify-between border border-ink/10 bg-cream/40 px-4 py-3">
@@ -346,49 +517,43 @@ export default function NewProductPage() {
               <input
                 type="checkbox"
                 checked={featured}
-                onChange={(event) => setFeatured(event.target.checked)}
+                onChange={(e) => setFeatured(e.target.checked)}
                 className="h-5 w-5 accent-chestnut"
               />
             </label>
           </div>
         )}
 
+        {/* ── STEP 4: Preview ───────────────────────────────────────────── */}
         {step === 'Preview' && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_260px]">
             <div className="space-y-3 text-sm text-ink/70">
               <h2 className="font-serif text-lg text-ink">Review before publishing</h2>
               <dl className="space-y-2">
-                <div className="flex gap-2">
-                  <dt className="w-32 shrink-0 text-ink/45">Name</dt>
-                  <dd>{name || '—'}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="w-32 shrink-0 text-ink/45">Category</dt>
-                  <dd>{categoryOptions.find((option) => option.value === category)?.label || '—'}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="w-32 shrink-0 text-ink/45">Style</dt>
-                  <dd>{style || '—'}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="w-32 shrink-0 text-ink/45">Price</dt>
-                  <dd>{formatKsh(previewPrice)}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="w-32 shrink-0 text-ink/45">Stock</dt>
-                  <dd>{stock || '0'} units</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="w-32 shrink-0 text-ink/45">Featured</dt>
-                  <dd>{featured ? 'Yes' : 'No'}</dd>
-                </div>
+                {[
+                  ['Name', name || '—'],
+                  ['Category', selectedCategory?.name || '—'],
+                  ['Hairstyle', selectedHairstyle?.name || '—'],
+                  ['Price', formatKsh(previewPrice)],
+                  ['Stock', `${stock || '0'} units`],
+                  ['Featured', featured ? 'Yes' : 'No'],
+                ].map(([dt, dd]) => (
+                  <div key={dt} className="flex gap-2">
+                    <dt className="w-32 shrink-0 text-ink/45">{dt}</dt>
+                    <dd>{dd}</dd>
+                  </div>
+                ))}
               </dl>
             </div>
 
             <div className="border border-ink/10 bg-white">
               <div className="relative aspect-square bg-cream">
                 {images[0] ? (
-                  <img src={images[0].url} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={images[0].url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-ink/25">
                     <ImageIcon width={32} height={32} />
@@ -401,12 +566,18 @@ export default function NewProductPage() {
                 )}
               </div>
               <div className="p-3">
-                <p className="line-clamp-2 text-sm font-medium text-ink">{name || 'Product Name'}</p>
+                <p className="line-clamp-2 text-sm font-medium text-ink">
+                  {name || 'Product Name'}
+                </p>
                 <div className="mt-1.5 flex items-baseline gap-2">
                   {previewCompareAt > 0 && (
-                    <span className="text-xs text-ink/40 line-through">{formatKsh(previewCompareAt)}</span>
+                    <span className="text-xs text-ink/40 line-through">
+                      {formatKsh(previewCompareAt)}
+                    </span>
                   )}
-                  <span className="text-sm font-semibold text-chestnut">{formatKsh(previewPrice)}</span>
+                  <span className="text-sm font-semibold text-chestnut">
+                    {formatKsh(previewPrice)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -414,6 +585,7 @@ export default function NewProductPage() {
         )}
       </div>
 
+      {/* Navigation */}
       <div className="flex items-center justify-between">
         <button
           type="button"
@@ -422,6 +594,7 @@ export default function NewProductPage() {
         >
           {stepIndex === 0 ? 'Cancel' : 'Previous'}
         </button>
+
         {step === 'Preview' ? (
           <button
             type="button"
