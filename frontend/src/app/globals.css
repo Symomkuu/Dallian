@@ -1,0 +1,73 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+:root {
+  --ease-luxe: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: #f8f1e5;
+  color: #171313;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+*:focus-visible {
+  outline: 2px solid #d4a72c;
+  outline-offset: 2px;
+}
+
+.label-luxe {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.rule-gold {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(212, 167, 44, 0) 0%,
+    rgba(212, 167, 44, 0.9) 50%,
+    rgba(212, 167, 44, 0) 100%
+  );
+}
+
+.skeleton {
+  background-color: rgba(122, 63, 43, 0.08);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
