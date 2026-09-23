@@ -25,7 +25,7 @@ def generate_unique_slug(model, name):
 
 
 def assign_slug(instance):
-    """Give a Category, Brand or Product its slug if it doesn't have one yet.
+    """Give a Category, HairStyle or Product its slug if it doesn't have one yet.
 
     Call this before the first `save()`. An existing slug is never changed,
     so renaming something doesn't break links people have already shared.

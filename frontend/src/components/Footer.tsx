@@ -9,10 +9,10 @@ const columns = [
   {
     heading: 'SHOP',
     links: [
-      { label: 'Human Hair', to: '/shop?category=human-hair' },
-      { label: 'Japanese Futura', to: '/shop?category=futura' },
-      { label: 'New Arrivals', to: '/shop?sort=newest' },
-      { label: 'Featured', to: '/shop?badge=featured' },
+      { label: 'Human Hair', to: '/?category=human-hair' },
+      { label: 'Japanese Futura', to: '/?category=futura' },
+      { label: 'New Arrivals', to: '/?sort=newest' },
+      { label: 'Featured', to: '/?badge=featured' },
     ],
   },
   {

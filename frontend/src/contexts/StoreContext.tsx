@@ -1,7 +1,25 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import type { CartItem, Order, Product } from '../types';
+import {
+  fetchCurrentUser,
+  login as apiLogin,
+  logout as apiLogout,
+  registerCustomer,
+  resendVerificationCode,
+  verifyEmail as apiVerifyEmail,
+  type AuthUser,
+  type MessageResponse,
+  setCsrfTokenGetter,
+} from '../utils/api';
 
 interface ToastMessage {
   id: number;
@@ -39,13 +57,24 @@ interface StoreValue {
   toasts: ToastMessage[];
   pushToast: (toast: Omit<ToastMessage, 'id'>) => void;
   dismissToast: (id: number) => void;
-  user: { name: string; email: string } | null;
-  signIn: (name: string, email: string) => void;
-  signOut: () => void;
+  user: AuthUser | null;
+  authReady: boolean;
+  authLoading: boolean;
+  login: (email: string, password: string) => Promise<AuthUser>;
+  register: (fields: {
+    full_name: string;
+    email: string;
+    password: string;
+    phone?: string;
+  }) => Promise<{ email: string; message: string }>;
+  verifyEmail: (email: string, code: string) => Promise<AuthUser>;
+  resendCode: (email: string) => Promise<void>;
+  signOut: () => Promise<void>;
   lastOrder: Order | null;
   placeOrder: (order: Order) => void;
   discount: { code: string; amount: number } | null;
   applyDiscount: (code: string) => boolean;
+  csrfToken: string | null;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -58,9 +87,82 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
+
+  // Provide CSRF token to API client
+  useEffect(() => {
+    setCsrfTokenGetter(() => csrfToken);
+  }, [csrfToken]);
   const [discount, setDiscount] = useState<{ code: string; amount: number } | null>(null);
+
+  // On first load, see if the browser already carries a valid session cookie
+  // (e.g. the customer refreshed the page) and restore the user silently.
+  useEffect(() => {
+    let cancelled = false;
+    fetchCurrentUser()
+      .then((me) => {
+        if (!cancelled) setUser(me);
+      })
+      .catch(() => {
+        // Not logged in, or the session expired — that's fine, stay signed out.
+      })
+      .finally(() => {
+        if (!cancelled) setAuthReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
+    setAuthLoading(true);
+    try {
+      const response = await apiLogin({ email, password });
+      setCsrfToken(response.csrfToken);
+      const me = await fetchCurrentUser();
+      setUser(me);
+      return me;
+    } finally {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  const register = useCallback(
+    (fields: { full_name: string; email: string; password: string; phone?: string }) =>
+      registerCustomer(fields),
+    []
+  );
+
+  const verifyEmail = useCallback(async (email: string, code: string) => {
+    setAuthLoading(true);
+    try {
+      const response = await apiVerifyEmail({ email, code });
+      setCsrfToken(response.csrfToken);
+      const me = await fetchCurrentUser();
+      setUser(me);
+      return me;
+    } finally {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  const resendCode = useCallback(async (email: string) => {
+    await resendVerificationCode({ email });
+  }, []);
+
+  const signOut = useCallback(async () => {
+    try {
+      await apiLogout();
+    } catch {
+      // Even if the network call fails, clear the local session.
+    }
+    setUser(null);
+    setCsrfToken(null);
+  }, []);
 
   const pushToast = useCallback((toast: Omit<ToastMessage, 'id'>) => {
     const id = ++toastId;
@@ -190,12 +292,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     pushToast,
     dismissToast,
     user,
-    signIn: (name, email) => setUser({ name, email }),
-    signOut: () => setUser(null),
+    authReady,
+    authLoading,
+    login,
+    register,
+    verifyEmail,
+    resendCode,
+    signOut,
     lastOrder,
     placeOrder,
     discount,
     applyDiscount,
+    csrfToken,
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

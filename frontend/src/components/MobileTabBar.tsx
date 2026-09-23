@@ -10,8 +10,8 @@ export function MobileTabBar() {
   const { pathname } = useLocation();
 
   const items = [
-  { label: 'Home', to: '/', icon: HomeIcon },
-  { label: 'Shop', to: '/shop', icon: StoreIcon },
+  { label: 'Home', to: '/home', icon: HomeIcon },
+  { label: 'Shop', to: '/', icon: StoreIcon },
   { label: 'Saved', to: '/wishlist', icon: HeartIcon }];
 
 

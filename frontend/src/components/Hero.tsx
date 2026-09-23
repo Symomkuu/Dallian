@@ -48,7 +48,7 @@ export function Hero() {
 
           {/* CTA Buttons */}
           <div className="mt-8 flex flex-wrap gap-4">
-            <LinkButton to="/shop" variant="gold" size="lg">
+            <LinkButton to="/" variant="gold" size="lg">
               Shop Wigs
             </LinkButton>
             <LinkButton to="/categories" variant="onDark" size="lg">

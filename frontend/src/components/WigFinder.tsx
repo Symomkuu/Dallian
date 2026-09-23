@@ -301,7 +301,7 @@ export function WigFinder() {
                 </button>
 
                 <Link
-                  to="/shop"
+                  to="/"
                   className="text-xs font-semibold tracking-widest uppercase text-gray-400 transition-colors hover:text-[#C89D34]"
                 >
                   Browse Everything

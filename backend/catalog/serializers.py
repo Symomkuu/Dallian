@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 
-from catalog.models import Brand, Category, Product, ProductImage
+from catalog.models import Category, HairStyle, Product, ProductImage
 from catalog.services import add_product_image, assign_slug, set_primary_image
 
 
@@ -17,11 +17,11 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ("id", "name", "slug", "image_url")
 
 
-class BrandSerializer(serializers.ModelSerializer):
-    """Public representation of a brand."""
+class HairStyleSerializer(serializers.ModelSerializer):
+    """Public representation of a hairstyle."""
 
     class Meta:
-        model = Brand
+        model = HairStyle
         fields = ("id", "name", "slug", "logo_url")
 
 
@@ -37,7 +37,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     """Product as shown in the storefront list or grid: no description, one image."""
 
     category = CategorySerializer(read_only=True)
-    brand = BrandSerializer(read_only=True)
+    hairstyle = HairStyleSerializer(read_only=True)
     primary_image = serializers.SerializerMethodField()
     in_stock = serializers.SerializerMethodField()
 
@@ -48,7 +48,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "name",
             "slug",
             "category",
-            "brand",
+            "hairstyle",
             "price",
             "previous_price",
             "primary_image",
@@ -105,11 +105,11 @@ class CategoryAdminSerializer(serializers.ModelSerializer):
         return category
 
 
-class BrandAdminSerializer(serializers.ModelSerializer):
-    """Full brand representation for the dashboard. The slug is generated, not typed."""
+class HairStyleAdminSerializer(serializers.ModelSerializer):
+    """Full hairstyle representation for the dashboard. The slug is generated, not typed."""
 
     class Meta:
-        model = Brand
+        model = HairStyle
         fields = (
             "id",
             "name",
@@ -126,10 +126,10 @@ class BrandAdminSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Assign the slug before creating."""
-        brand = Brand(**validated_data)
-        assign_slug(brand)
-        brand.save()
-        return brand
+        hairstyle = HairStyle(**validated_data)
+        assign_slug(hairstyle)
+        hairstyle.save()
+        return hairstyle
 
 
 class ProductImageAdminSerializer(serializers.ModelSerializer):
@@ -184,7 +184,7 @@ class ProductAdminSerializer(serializers.ModelSerializer):
             "name",
             "slug",
             "category",
-            "brand",
+            "hairstyle",
             "sku",
             "description",
             "price",

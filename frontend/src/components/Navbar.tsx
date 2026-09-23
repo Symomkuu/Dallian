@@ -19,10 +19,8 @@ import { Logo } from './Logo';
 import { SearchOverlay } from './SearchOverlay';
 
 const navLinks = [
-  { label: 'Home', to: '/' },
-  { label: 'Shop', to: '/shop' },
-  { label: 'Human Hair', to: '/shop?category=human-hair' },
-  { label: 'Japanese Futura', to: '/shop?category=futura' },
+  { label: 'Home', to: '/home' },
+  { label: 'Shop', to: '/' },
   { label: 'Wig Care', to: '/wig-care' },
   { label: 'About Us', to: '/about' },
   { label: 'Contact', to: '/contact' },
@@ -130,7 +128,7 @@ export function Navbar() {
               )}
             </button>
             <Link
-              href={user ? '/account' : '/login'}
+              href={user ? (user.role === 'staff' ? '/admin/dashboard' : '/customer/dashboard') : '/login'}
               aria-label={user ? 'My account' : 'Sign in'}
               className="hidden p-2.5 text-ink transition-colors duration-200 hover:text-chestnut sm:block"
             >
