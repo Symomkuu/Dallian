@@ -30,7 +30,7 @@ export default function LoginPage() {
       const me = await login(email, password);
       pushToast({ title: 'Signed in.', body: 'Welcome back to Dallian Luxe Hair.', tone: 'success' });
       // The backend tells us the role; staff go to the dashboard, customers to their account.
-      router.push(me.role === 'staff' ? '/admin/dashboard' : '/account');
+      router.push(me.role === 'staff' ? '/admin/dashboard' : '/customer/dashboard');
     } catch (error) {
       if (error instanceof ApiError && error.payload?.code === 'email_not_verified') {
         pushToast({ title: 'Please verify your email first.', tone: 'error' });

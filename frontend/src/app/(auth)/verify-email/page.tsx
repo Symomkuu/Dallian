@@ -36,7 +36,7 @@ export default function VerifyEmailPage() {
     try {
       await verifyEmail(email, code.trim());
       pushToast({ title: 'Email verified.', body: 'Welcome to Dallian Luxe Hair.', tone: 'success' });
-      router.push('/account');
+      router.push('/customer/dashboard');
     } catch (error) {
       const message =
         error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';

@@ -8,13 +8,14 @@ import { CartDrawer } from '@/components/CartDrawer';
 
 /**
  * Wraps every page with the storefront chrome (nav, footer, cart drawer) —
- * except admin routes, which render their own sidebar/header instead.
+ * except admin/customer dashboard routes, which render their own
+ * sidebar/header instead.
  */
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith('/admin');
+  const hasOwnChrome = pathname?.startsWith('/admin') || pathname?.startsWith('/customer');
 
-  if (isAdmin) {
+  if (hasOwnChrome) {
     return <>{children}</>;
   }
 

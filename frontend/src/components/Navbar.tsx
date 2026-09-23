@@ -128,7 +128,7 @@ export function Navbar() {
               )}
             </button>
             <Link
-              href={user ? '/account' : '/login'}
+              href={user ? (user.role === 'staff' ? '/admin/dashboard' : '/customer/dashboard') : '/login'}
               aria-label={user ? 'My account' : 'Sign in'}
               className="hidden p-2.5 text-ink transition-colors duration-200 hover:text-chestnut sm:block"
             >
