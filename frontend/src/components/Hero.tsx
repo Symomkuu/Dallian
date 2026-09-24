@@ -4,7 +4,7 @@ import { LinkButton } from './ui/Button';
 
 export function Hero() {
   return (
-    <section aria-labelledby="hero-heading" className="relative min-h-[85vh] w-full overflow-hidden bg-black text-white">
+    <section aria-labelledby="hero-heading" className="relative min-h-[60vh] w-full overflow-hidden bg-black text-white sm:min-h-[65vh] lg:min-h-[68vh]">
       {/* Hero Model Image */}
       <img
         src={imagery.hero}
@@ -19,20 +19,20 @@ export function Hero() {
       />
 
       {/* Content Container */}
-      <div className="relative mx-auto flex min-h-[85vh] max-w-page flex-col justify-center px-6 py-20 sm:px-12 lg:px-16">
+      <div className="relative mx-auto flex min-h-[60vh] max-w-page flex-col justify-center px-5 py-12 sm:min-h-[65vh] sm:px-12 sm:py-16 lg:min-h-[68vh] lg:px-16 lg:py-20">
         <div className="max-w-xl">
           {/* Subtle Accent Gold Rule */}
-          <div className="mb-6 h-[1px] w-12 bg-amber-400/70" />
+          <div className="mb-4 h-[1px] w-10 bg-amber-400/70 sm:mb-6 sm:w-12" />
 
           {/* Subtitle / Brand Label */}
-          <p className="text-[11px] font-medium tracking-[0.25em] uppercase text-amber-300/90">
+          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-amber-300/90 sm:text-[11px] sm:tracking-[0.25em]">
             Dallian Luxe Hair
           </p>
 
           {/* Heading */}
           <h1
             id="hero-heading"
-            className="mt-4 font-serif text-4xl leading-[1.08] text-[#FAF8F5] sm:text-6xl lg:text-[4.25rem]"
+            className="mt-3 font-serif text-3xl leading-[1.1] text-[#FAF8F5] sm:mt-4 sm:text-5xl sm:leading-[1.08] lg:text-6xl"
           >
             Luxury Hair.
             <br />
@@ -42,12 +42,12 @@ export function Hero() {
           </h1>
 
           {/* Body Description */}
-          <p className="mt-5 max-w-md text-sm leading-relaxed text-neutral-300 sm:text-base">
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-neutral-300 sm:mt-5 sm:text-base">
             Discover premium human hair and Japanese Futura fibre wigs designed to elevate your look.
           </p>
 
           {/* CTA Buttons */}
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="mt-6 flex flex-wrap gap-3 sm:mt-8 sm:gap-4">
             <LinkButton to="/" variant="gold" size="lg">
               Shop Wigs
             </LinkButton>

@@ -1,19 +1,13 @@
-import React from 'react';
+'use client';
+
 import { Link } from '@/components/RouterCompat';
-import { faqs } from '../data/content';
-import { PageHeader } from '../components/PageHeader';
-import { Accordion } from '../components/ui/Accordion';
-import { LinkButton } from '../components/ui/Button';
+import { faqs } from '@/data/content';
+import { Accordion } from '@/components/ui/Accordion';
+import { LinkButton } from '@/components/ui/Button';
 
 export function FAQ() {
   return (
     <>
-      <PageHeader
-        eyebrow="Help Centre"
-        title="Frequently Asked Questions"
-        body="Answers to what customers ask most. Anything specific to your order is best confirmed with our team."
-        crumbs={[{ label: 'Home', to: '/' }, { label: 'FAQ' }]} />
-      
 
       <div className="mx-auto grid max-w-page gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[1.4fr_0.6fr] lg:gap-16 lg:py-14">
         <div>

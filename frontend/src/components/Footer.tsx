@@ -39,19 +39,19 @@ const columns = [
 export function Footer() {
   return (
     <footer className="bg-[#0A0A0A] text-white">
-      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-12 lg:py-20">
+      <div className="mx-auto max-w-7xl px-5 py-10 sm:px-6 sm:py-16 lg:px-12 lg:py-20">
         {/* Top Section: Logo & Columns */}
-        <div className="grid gap-12 lg:grid-cols-[1.5fr_repeat(3,1fr)]">
+        <div className="grid gap-8 lg:grid-cols-[1.5fr_repeat(3,1fr)] lg:gap-12">
           {/* Brand Info */}
           <div>
             <img
               src={brand.logo}
               alt={brand.name}
-              className="h-20 w-auto object-contain"
+              className="h-14 w-auto object-contain sm:h-20"
               loading="lazy"
             />
 
-            <h3 className="mt-6 font-serif text-2xl font-normal text-white">
+            <h3 className="mt-4 font-serif text-xl font-normal text-white sm:mt-6 sm:text-2xl">
               {brand.name}
             </h3>
             <p className="mt-1 text-sm italic text-[#C89D34]">
@@ -59,7 +59,7 @@ export function Footer() {
             </p>
 
             {/* Social Icons */}
-            <div className="mt-6 flex gap-2.5">
+            <div className="mt-4 flex gap-2.5 sm:mt-6">
               {/* Instagram SVG */}
               <a
                 href="#"
@@ -112,31 +112,33 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Navigation Columns */}
-          {columns.map((column) => (
-            <nav key={column.heading} aria-label={column.heading}>
-              <h4 className="text-[11px] font-semibold tracking-[0.25em] uppercase text-[#C89D34]">
-                {column.heading}
-              </h4>
-              <ul className="mt-6 space-y-3.5">
-                {column.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      to={link.to}
-                      className="text-sm text-white/80 transition-colors duration-200 hover:text-white"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
+          {/* Navigation Columns: 2-up on mobile, becomes 3 real grid cells at lg */}
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 sm:gap-8 lg:contents">
+            {columns.map((column) => (
+              <nav key={column.heading} aria-label={column.heading}>
+                <h4 className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#C89D34] sm:text-[11px] sm:tracking-[0.25em]">
+                  {column.heading}
+                </h4>
+                <ul className="mt-3 space-y-2.5 sm:mt-6 sm:space-y-3.5">
+                  {column.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        to={link.to}
+                        className="text-sm text-white/80 transition-colors duration-200 hover:text-white"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
+          </div>
         </div>
 
         {/* Middle Section: Contact Details */}
-        <div className="mt-16 border-t border-white/10 pt-8">
-          <div className="grid gap-6 text-sm text-white/80 sm:grid-cols-3 sm:items-center">
+        <div className="mt-10 border-t border-white/10 pt-6 sm:mt-16 sm:pt-8">
+          <div className="grid gap-4 text-sm text-white/80 sm:grid-cols-3 sm:items-center sm:gap-6">
             {/* Address */}
             <div className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#C89D34]" />
@@ -168,7 +170,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar: Copyright & Admin */}
-        <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-6 text-[11px] text-white/50 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-5 text-[11px] text-white/50 sm:mt-10 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pt-6">
           <p>© 2026 Dallian Luxe Hair. All rights reserved.</p>
           <Link
             to="/admin"
