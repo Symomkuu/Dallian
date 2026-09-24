@@ -80,11 +80,6 @@ export const trustPoints = [
   icon: 'headset'
 },
 {
-  title: 'Easy Order Tracking',
-  body: 'Follow your order from confirmation to delivery with your order number and phone or email.',
-  icon: 'truck'
-},
-{
   title: 'Physical Store Location',
   body: 'Visit us at Mountain Mall, Thika Road, Nairobi to see and try pieces in person.',
   icon: 'store'

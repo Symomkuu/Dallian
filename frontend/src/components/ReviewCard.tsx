@@ -13,7 +13,7 @@ export function ReviewCard({ review, onDark = true }: ReviewCardProps) {
   return (
     <article
       className={cx(
-        'flex h-full flex-col justify-between border p-7 transition-colors duration-200',
+        'flex h-full flex-col justify-between border p-5 transition-colors duration-200 sm:p-7',
         onDark
           ? 'border-white/10 bg-[#121111] text-white'
           : 'border-ink/10 bg-white text-ink'
@@ -23,29 +23,46 @@ export function ReviewCard({ review, onDark = true }: ReviewCardProps) {
         {/* Star Rating & Numeric Score */}
         <div className="flex items-center gap-2">
           <StarRating rating={review.rating} />
-          <span className="text-xs text-white/20">
+          <span className={cx('text-xs', onDark ? 'text-white/40' : 'text-ink/40')}>
             {review.rating.toFixed(1)}
           </span>
         </div>
 
         {/* Title */}
-        <h3 className="mt-5 font-serif text-xl font-normal text-white">
+        <h3
+          className={cx(
+            'mt-4 font-serif text-lg font-normal sm:mt-5 sm:text-xl',
+            onDark ? 'text-white' : 'text-ink'
+          )}
+        >
           {review.title}
         </h3>
 
         {/* Quote / Body */}
-        <p className="mt-3 text-sm leading-relaxed text-gray-300/90">
+        <p
+          className={cx(
+            'mt-2.5 text-sm leading-relaxed sm:mt-3',
+            onDark ? 'text-gray-300/90' : 'text-ink/70'
+          )}
+        >
           “{review.body}”
         </p>
       </div>
 
       {/* Footer Info */}
-      <div className="mt-8 pt-2">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 font-normal text-gray-300">
+      <div className="mt-6 pt-2 sm:mt-8">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
+          <div
+            className={cx(
+              'flex items-center gap-1.5 font-normal',
+              onDark ? 'text-gray-300' : 'text-ink/70'
+            )}
+          >
             <span>{review.author}</span>
-            <span className="text-gray-600">·</span>
-            <span className="text-gray-400">{review.location}</span>
+            <span className={onDark ? 'text-gray-600' : 'text-ink/30'}>·</span>
+            <span className={onDark ? 'text-gray-400' : 'text-ink/50'}>
+              {review.location}
+            </span>
           </div>
 
           {review.verified && (
@@ -57,7 +74,7 @@ export function ReviewCard({ review, onDark = true }: ReviewCardProps) {
         </div>
 
         {/* Date */}
-        <p className="mt-1.5 text-[11px] text-gray-500">
+        <p className={cx('mt-1.5 text-[11px]', onDark ? 'text-gray-500' : 'text-ink/40')}>
           {formatDate(review.date)}
         </p>
       </div>

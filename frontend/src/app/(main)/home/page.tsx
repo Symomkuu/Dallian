@@ -24,7 +24,6 @@ import { Hero } from '@/components/Hero';
 import { CategoryCard } from '@/components/CategoryCard';
 import { ProductGrid } from '@/components/ProductGrid';
 import { SectionHeading } from '@/components/SectionHeading';
-import { WigFinder } from '@/components/WigFinder';
 import { ReviewCard } from '@/components/ReviewCard';
 import { LinkButton } from '@/components/ui/Button';
 
@@ -84,25 +83,25 @@ export default function Home() {
       {/* SHOP BY CATEGORY SECTION */}
       <section
         aria-labelledby="categories-heading"
-        className="w-full bg-[#FAF7F2] py-16 sm:py-24"
+        className="w-full bg-[#FAF7F2] py-10 sm:py-16 lg:py-16"
       >
-        <div className="mx-auto max-w-page px-5 sm:px-8">
+        <div className="mx-auto max-w-page px-4 sm:px-8">
           <div className="max-w-2xl">
-            <p className="text-[11px] font-semibold tracking-[0.25em] uppercase text-[#C89D34]">
+            <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
               Shop by Category
             </p>
             <h2
               id="categories-heading"
-              className="mt-3 font-serif text-3xl font-normal leading-tight text-ink sm:text-4xl lg:text-5xl"
+              className="mt-2 font-serif text-2xl font-normal leading-tight text-ink sm:mt-3 sm:text-4xl lg:text-5xl"
             >
               Two ranges, one standard of finish
             </h2>
-            <p className="mt-4 text-sm leading-relaxed text-ink/70 sm:text-base">
+            <p className="mt-3 text-sm leading-relaxed text-ink/70 sm:mt-4 sm:text-base">
               Choose the range that suits how you wear your hair — real human hair you can style freely, or Japanese Futura fibre that holds its shape with almost no effort.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6">
             <CategoryCard
               eyebrow="Range 01"
               title={categoryMeta['human-hair'].label}
@@ -129,15 +128,15 @@ export default function Home() {
         aria-labelledby="featured-heading"
         className="border-y border-ink/10 bg-white"
       >
-        <div className="mx-auto max-w-page px-5 py-16 sm:px-8 lg:py-24">
-          <div className="flex flex-wrap items-end justify-between gap-6">
+        <div className="mx-auto max-w-page px-4 py-10 sm:px-8 sm:py-16 lg:py-24">
+          <div className="flex flex-wrap items-end justify-between gap-4 sm:gap-6">
             <div>
-              <p className="text-[11px] font-semibold tracking-[0.25em] uppercase text-[#C89D34]">
+              <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
                 SIGNATURE
               </p>
               <h2
                 id="featured-heading"
-                className="mt-3 font-serif text-3xl font-normal leading-tight text-ink sm:text-4xl lg:text-5xl"
+                className="mt-2 font-serif text-2xl font-normal leading-tight text-ink sm:mt-3 sm:text-4xl lg:text-5xl"
               >
                 Shop Our Signature Collection
               </h2>
@@ -152,7 +151,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="mt-10">
+          <div className="mt-6 sm:mt-10">
             <ProductGrid products={featured} columns={3} />
           </div>
         </div>
@@ -163,53 +162,53 @@ export default function Home() {
         aria-labelledby="why-heading"
         className="bg-[#FAF6F0]"
       >
-        <div className="mx-auto max-w-page px-5 py-16 sm:px-8 lg:py-24">
+        <div className="mx-auto max-w-page px-4 py-10 sm:px-8 sm:py-16 lg:py-24">
           <div className="text-center">
-            <p className="text-[11px] font-semibold tracking-[0.25em] uppercase text-[#C89D34]">
+            <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
               WHY DALLIAN LUXE HAIR
             </p>
             <h2 
               id="why-heading"
-              className="mt-3 font-serif text-3xl font-normal leading-tight text-ink sm:text-4xl lg:text-5xl"
+              className="mt-2 font-serif text-2xl font-normal leading-tight text-ink sm:mt-3 sm:text-4xl lg:text-5xl"
             >
               Considered choices, from selection to delivery
             </h2>
           </div>
 
-          <ul className="mt-12 grid border border-[#1C1817]/10 bg-[#1C1817]/10 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-8 grid grid-cols-2 border border-[#1C1817]/10 bg-[#1C1817]/10 sm:mt-12 lg:grid-cols-3">
             {trustPoints.map((point) => {
               const Icon = trustIcons[point.icon];
 
               return (
                 <li
                   key={point.title}
-                  className="flex flex-col bg-[#FAF6F0] p-8"
+                  className="flex flex-col bg-[#FAF6F0] p-3.5 sm:p-8"
                 >
                   <Icon
-                    width={22}
-                    height={22}
-                    className="text-[#C89D34]"
+                    width={18}
+                    height={18}
+                    className="text-[#C89D34] sm:h-[22px] sm:w-[22px]"
                     strokeWidth={1.5}
                   />
 
-                  <h3 className="mt-6 font-serif text-xl font-normal text-[#1C1817]">
+                  <h3 className="mt-3 font-serif text-sm font-normal text-[#1C1817] sm:mt-6 sm:text-xl">
                     {point.title}
                   </h3>
 
-                  <p className="mt-3 text-sm leading-relaxed text-[#1C1817]/70">
+                  <p className="mt-1.5 text-xs leading-relaxed text-[#1C1817]/70 sm:mt-3 sm:text-sm">
                     {point.body}
                   </p>
                 </li>
               );
             })}
 
-            <li className="flex flex-col justify-between bg-[#43231C] p-8 text-white">
+            <li className="col-span-2 flex flex-col justify-between bg-[#43231C] p-5 text-white sm:p-8 lg:col-span-1">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C89D34]">
                   VISIT
                 </p>
 
-                <h3 className="mt-4 font-serif text-2xl font-normal leading-snug text-white">
+                <h3 className="mt-3 font-serif text-xl font-normal leading-snug text-white sm:mt-4 sm:text-2xl">
                   See the collection in person
                 </h3>
 
@@ -218,7 +217,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="mt-8">
+              <div className="mt-6 sm:mt-8">
                 <Link
                   href="/contact"
                   className="inline-block border border-[#C89D34] px-6 py-3 text-xs font-semibold uppercase tracking-widest text-white transition-colors duration-200 hover:bg-[#C89D34] hover:text-[#43231C]"
@@ -231,96 +230,28 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BEST SELLERS SECTION */}
-      <section
-        aria-labelledby="best-heading"
-        className="border-y border-ink/10 bg-white"
-      >
-        <div className="mx-auto max-w-page px-5 py-16 sm:px-8 lg:py-24">
-          <div className="mb-10">
-            <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#C89D34]">
-              BEST SELLERS
-            </span>
-            <h2
-              id="best-heading"
-              className="mt-2 font-serif text-3xl font-normal leading-tight text-ink sm:text-4xl lg:text-5xl"
-            >
-              The pieces our customers keep returning for
-            </h2>
-          </div>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {bestSellers.map((product) => {
-              const isLiked = wishlist.includes(product.id);
-
-              return (
-                <div key={product.id} className="relative group bg-[#FAF6F0]">
-                  <div className="relative aspect-[4/5] w-full">
-                    <img
-                      src={product.image || product.images?.[0]}
-                      alt={product.name}
-                      className="h-full w-full object-cover object-center"
-                    />
-
-                    {/* Best Seller Badge */}
-                    <span className="absolute top-3 left-3 bg-[#C89D34] px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase text-black">
-                      BEST SELLER
-                    </span>
-
-                    {/* Circle Heart Button */}
-                    <button
-                      type="button"
-                      onClick={() => toggleWishlist(product)}
-                      className={`absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
-                        isLiked ? "bg-black" : "bg-white"
-                      }`}
-                      aria-label="Wishlist"
-                    >
-                      <HeartIcon
-                        className={`h-4 w-4 ${
-                          isLiked
-                            ? "fill-[#C89D34] stroke-[#C89D34]"
-                            : "fill-none stroke-black"
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* WIG FINDER SECTION */}
-      <section
-        aria-label="Find your perfect wig"
-        className="mx-auto max-w-page px-5 py-16 sm:px-8 lg:py-24"
-      >
-        <WigFinder />
-      </section>
 
       {/* REVIEWS SECTION */}
       <section
         aria-labelledby="reviews-heading"
-        className="bg-[#0B0B0B] py-16 sm:py-24"
+        className="bg-[#0B0B0B] py-10 sm:py-16 lg:py-24"
       >
-        <div className="mx-auto max-w-page px-5 sm:px-8">
+        <div className="mx-auto max-w-page px-4 sm:px-8">
           {/* Yellow Section Label & Title */}
-          <div className="mb-10">
-            <p className="text-[11px] font-semibold tracking-[0.25em] uppercase text-[#C89D34]">
+          <div className="mb-6 sm:mb-10">
+            <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
               CUSTOMER REVIEWS
             </p>
             <h2
               id="reviews-heading"
-              className="mt-3 font-serif text-3xl font-normal leading-tight text-white sm:text-4xl lg:text-5xl"
+              className="mt-2 font-serif text-2xl font-normal leading-tight text-white sm:mt-3 sm:text-4xl lg:text-5xl"
             >
               In their words
             </h2>
           </div>
 
           {/* Cards Grid */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
             {published.map((review) => (
               <ReviewCard
                 key={review.id}
@@ -337,12 +268,12 @@ export default function Home() {
         aria-labelledby="care-heading"
         className="bg-cream"
       >
-        <div className="mx-auto grid max-w-page items-center gap-10 px-5 py-16 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:py-24">
+        <div className="mx-auto grid max-w-page items-center gap-6 px-4 py-10 sm:gap-10 sm:px-8 sm:py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
           <img
             src={imagery.care}
             alt="Wig care essentials arranged on a marble surface"
             loading="lazy"
-            className="aspect-[3/2] w-full object-cover"
+            className="aspect-[16/10] w-full object-cover sm:aspect-[3/2]"
           />
 
           <div>
@@ -352,11 +283,11 @@ export default function Home() {
               body="Washing, storage, detangling and curl maintenance — the routines that protect your investment, written for both human hair and Futura fibre."
             />
 
-            <ul className="mt-8 divide-y divide-ink/10 border-y border-ink/10">
+            <ul className="mt-6 divide-y divide-ink/10 border-y border-ink/10 sm:mt-8">
               {careGuide.slice(0, 4).map((topic) => (
                 <li
                   key={topic.title}
-                  className="py-3.5 text-sm text-ink/70"
+                  className="py-3 text-sm text-ink/70 sm:py-3.5"
                 >
                   {topic.title}
                 </li>
@@ -365,7 +296,7 @@ export default function Home() {
 
             <LinkButton
               to="/wig-care"
-              className="mt-8"
+              className="mt-6 sm:mt-8"
             >
               Read the Care Guide
             </LinkButton>
@@ -391,28 +322,28 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-page px-6 py-20 sm:px-12 lg:py-28">
+        <div className="relative z-10 mx-auto max-w-page px-5 py-12 sm:px-12 sm:py-20 lg:py-28">
           <div className="max-w-xl">
             {/* Label */}
-            <p className="text-[11px] font-semibold tracking-[0.25em] uppercase text-[#C89D34]">
+            <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
               VISIT OUR STORE
             </p>
 
             {/* Heading */}
             <h2
               id="store-heading"
-              className="mt-4 font-serif text-3xl font-normal text-white sm:text-4xl lg:text-5xl"
+              className="mt-3 font-serif text-2xl font-normal text-white sm:mt-4 sm:text-4xl lg:text-5xl"
             >
               Mountain Mall, Thika Road
             </h2>
 
             {/* Subtitle */}
-            <p className="mt-4 text-sm leading-relaxed text-white/80 sm:text-base">
+            <p className="mt-3 text-sm leading-relaxed text-white/80 sm:mt-4 sm:text-base">
               Try pieces on, compare lengths and colours in person, and get sizing advice from our team in Nairobi.
             </p>
 
             {/* Address & Hours */}
-            <div className="mt-8 space-y-3 text-sm text-white/90">
+            <div className="mt-6 space-y-3 text-sm text-white/90 sm:mt-8">
               {/* Address */}
               <div className="flex items-start gap-3">
                 <MapPinIcon className="mt-1 h-4 w-4 shrink-0 text-[#C89D34]" />
@@ -431,10 +362,10 @@ export default function Home() {
             </div>
 
             {/* CTA Buttons */}
-            <div className="mt-10 flex flex-wrap items-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center gap-3 sm:mt-10 sm:gap-4">
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center bg-[#C89D34] px-7 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase text-black transition-colors duration-200 hover:bg-[#b0872a]"
+                className="inline-flex items-center justify-center bg-[#C89D34] px-6 py-3 text-[11px] font-bold tracking-[0.2em] uppercase text-black transition-colors duration-200 hover:bg-[#b0872a] sm:px-7 sm:py-3.5"
               >
                 CONTACT US
               </Link>
@@ -443,7 +374,7 @@ export default function Home() {
                 href={`https://wa.me/${brand.phoneIntl}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center border border-[#C89D34]/80 bg-black/40 px-7 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase text-white backdrop-blur-sm transition-colors duration-200 hover:bg-[#C89D34] hover:text-black"
+                className="inline-flex items-center justify-center border border-[#C89D34]/80 bg-black/40 px-6 py-3 text-[11px] font-bold tracking-[0.2em] uppercase text-white backdrop-blur-sm transition-colors duration-200 hover:bg-[#C89D34] hover:text-black sm:px-7 sm:py-3.5"
               >
                 WHATSAPP 0792 11 42 92
               </a>
@@ -455,27 +386,27 @@ export default function Home() {
       {/* DALLIAN CIRCLE / NEWSLETTER SECTION */}
       <section
         aria-labelledby="newsletter-heading"
-        className="bg-[#50291f] px-6 py-20 text-center text-white sm:px-8 sm:py-24"
+        className="bg-[#50291f] px-5 py-12 text-center text-white sm:px-8 sm:py-24"
       >
         <div className="mx-auto max-w-2xl">
-          <p className="text-[11px] font-semibold tracking-[0.25em] uppercase text-[#D8A738]">
+          <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#D8A738] sm:text-[11px]">
             DALLIAN CIRCLE
           </p>
 
           <h2
             id="newsletter-heading"
-            className="mt-4 font-serif text-3xl font-normal sm:text-4xl lg:text-5xl"
+            className="mt-3 font-serif text-2xl font-normal sm:mt-4 sm:text-4xl lg:text-5xl"
           >
             New arrivals, first look
           </h2>
 
-          <p className="mt-4 text-sm leading-relaxed text-white/80 sm:text-base">
+          <p className="mt-3 text-sm leading-relaxed text-white/80 sm:mt-4 sm:text-base">
             Join our list for new collection drops and care tips. We only send what is worth opening.
           </p>
 
           <form
             onSubmit={handleSubscribe}
-            className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+            className="mt-6 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row"
           >
             <input
               type="email"
@@ -483,11 +414,11 @@ export default function Home() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email address"
               required
-              className="w-full max-w-md border border-white/20 bg-black/20 px-4 py-3.5 text-sm text-white placeholder-white/50 transition-colors focus:border-[#D8A738] focus:outline-none"
+              className="w-full max-w-md border border-white/20 bg-black/20 px-4 py-3 text-sm text-white placeholder-white/50 transition-colors focus:border-[#D8A738] focus:outline-none sm:py-3.5"
             />
             <button
               type="submit"
-              className="w-full sm:w-auto bg-[#D8A738] px-8 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase text-black transition-colors duration-200 hover:bg-[#c0932f]"
+              className="w-full sm:w-auto bg-[#D8A738] px-8 py-3 text-[11px] font-bold tracking-[0.2em] uppercase text-black transition-colors duration-200 hover:bg-[#c0932f] sm:py-3.5"
             >
               SUBSCRIBE
             </button>

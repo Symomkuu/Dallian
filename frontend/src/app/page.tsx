@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   SearchX as SearchXIcon,
@@ -25,6 +25,13 @@ const sortOptions = [
   { value: 'popular', label: 'Popular' },
 ];
 
+// Swap these for your own hero images (place files in /public)
+const heroImages = [
+  '/shop-hero.jpg',
+  '/shop-hero-2.jpg',
+  '/shop-hero-3.jpg',
+];
+
 function matchesLength(lengths: number[], buckets: string[]): boolean {
   if (buckets.length === 0) return true;
 
@@ -39,6 +46,76 @@ function matchesLength(lengths: number[], buckets: string[]): boolean {
 
     return Math.max(...lengths) >= 24;
   });
+}
+
+function ShopHero() {
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+
+    const id = setInterval(() => {
+      setActive((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <section className="relative isolate flex h-[260px] items-center overflow-hidden bg-ink sm:h-[320px] lg:h-[380px]">
+      {/* Carousel slides */}
+      {heroImages.map((src, index) => (
+        <img
+          key={src}
+          src={src}
+          alt=""
+          className={`absolute inset-0 h-full w-full object-cover object-[70%_20%] transition-opacity duration-1000 ease-in-out ${
+            index === active ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      ))}
+
+      {/* Dark gradient so the copy stays readable over the photo */}
+      <div className="absolute inset-0 bg-gradient-to-r from-ink/10 via-ink/55 to-ink/80" />
+
+      <div className="relative mx-auto w-full max-w-page px-5 sm:px-8">
+        <div className="ml-auto max-w-[85%] text-right sm:max-w-md lg:max-w-lg lg:pr-6">
+          <div className="mb-2 flex items-center justify-end gap-2 sm:mb-3 sm:gap-3">
+            <span className="h-px w-6 bg-gold sm:w-10" />
+            <span className="text-[10px] font-medium tracking-[0.25em] text-white/85 sm:text-xs sm:tracking-[0.3em]">
+              CROWN OF DISTINCTION
+            </span>
+          </div>
+
+          <h1 className="font-serif text-2xl italic leading-[1.15] text-white sm:text-3xl lg:text-5xl">
+            The Art of Unspoken Elegance
+          </h1>
+
+          <p className="mt-2 hidden text-sm leading-relaxed text-white/80 sm:mt-3 sm:block sm:text-base">
+            Curated HD lace frontals and premium human hair extensions
+            designed for the woman who demands excellence as a standard.
+          </p>
+        </div>
+      </div>
+
+      {/* Carousel dots */}
+      {heroImages.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-2 sm:bottom-4">
+          {heroImages.map((src, index) => (
+            <button
+              key={src}
+              type="button"
+              aria-label={`Show slide ${index + 1}`}
+              onClick={() => setActive(index)}
+              className={`h-1.5 rounded-full transition-all ${
+                index === active ? 'w-6 bg-gold' : 'w-1.5 bg-white/50'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
 }
 
 export default function ShopPage() {
@@ -187,7 +264,9 @@ export default function ShopPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-page gap-10 px-5 py-10 sm:px-8 lg:flex lg:py-14">
+      <ShopHero />
+
+      <div className="mx-auto max-w-page gap-8 px-4 pb-8 sm:gap-10 sm:px-8 sm:pb-10 lg:flex lg:pb-14">
         <aside className="hidden w-72 shrink-0 lg:block">
           <div className="sticky top-28">
             <ShopFilters
@@ -199,48 +278,38 @@ export default function ShopPage() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <div className="mb-6 flex items-center justify-between gap-4 border-b border-ink/10 pb-5">
-            <p className="text-sm text-ink/60">
-              {loading
-                ? 'Loading pieces…'
-                : `${results.length} ${
-                    results.length === 1 ? 'piece' : 'pieces'
-                  }`}
-            </p>
+          <div className="mb-4 flex items-center justify-between gap-3 py-3 lg:justify-end">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <SlidersHorizontalIcon width={14} height={14} />
+              Filters
+            </Button>
 
-            <div className="flex items-center gap-3">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="lg:hidden"
-                onClick={() => setDrawerOpen(true)}
-              >
-                <SlidersHorizontalIcon width={14} height={14} />
-                Filters
-              </Button>
-
-              <SelectField
-                label="Sort by"
-                hideLabel
-                value={sort}
-                options={sortOptions}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  setSort(value);
-                  updateParams({ sort: value });
-                }}
-                className="w-44"
-              />
-            </div>
+            <SelectField
+              label="Sort by"
+              hideLabel
+              value={sort}
+              options={sortOptions}
+              onChange={(event) => {
+                const value = event.target.value;
+                setSort(value);
+                updateParams({ sort: value });
+              }}
+              className="w-36 sm:w-44"
+            />
           </div>
 
           {!loading && results.length === 0 ? (
-            <div className="flex flex-col items-center justify-center border border-dashed border-ink/15 bg-white px-8 py-16 text-center">
+            <div className="flex flex-col items-center justify-center border border-dashed border-ink/15 bg-white px-6 py-14 text-center sm:px-8 sm:py-16">
               <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 text-chestnut">
                 <SearchXIcon width={22} height={22} />
               </div>
 
-              <h2 className="font-serif text-2xl text-ink">
+              <h2 className="font-serif text-xl text-ink sm:text-2xl">
                 No pieces match those filters
               </h2>
 
@@ -275,7 +344,7 @@ export default function ShopPage() {
             className="absolute inset-0 bg-ink/55"
           />
 
-          <div className="absolute bottom-0 left-0 right-0 max-h-[88vh] overflow-hidden bg-cream px-5 pb-6 pt-5 shadow-panel">
+          <div className="absolute bottom-0 left-0 right-0 max-h-[88vh] overflow-y-auto bg-cream px-4 pb-6 pt-5 shadow-panel sm:px-5">
             <ShopFilters
               value={filters}
               onChange={setFilters}

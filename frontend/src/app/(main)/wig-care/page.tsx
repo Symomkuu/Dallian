@@ -3,27 +3,20 @@
 import React from 'react';
 import { imagery } from '@/data/brand';
 import { careGuide } from '@/data/content';
-import { PageHeader } from '@/components/PageHeader';
 import { SectionHeading } from '@/components/SectionHeading';
 import { LinkButton } from '@/components/ui/Button';
 
 export default function WigCarePage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Education"
-        title="Wig Care Guide"
-        body="Looking after a wig well is mostly routine. These are the habits that keep a piece soft, full and wearable for far longer."
-        crumbs={[{ label: 'Home', to: '/' }, { label: 'Wig Care' }]} 
-      />
 
-      <section className="border-b border-ink/10 bg-white">
-        <div className="mx-auto grid max-w-page items-center gap-10 px-5 py-12 sm:px-8 lg:grid-cols-2 lg:gap-16">
+      <section className="border-b border-ink/10 bg-cream">
+        <div className="mx-auto grid max-w-page items-center gap-6 px-4 py-8 sm:gap-10 sm:px-8 sm:py-12 lg:grid-cols-2 lg:gap-16">
           <img
             src={imagery.care}
             alt="Wig care essentials — comb, spray bottle, satin bag and wig stand"
             loading="lazy"
-            className="aspect-[3/2] w-full object-cover" 
+            className="aspect-[16/10] w-full object-cover sm:aspect-[3/2]" 
           />
           
           <SectionHeading
@@ -34,13 +27,13 @@ export default function WigCarePage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-page px-5 py-12 sm:px-8 lg:py-16">
+      <div className="mx-auto max-w-page px-4 py-8 sm:px-8 sm:py-12 lg:py-16">
         <ol className="grid gap-px border border-ink/10 bg-ink/10 lg:grid-cols-2">
           {careGuide.map((topic, index) => (
-            <li key={topic.title} className="bg-cream p-8">
+            <li key={topic.title} className="bg-cream p-5 sm:p-8">
               <p className="label-luxe text-gold">Step {String(index + 1).padStart(2, '0')}</p>
-              <h2 className="mt-4 font-serif text-2xl leading-snug text-ink">{topic.title}</h2>
-              <ul className="mt-5 space-y-3">
+              <h2 className="mt-3 font-serif text-xl leading-snug text-ink sm:mt-4 sm:text-2xl">{topic.title}</h2>
+              <ul className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
                 {topic.steps.map((step) => (
                   <li key={step} className="flex gap-3 text-sm leading-relaxed text-ink/70">
                     <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-chestnut" aria-hidden="true" />
@@ -54,15 +47,15 @@ export default function WigCarePage() {
       </div>
 
       <section className="bg-chestnut-deep">
-        <div className="mx-auto flex max-w-page flex-col items-start gap-6 px-5 py-14 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mx-auto flex max-w-page flex-col items-start gap-5 px-4 py-10 sm:gap-6 sm:px-8 sm:py-14 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h2 className="font-serif text-2xl text-cream sm:text-3xl">Not sure which routine applies?</h2>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-cream/70">
+            <h2 className="font-serif text-xl text-cream sm:text-3xl">Not sure which routine applies?</h2>
+            <p className="mt-2.5 max-w-xl text-sm leading-relaxed text-cream/70 sm:mt-3">
               Human hair and Futura fibre are cared for differently. Tell us which piece you have and we will
               walk you through it.
             </p>
           </div>
-          <LinkButton to="/contact" variant="gold" size="lg" className="shrink-0">
+          <LinkButton to="/contact" variant="gold" size="lg" className="w-full shrink-0 sm:w-auto">
             Ask Our Team
           </LinkButton>
         </div>

@@ -5,7 +5,6 @@ import { Link } from '@/components/RouterCompat';
 import { MinusIcon, PlusIcon, ShoppingBagIcon } from 'lucide-react';
 import { useStore } from '@/contexts/StoreContext';
 import { formatKsh } from '@/utils/format';
-import { PageHeader } from '@/components/PageHeader';
 import { Button, LinkButton } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 
@@ -29,11 +28,6 @@ export function Cart() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Your Bag"
-        title="Shopping Cart"
-        crumbs={[{ label: 'Home', to: '/' }, { label: 'Cart' }]} 
-      />
 
       <div className="mx-auto max-w-page px-5 py-10 sm:px-8 lg:py-14">
         {activeCart.length === 0 ? (

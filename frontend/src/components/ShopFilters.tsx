@@ -69,10 +69,7 @@ export function ShopFilters({ value, onChange, onClose, resultCount }: ShopFilte
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-ink/10 pb-4">
-        <div>
-          <h2 className="font-serif text-xl text-ink">Filters</h2>
-          <p className="mt-0.5 text-xs text-ink/50">{resultCount} pieces</p>
-        </div>
+        <h2 className="font-serif text-xl text-ink">Filters</h2>
         <div className="flex items-center gap-3">
           {activeCount > 0 &&
           <button

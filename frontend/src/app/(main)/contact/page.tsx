@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { ClockIcon, MailIcon, MapPinIcon, MessageCircleIcon, PhoneIcon } from 'lucide-react';
 import { brand } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
-import { PageHeader } from '@/components/PageHeader';
 import { TextField } from '@/components/ui/TextField';
 import { Button } from '@/components/ui/Button';
 
@@ -33,13 +32,6 @@ export default function ContactPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Contact"
-        title="Talk to Dallian Luxe Hair"
-        body="Questions about sizing, colour, delivery or an existing order — our team is here during store hours."
-        crumbs={[{ label: 'Home', to: '/' }, { label: 'Contact' }]}
-      />
-
       <div className="mx-auto grid max-w-page gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16 lg:py-14">
         <aside>
           <div className="border border-ink/10 bg-white p-7">
@@ -104,7 +96,7 @@ export default function ContactPage() {
             </a>
           </div>
 
-          <div className="mt-5 border border-ink/10 bg-white">
+          <div className="mt-5 border border-ink/10 ">
             <div className="flex aspect-[4/3] flex-col items-center justify-center gap-3 bg-cream-deep p-8 text-center">
               <MapPinIcon width={22} height={22} className="text-chestnut" />
               <p className="font-serif text-lg text-ink">Mountain Mall, Thika Road</p>

@@ -5,10 +5,8 @@ import { useNavigate } from '@/components/RouterCompat';
 import { CheckIcon, CreditCardIcon, InfoIcon, SmartphoneIcon, StoreIcon, TruckIcon } from 'lucide-react';
 import { useStore } from '@/contexts/StoreContext';
 import { cx, formatKsh } from '@/utils/format';
-import { PageHeader } from '@/components/PageHeader';
 import { TextField } from '@/components/ui/TextField';
 import { Button } from '@/components/ui/Button';
-import { EmptyState } from '@/components/ui/EmptyState';
 
 const steps = ['Customer Information', 'Delivery', 'Payment'];
 
@@ -39,23 +37,6 @@ export default function CheckoutPage() {
   });
   const [delivery, setDelivery] = useState(deliveryOptions[1]);
   const [payment, setPayment] = useState(paymentOptions[0]);
-
-  if (activeCart.length === 0) {
-    return (
-      <>
-        <PageHeader eyebrow="Checkout" title="Checkout" crumbs={[{ label: 'Home', to: '/' }, { label: 'Checkout' }]} />
-        <div className="mx-auto max-w-page px-5 py-14 sm:px-8">
-          <EmptyState
-            icon={<TruckIcon width={22} height={22} />}
-            title="There is nothing to check out"
-            body="Add a piece to your bag first, then return here to complete your order."
-            actionLabel="Shop Wigs"
-            actionTo="/"
-          />
-        </div>
-      </>
-    );
-  }
 
   const discountAmount = discount ? Math.round(subtotal * discount.amount) : 0;
   const total = subtotal + delivery.fee - discountAmount;
@@ -114,7 +95,6 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Secure Checkout" title="Checkout" crumbs={[{ label: 'Home', to: '/' }, { label: 'Checkout' }]} />
 
       <div className="mx-auto max-w-page px-5 py-10 sm:px-8 lg:py-14">
         <ol className="mb-10 flex flex-wrap items-center gap-x-4 gap-y-3">
