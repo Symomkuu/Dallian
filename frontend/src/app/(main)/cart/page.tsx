@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Link } from '@/components/RouterCompat';
+import Image from 'next/image';
 import { MinusIcon, PlusIcon, ShoppingBagIcon } from 'lucide-react';
 import { useStore } from '@/contexts/StoreContext';
 import { formatKsh } from '@/utils/format';
@@ -44,11 +45,12 @@ export function Cart() {
               <ul className="divide-y divide-ink/10 border-y border-ink/10">
                 {activeCart.map((item) => (
                   <li key={item.key} className="flex gap-5 py-6">
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.name}
-                      loading="lazy"
-                      className="h-36 w-28 shrink-0 object-cover sm:h-44 sm:w-36" 
+                      width={112}
+                      height={144}
+                      className="h-36 w-28 shrink-0 object-cover sm:h-44 sm:w-36"
                     />
                     
                     <div className="flex min-w-0 flex-1 flex-col">
@@ -114,7 +116,7 @@ export function Cart() {
                   <ul className="mt-4 divide-y divide-ink/10 border-y border-ink/10">
                     {savedItems.map((item) => (
                       <li key={item.key} className="flex items-center gap-4 py-4">
-                        <img src={item.image} alt="" className="h-20 w-16 object-cover" loading="lazy" />
+                        <Image src={item.image} alt={item.name} width={64} height={80} className="h-20 w-16 object-cover" />
                         <div className="min-w-0 flex-1">
                           <p className="font-serif text-base text-ink">{item.name}</p>
                           <p className="text-xs text-ink/55">

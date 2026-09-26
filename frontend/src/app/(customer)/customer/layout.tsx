@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { ArrowLeftIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, PackageIcon, SettingsIcon, ShoppingBagIcon, XIcon } from 'lucide-react';
 import { brand } from '@/data/brand';
@@ -24,12 +25,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Close avatar dropdown when clicking outside
   useEffect(() => {
@@ -53,13 +49,9 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
     }
   }, [authReady, user, router]);
 
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
-
   // While hydrating or waiting for auth, render the same outer shell so the
   // server-rendered HTML and client HTML always match (prevents hydration errors).
-  const isReady = mounted && authReady && !!user && user.role === 'customer';
+  const isReady = authReady && !!user && user.role === 'customer';
 
   const handleLogout = async () => {
     await signOut();
@@ -70,7 +62,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   const sidebar = (
     <div className="flex h-full flex-col bg-black text-white">
       <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
-        <img src={brand.logo} alt="" className="h-9 w-9 rounded-full border border-[#D99B26]/40 object-cover" />
+        <Image src={brand.logo} alt="" width={36} height={36} className="rounded-full border border-[#D99B26]/40 object-cover" />
         <div className="leading-none">
           <p className="font-serif text-sm tracking-[0.12em]">DALLIAN</p>
           <p className="mt-1 text-[9px] tracking-[0.3em] text-[#D99B26]">MY ACCOUNT</p>

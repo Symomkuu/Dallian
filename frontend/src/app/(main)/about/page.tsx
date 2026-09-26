@@ -2,20 +2,10 @@
 
 import React, { useState } from 'react';
 import { MapPinIcon } from 'lucide-react';
+import Image from 'next/image';
 import { brand, imagery } from '@/data/brand';
 import { SectionHeading } from '@/components/SectionHeading';
 import { LinkButton } from '@/components/ui/Button';
-
-const pillars = [
-  {
-    title: 'Japanese Futura Fibre Wigs',
-    body: 'A high-grade fibre range that holds its style with very little effort — ideal for everyday wear and for anyone who wants a ready-to-wear look.',
-  },
-  {
-    title: 'Premium Human Hair Wigs',
-    body: 'Real hair you can wash, style and treat like your own, chosen for finish, density and how it wears over time.',
-  },
-];
 
 export default function AboutPage() {
   const [email, setEmail] = useState('');
@@ -32,12 +22,14 @@ export default function AboutPage() {
 
       <section aria-labelledby="story-heading" className="mx-auto max-w-page px-4 py-10 sm:px-8 sm:py-14 lg:py-20">
         <div className="grid items-center gap-6 sm:gap-10 lg:grid-cols-2 lg:gap-16">
-          <img
-            src={imagery.aboutStory}
-            alt="A stylist preparing a premium wig in the Dallian Luxe Hair store"
-            loading="lazy"
-            className="aspect-[16/11] w-full object-cover sm:aspect-[4/3]"
-          />
+          <div className="relative aspect-[16/11] overflow-hidden sm:aspect-[4/3]">
+            <Image
+              src={imagery.aboutStory}
+              alt="A stylist preparing a premium wig in the Dallian Luxe Hair store"
+              fill
+              className="object-cover"
+            />
+          </div>
 
           <div>
             <SectionHeading
@@ -55,11 +47,11 @@ export default function AboutPage() {
 
 
       <section aria-labelledby="visit-heading" className="relative overflow-hidden bg-ink">
-  <img
+  <Image
     src={imagery.store}
     alt=""
-    loading="lazy"
-    className="absolute inset-0 h-full w-full object-cover"
+    fill
+    className="object-cover"
   />
   <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20" aria-hidden="true" />
 

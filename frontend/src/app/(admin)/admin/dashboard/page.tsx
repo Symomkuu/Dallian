@@ -106,26 +106,26 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const loadData = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const [statsData, ordersData] = await Promise.all([
-        adminFetchStats(),
-        adminFetchOrders(),
-      ]);
-      setStats(statsData);
-      setRecentOrders(ordersData.slice(0, 6));
-    } catch {
-      setError('Failed to load dashboard data. Please check your connection.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadData();
+    Promise.all([adminFetchStats(), adminFetchOrders()])
+      .then(([statsData, ordersData]) => {
+        setStats(statsData);
+        setRecentOrders(ordersData.slice(0, 6));
+      })
+      .catch(() => setError('Failed to load dashboard data. Please check your connection.'))
+      .finally(() => setLoading(false));
   }, []);
+
+  const handleRefresh = () => {
+    setLoading(true);
+    Promise.all([adminFetchStats(), adminFetchOrders()])
+      .then(([statsData, ordersData]) => {
+        setStats(statsData);
+        setRecentOrders(ordersData.slice(0, 6));
+      })
+      .catch(() => setError('Failed to load dashboard data. Please check your connection.'))
+      .finally(() => setLoading(false));
+  };
 
   return (
     <div className="w-full space-y-8 pb-10">
@@ -143,7 +143,7 @@ export default function AdminDashboardPage() {
 
         <button
           type="button"
-          onClick={loadData}
+          onClick={handleRefresh}
           disabled={loading}
           aria-label="Refresh dashboard data"
           className="flex items-center gap-1.5 rounded-xl border border-ink/15 bg-white px-3.5 py-2 text-xs font-semibold text-ink/70 shadow-2xs transition hover:border-[#8B3A2A] hover:text-[#8B3A2A] disabled:opacity-40"
@@ -157,7 +157,7 @@ export default function AdminDashboardPage() {
       {!loading && error && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={loadData} className="font-semibold underline ml-2">Retry</button>
+          <button onClick={handleRefresh} className="font-semibold underline ml-2">Retry</button>
         </div>
       )}
 

@@ -1,69 +1,21 @@
 'use client';
 
-import React, { useEffect, useState, useTransition } from 'react';
-import Link from 'next/link';
+import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import {
   AlertCircleIcon,
-  CheckCircle2Icon,
   CheckIcon,
-  ClockIcon,
   CopyIcon,
-  HelpCircleIcon,
-  PackageCheckIcon,
   PackageIcon,
   PhoneCallIcon,
   SearchIcon,
   ShieldCheckIcon,
   TruckIcon,
 } from 'lucide-react';
-import { trackOrder, type BackendOrderDetail, type BackendOrderItem } from '@/utils/api';
+import { trackOrder, type BackendOrderDetail } from '@/utils/api';
 import { formatKsh, formatDate } from '@/utils/format';
 import { Button } from '@/components/ui/Button';
-import { products } from '@/data/products';
-
-function resolveOrderItemImage(item: BackendOrderItem): string {
-  if (item.product_image && item.product_image.trim()) {
-    return item.product_image.trim();
-  }
-
-  // 1. Try matching by product_id
-  if (item.product_id != null) {
-    const byId = products.find((p) => String(p.id) === String(item.product_id));
-    if (byId && byId.images?.length > 0) {
-      if (item.selected_color) {
-        const colorMatch = byId.colors?.find(
-          (c) => c.name.toLowerCase() === item.selected_color.toLowerCase()
-        );
-        if (colorMatch?.image) return colorMatch.image;
-      }
-      return byId.images[0];
-    }
-  }
-
-  // 2. Try matching by product_name
-  if (item.product_name) {
-    const cleanName = item.product_name.toLowerCase().trim();
-    const byName = products.find(
-      (p) =>
-        p.name.toLowerCase().trim() === cleanName ||
-        cleanName.includes(p.name.toLowerCase().trim()) ||
-        p.name.toLowerCase().trim().includes(cleanName)
-    );
-    if (byName && byName.images?.length > 0) {
-      if (item.selected_color) {
-        const colorMatch = byName.colors?.find(
-          (c) => c.name.toLowerCase() === item.selected_color.toLowerCase()
-        );
-        if (colorMatch?.image) return colorMatch.image;
-      }
-      return byName.images[0];
-    }
-  }
-
-  // 3. Fallback to first featured wig image so the user never sees a missing box
-  return products[0]?.images?.[0] || '';
-}
 
 // Milestone statuses for the luxury order tracker
 const STATUS_STEPS = [
@@ -114,13 +66,6 @@ function TrackOrderContent() {
   const [order, setOrder] = useState<BackendOrderDetail | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // Auto-search if ID is present in query parameters
-  useEffect(() => {
-    if (initialId && !order) {
-      handleSearch(initialId);
-    }
-  }, [initialId]);
-
   const handleSearch = async (targetId?: string) => {
     const idToSearch = (targetId || orderNumber).trim();
     if (!idToSearch) {
@@ -134,16 +79,45 @@ function TrackOrderContent() {
     try {
       const data = await trackOrder(idToSearch, contact.trim() || undefined);
       setOrder(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setOrder(null);
       setError(
-        err?.message ||
-          'We could not find an order matching that reference. Please check your order ID and try again.'
+        err instanceof Error
+          ? err.message
+          : 'We could not find an order matching that reference. Please check your order ID and try again.'
       );
     } finally {
       setLoading(false);
     }
   };
+
+  // Auto-search if ID is present in query parameters
+  useEffect(() => {
+    if (!initialId || order) return;
+    let active = true;
+    trackOrder(initialId)
+      .then((data) => {
+        if (active) {
+          setOrder(data);
+          setLoading(false);
+        }
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setOrder(null);
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'We could not find an order matching that reference. Please check your order ID and try again.'
+          );
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialId]);
 
   const handleCopyOrderNumber = () => {
     if (order?.order_number) {
@@ -348,28 +322,24 @@ function TrackOrderContent() {
               <div className="rounded-2xl border border-ink/10 bg-white p-5 sm:p-6 shadow-xs">
                 <h2 className="font-serif text-lg text-ink">Ordered Items</h2>
                 <ul className="mt-4 divide-y divide-ink/10 border-y border-ink/10">
-                  {order.items.map((item) => {
-                    const itemImage = resolveOrderItemImage(item);
-                    return (
+{order.items.map((item) => {
+    const itemImage = item.product_image && item.product_image.trim() ? item.product_image.trim() : '';
+    return (
                       <li key={item.id} className="flex gap-4 py-4 items-center">
-                        {itemImage ? (
-                          <img
-                            src={itemImage}
-                            alt={item.product_name}
-                            className="h-20 w-16 rounded-lg object-cover shrink-0 border border-ink/10 shadow-2xs"
-                            loading="lazy"
-                            onError={(e) => {
-                              const target = e.currentTarget as HTMLImageElement;
-                              if (products[0]?.images?.[0] && target.src !== products[0].images[0]) {
-                                target.src = products[0].images[0];
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className="flex h-20 w-16 items-center justify-center rounded-lg bg-cream text-chestnut shrink-0 border border-ink/10">
-                            <PackageIcon width={24} height={24} />
-                          </div>
-                        )}
+{itemImage ? (
+  <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border border-ink/10 shadow-2xs">
+    <Image
+      src={itemImage}
+      alt={item.product_name}
+      fill
+      className="object-cover"
+    />
+  </div>
+) : (
+  <div className="flex h-20 w-16 items-center justify-center rounded-lg bg-cream text-chestnut shrink-0 border border-ink/10">
+    <PackageIcon width={24} height={24} />
+  </div>
+)}
                         <div className="min-w-0 flex-1">
                           <p className="font-serif text-sm sm:text-base font-medium text-ink">
                             {item.product_name}

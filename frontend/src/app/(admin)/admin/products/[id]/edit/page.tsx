@@ -2,17 +2,14 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
   CheckIcon,
-  ImageIcon,
   PlusIcon,
   Trash2Icon,
   UploadIcon,
-  SparklesIcon,
-  LayersIcon,
-  StarIcon,
 } from 'lucide-react';
 import { useStore } from '@/contexts/StoreContext';
 import { cx, formatKsh } from '@/utils/format';
@@ -134,7 +131,6 @@ export default function EditProductPage() {
   // ── Load Product Data ────────────────────────────────────────────────────
   useEffect(() => {
     if (!productId) return;
-    setLoadingProduct(true);
     fetchDashboardProduct(productId)
       .then((product) => {
         setName(product.name || '');
@@ -203,7 +199,7 @@ export default function EditProductPage() {
           );
         }
       })
-      .catch((err) => {
+      .catch(() => {
         pushToast({
           title: 'Product not found',
           body: 'Could not load product details.',
@@ -867,10 +863,11 @@ export default function EditProductPage() {
                         isPrimary ? 'border-slate-900 ring-2 ring-slate-900/10' : 'border-slate-200'
                       )}
                     >
-                      <img
+                      <Image
                         src={image.url}
                         alt=""
-                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                        fill
+                        className="object-cover transition-transform group-hover:scale-105"
                       />
 
                       {/* Primary Badge or Set Primary Button */}
@@ -1217,10 +1214,12 @@ export default function EditProductPage() {
                                         ))}
                                       </select>
                                       {linkedImg && (
-                                        <img
+                                        <Image
                                           src={linkedImg.url}
                                           alt=""
-                                          className="h-6 w-6 rounded-md object-cover border border-slate-200"
+                                          width={24}
+                                          height={24}
+                                          className="rounded-md object-cover border border-slate-200"
                                         />
                                       )}
                                     </div>
@@ -1302,10 +1301,11 @@ export default function EditProductPage() {
                 <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm max-w-sm">
                   <div className="relative aspect-square overflow-hidden bg-slate-100">
                     {primaryDisplayImage ? (
-                      <img
+                      <Image
                         src={primaryDisplayImage}
                         alt={name}
-                        className="h-full w-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">

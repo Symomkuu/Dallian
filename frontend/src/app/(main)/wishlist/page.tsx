@@ -2,10 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { HeartIcon, ShoppingBagIcon, Trash2Icon } from 'lucide-react';
 import { useStore } from '@/contexts/StoreContext';
 import { fetchStoreProducts, formatProductFromBackend } from '@/utils/api';
-import { products as mockProducts } from '@/data/products';
 import { formatKsh } from '@/utils/format';
 import type { Product } from '@/types';
 import { QuickViewModal } from '@/components/QuickViewModal';
@@ -26,23 +26,18 @@ export default function WishlistPage() {
   const [loading, setLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
-  // Fetch all store products from backend + mock fallback
+  // Fetch all store products from backend
   useEffect(() => {
     let isMounted = true;
     fetchStoreProducts({ page_size: 100 })
       .then((res) => {
         if (!isMounted) return;
         const liveItems = (res.results || []).map(formatProductFromBackend);
-        const map = new Map<string, Product>();
-        liveItems.forEach((p) => map.set(String(p.id), p));
-        mockProducts.forEach((p) => {
-          if (!map.has(String(p.id))) map.set(String(p.id), p);
-        });
-        setCatalog(Array.from(map.values()));
+        setCatalog(liveItems);
       })
       .catch(() => {
         if (!isMounted) return;
-        setCatalog(mockProducts);
+        setCatalog([]);
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -193,11 +188,11 @@ export default function WishlistPage() {
                       href={`/product/${product.slug}`}
                       className="block aspect-[4/5] w-full overflow-hidden"
                     >
-                      <img
+                      <Image
                         src={primaryImage}
                         alt={product.name}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     </Link>
 

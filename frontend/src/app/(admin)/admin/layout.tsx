@@ -26,10 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
-  const [mounted, setMounted]   = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => { setMounted(true); }, []);
 
   // Close avatar dropdown when clicking outside
   useEffect(() => {
@@ -59,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // While hydrating or waiting for auth, render the same outer shell so the
   // server-rendered HTML and client HTML always match (prevents hydration errors).
-  const isReady = mounted && authReady && !!user && user.role === 'staff';
+  const isReady = authReady && !!user && user.role === 'staff';
 
   const handleLogout = async () => {
     await signOut();

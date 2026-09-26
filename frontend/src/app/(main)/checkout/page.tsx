@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useNavigate } from '@/components/RouterCompat';
 import {
   CheckIcon,
@@ -92,20 +93,6 @@ export default function CheckoutPage() {
   const [delivery, setDelivery] = useState(deliveryOptions[1]);
   const [payment, setPayment] = useState(paymentOptions[0]);
 
-  // Sync user info if user logs in or refreshes
-  useEffect(() => {
-    if (user) {
-      setForm((prev) => ({
-        ...prev,
-        name: prev.name || user.full_name || '',
-        email: prev.email || user.email || '',
-        phone: prev.phone || user.phone || '',
-        address: prev.address || user.delivery_address || '',
-        city: prev.city || 'Nairobi',
-      }));
-    }
-  }, [user]);
-
   // Scroll to top when changing steps
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -164,7 +151,7 @@ export default function CheckoutPage() {
             : `${form.address}, ${form.city}`.trim(),
         city: form.city.trim() || 'Nairobi',
         delivery_fee: delivery.fee,
-        payment_method: payloadPaymentMethod as any,
+        payment_method: payloadPaymentMethod,
         notes: form.notes.trim(),
         discount_code: discount?.code,
         items: activeCart.map((item) => ({
@@ -215,11 +202,11 @@ export default function CheckoutPage() {
       });
 
       navigate('/order-confirmed');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'Unable to complete your order right now. Please check your network and try again.';
       setErrors({
-        form:
-          err?.message ||
-          'Unable to complete your order right now. Please check your network and try again.',
+        form: message,
       });
     } finally {
       setSubmitting(false);
@@ -280,11 +267,12 @@ export default function CheckoutPage() {
             <ul className="divide-y divide-ink/10">
               {activeCart.map((item) => (
                 <li key={item.key} className="flex items-center gap-3.5 py-3">
-                  <img
+                  <Image
                     src={item.image}
                     alt={item.name}
+                    width={56}
+                    height={64}
                     className="h-16 w-14 shrink-0 rounded object-cover"
-                    loading="lazy"
                   />
                   <div className="min-w-0 flex-1">
                     <p className="font-serif text-sm font-medium text-ink">{item.name}</p>
@@ -719,11 +707,12 @@ export default function CheckoutPage() {
               <ul className="mt-4 max-h-[360px] overflow-y-auto divide-y divide-ink/10 pr-1">
                 {activeCart.map((item) => (
                   <li key={item.key} className="flex gap-3.5 py-3.5">
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.name}
+                      width={56}
+                      height={72}
                       className="h-18 w-14 shrink-0 rounded object-cover"
-                      loading="lazy"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="font-serif text-sm text-ink line-clamp-1">{item.name}</p>

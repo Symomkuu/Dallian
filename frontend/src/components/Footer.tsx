@@ -172,12 +172,6 @@ export function Footer() {
         {/* Bottom Bar: Copyright & Admin */}
         <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-5 text-[11px] text-white/50 sm:mt-10 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pt-6">
           <p>© 2026 Dallian Luxe Hair. All rights reserved.</p>
-          <Link
-            to="/admin"
-            className="transition-colors duration-200 hover:text-[#C89D34]"
-          >
-            Admin Dashboard
-          </Link>
         </div>
       </div>
     </footer>

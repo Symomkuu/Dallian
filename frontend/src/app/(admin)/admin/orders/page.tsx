@@ -105,7 +105,6 @@ function OrderModal({
   }, []);
 
   useEffect(() => {
-    setLoading(true);
     adminFetchOrderDetail(orderId)
       .then((d) => {
         setDetail(d);
@@ -485,8 +484,7 @@ export default function AdminOrdersPage() {
   const [openId, setOpenId]     = useState<number | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const load = useCallback(async (q: string, st: string, pt: string) => {
-    setLoading(true);
+  const fetchOrders = async (q: string, st: string, pt: string) => {
     setError('');
     try {
       const data = await adminFetchOrders({
@@ -497,23 +495,32 @@ export default function AdminOrdersPage() {
       setOrders(data);
     } catch {
       setError("Couldn't load orders.");
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  };
 
-  useEffect(() => { load('', '', ''); }, [load]);
+  useEffect(() => {
+    fetchOrders('', '', '').finally(() => setLoading(false));
+  }, []);
 
   const handleSearch = (val: string) => {
     setSearch(val);
     if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => load(val, statusFilter, payFilter), 350);
+    searchTimer.current = setTimeout(() => {
+      setLoading(true);
+      fetchOrders(val, statusFilter, payFilter).finally(() => setLoading(false));
+    }, 350);
   };
 
   const applyFilter = (st: string, pt: string) => {
     setStatusFilter(st);
     setPayFilter(pt);
-    load(search, st, pt);
+    setLoading(true);
+    fetchOrders(search, st, pt).finally(() => setLoading(false));
+  };
+
+  const handleRefresh = () => {
+    setLoading(true);
+    fetchOrders(search, statusFilter, payFilter).finally(() => setLoading(false));
   };
 
   return (
@@ -530,7 +537,7 @@ export default function AdminOrdersPage() {
         </div>
         <button
           type="button"
-          onClick={() => load(search, statusFilter, payFilter)}
+          onClick={handleRefresh}
           disabled={loading}
           className="flex items-center gap-1.5 rounded-lg border border-ink/15 px-3 py-2 text-xs text-ink/55 transition hover:border-ink/30 hover:text-ink disabled:opacity-40"
         >

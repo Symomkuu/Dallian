@@ -2,12 +2,12 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import {
   SearchX as SearchXIcon,
   SlidersHorizontal as SlidersHorizontalIcon,
 } from 'lucide-react';
 
-import { products } from '@/data/products';
 import type { Product } from '@/types';
 import { fetchStoreProducts, formatProductFromBackend } from '@/utils/api';
 import { ProductGrid } from '@/components/ProductGrid';
@@ -27,16 +27,14 @@ const sortOptions = [
   { value: 'popular', label: 'Popular' },
 ];
 
-// Swap these for your own hero images (place files in /public)
+const SUBTITLE_TEXT =
+  'Curated HD lace frontals and premium human hair extensions designed for the woman who demands excellence as a standard.';
+
 const heroImages = [
   '/shop-hero.jpg',
   '/shop-hero-2.jpg',
   '/shop-hero-3.jpg',
 ];
-
-
-const SUBTITLE_TEXT =
-  'Curated HD lace frontals and premium human hair extensions designed for the woman who demands excellence as a standard.';
 
 function TypewriterText() {
   const [displayText, setDisplayText] = useState('');
@@ -101,14 +99,19 @@ function ShopHero() {
     <section className="relative isolate flex h-[260px] items-center overflow-hidden bg-ink sm:h-[320px] lg:h-[380px]">
       {/* Carousel slides */}
       {heroImages.map((src, index) => (
-        <img
+        <div
           key={src}
-          src={src}
-          alt=""
-          className={`absolute inset-0 h-full w-full object-cover object-[70%_20%] transition-opacity duration-700 ease-in-out ${
-            index === active ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
+          className="absolute inset-0"
+        >
+          <Image
+            src={src}
+            alt=""
+            fill
+            className={`object-cover object-[70%_20%] transition-opacity duration-700 ease-in-out ${
+              index === active ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        </div>
       ))}
 
       {/* Dark gradient so the copy stays readable over the photo */}
@@ -159,7 +162,7 @@ export default function ShopPage() {
   const query = searchParams.get('q') ?? '';
   const badge = searchParams.get('badge');
 
-  // Interactive filter state state initialized from URL params
+  // Interactive filter state initialized from URL params
   const [filters, setFilters] = useState<FilterState>(() => {
     const category = searchParams.get('category');
     const style = searchParams.get('style');
@@ -178,21 +181,17 @@ export default function ShopPage() {
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
 
     fetchStoreProducts({ page_size: 100 })
       .then((res) => {
         if (!isMounted) return;
         if (res.results && res.results.length > 0) {
           setProductList(res.results.map(formatProductFromBackend));
-        } else {
-          setProductList(products);
         }
       })
       .catch((err) => {
         if (!isMounted) return;
         console.error('Failed to load products from backend:', err);
-        setProductList(products);
       })
       .finally(() => {
         if (isMounted) setLoading(false);

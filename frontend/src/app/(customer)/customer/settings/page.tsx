@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   BellIcon,
   CheckCircleIcon,
@@ -18,26 +18,15 @@ import { formatDate } from '@/utils/format';
 export default function CustomerSettingsPage() {
   const { user, updateUserProfile, pushToast } = useStore();
 
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [notifyOrderUpdates, setNotifyOrderUpdates] = useState(true);
-  const [notifyPromotionsAndDeals, setNotifyPromotionsAndDeals] = useState(true);
+  const [fullName, setFullName] = useState(user?.full_name || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [deliveryAddress, setDeliveryAddress] = useState(user?.delivery_address || '');
+  const [notifyOrderUpdates, setNotifyOrderUpdates] = useState(user?.notify_order_updates ?? true);
+  const [notifyPromotionsAndDeals, setNotifyPromotionsAndDeals] = useState(user?.notify_promotions_and_deals ?? true);
 
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-
-  // Sync state when user object loads or changes
-  useEffect(() => {
-    if (user) {
-      setFullName(user.full_name || '');
-      setPhone(user.phone || '');
-      setDeliveryAddress(user.delivery_address || '');
-      setNotifyOrderUpdates(user.notify_order_updates ?? true);
-      setNotifyPromotionsAndDeals(user.notify_promotions_and_deals ?? true);
-    }
-  }, [user]);
 
   if (!user) {
     return (

@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from '@/components/RouterCompat';
+import { useNavigate, useParams } from '@/components/RouterCompat';
 import { HeartIcon, MinusIcon, PlusIcon, SparklesIcon } from 'lucide-react';
-import { getProduct, products } from '@/data/products';
-import type { Product, Review } from '@/types';
-import { reviews } from '@/data/content';
+import type { Product } from '@/types';
 import { useStore } from '@/contexts/StoreContext';
 import { availabilityLabel, cx, formatKsh } from '@/utils/format';
-import { fetchStoreProductDetail, fetchStoreProducts, formatProductFromBackend } from '@/utils/api';
+import { fetchStoreProductDetail, fetchStoreProducts, formatProductFromBackend, type StoreProductListItem } from '@/utils/api';
 import { ProductGallery } from '@/components/ProductGallery';
 import { ProductCard } from '@/components/ProductCard';
 import { QuickViewModal } from '@/components/QuickViewModal';
@@ -20,13 +18,6 @@ import { Button } from '@/components/ui/Button';
 import { StarRating } from '@/components/ui/StarRating';
 import { EmptyState } from '@/components/ui/EmptyState';
 
-const loveCards = [
-  { title: 'Premium Quality', body: 'Selected by our team for finish, density and feel.' },
-  { title: 'Elegant Finish', body: 'Neat parting, tidy edges and a natural-looking hairline.' },
-  { title: 'Comfortable Fit', body: 'Adjustable cap construction for all-day wear.' },
-  { title: 'Carefully Selected', body: 'Each style is chosen for how it wears in real life.' },
-];
-
 /**
  * Multi-tier related products selection logic:
  * 1. Same Category (primary priority: matched by categorySlug or category name)
@@ -35,12 +26,10 @@ const loveCards = [
  * 4. Overlapping Lengths / Sizes
  * 5. Featured / Best Seller products in the store
  * 6. Any other active items in the live backend catalog
- * 7. Mock demo products fallback (prevents empty sections if store has few products)
  */
 function computeRelatedProducts(
   current: Product,
-  backendCandidates: Product[],
-  mockFallback: Product[]
+  backendCandidates: Product[]
 ): Product[] {
   const result: Product[] = [];
   const addedIds = new Set<string>([String(current.id)]);
@@ -130,21 +119,13 @@ function computeRelatedProducts(
     if (result.length >= TARGET_COUNT) return result;
   }
 
-  // 7. Mock products fallback (ensures the section is never empty in dev or fresh installs)
-  for (const p of mockFallback) {
-    if (String(p.id) !== String(current.id) && p.slug !== current.slug) {
-      add(p);
-      if (result.length >= TARGET_COUNT) return result;
-    }
-  }
-
   return result;
 }
 
 export default function ProductDetailsPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [product, setProduct] = useState<Product | undefined>(() => (slug ? getProduct(slug) : undefined));
-  const [loading, setLoading] = useState(!product);
+  const [product, setProduct] = useState<Product | undefined>(() => (slug ? undefined : undefined));
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { addToCart, toggleWishlist, isWishlisted, markViewed } = useStore();
 
@@ -154,9 +135,7 @@ export default function ProductDetailsPage() {
   const [capType, setCapType] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
 
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>(() =>
-    product ? computeRelatedProducts(product, [], products) : []
-  );
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   useEffect(() => {
@@ -165,10 +144,15 @@ export default function ProductDetailsPage() {
     fetchStoreProductDetail(slug)
       .then((detail) => {
         if (!isMounted) return;
-        setProduct(formatProductFromBackend(detail));
+        const p = formatProductFromBackend(detail);
+        setProduct(p);
+        setSize(p.sizes?.[0]?.name ?? '');
+        setLength(p.lengths?.[Math.floor(((p.lengths?.length || 1) - 1) / 2)] ?? 0);
+        setColor(p.colors?.[0]?.name ?? '');
+        setCapType(p.capTypes?.[0] ?? '');
       })
       .catch(() => {
-        // Fall back to getProduct(slug) which was set initially
+        // Product not found in backend
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -182,21 +166,12 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     if (product) {
       markViewed(product.id);
-      setSize(product.sizes?.[0]?.name ?? '');
-      setLength(product.lengths?.[Math.floor(((product.lengths?.length || 1) - 1) / 2)] ?? 0);
-      setColor(product.colors?.[0]?.name ?? '');
-      setCapType(product.capTypes?.[0] ?? '');
     }
   }, [product, markViewed]);
 
   useEffect(() => {
     if (!product) return;
     let isMounted = true;
-
-    // Immediately seed with mock demo fallback if currently empty so there's no delay
-    setRelatedProducts((prev) =>
-      prev.length > 0 ? prev : computeRelatedProducts(product, [], products)
-    );
 
     const fetchCategoryProducts = product.categorySlug
       ? fetchStoreProducts({ category: product.categorySlug, page_size: 16 }).catch(() => null)
@@ -209,27 +184,28 @@ export default function ProductDetailsPage() {
       const candidatesMap = new Map<string, Product>();
 
       if (catRes && catRes.results) {
-        catRes.results.forEach((item: any) => {
+        catRes.results.forEach((item: StoreProductListItem) => {
           const p = formatProductFromBackend(item);
           candidatesMap.set(p.id, p);
         });
       }
 
       if (genRes && genRes.results) {
-        genRes.results.forEach((item: any) => {
+        genRes.results.forEach((item: StoreProductListItem) => {
           const p = formatProductFromBackend(item);
           candidatesMap.set(p.id, p);
         });
       }
 
       const backendCandidates = Array.from(candidatesMap.values());
-      const selected = computeRelatedProducts(product, backendCandidates, products);
+      const selected = computeRelatedProducts(product, backendCandidates);
       setRelatedProducts(selected);
     });
 
     return () => {
       isMounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product?.id, product?.category, product?.categorySlug, product?.style, product?.price]);
 
   const selectedSizeObj = useMemo(() => {
@@ -248,22 +224,9 @@ export default function ProductDetailsPage() {
   }, [product, selectedSizeObj, selectedColorObj]);
 
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  const [productReviews, setProductReviews] = useState<Review[]>(() => {
-    if (product?.reviews && product.reviews.length > 0) {
-      return product.reviews;
-    }
-    return product ? reviews.filter((r) => r.productId === product.id && r.status === 'published') : [];
-  });
 
-  useEffect(() => {
-    if (product) {
-      if (product.reviews && product.reviews.length > 0) {
-        setProductReviews(product.reviews);
-      } else {
-        const matched = reviews.filter((r) => r.productId === product.id && r.status === 'published');
-        setProductReviews(matched);
-      }
-    }
+  const productReviews = useMemo(() => {
+    return product?.reviews && product.reviews.length > 0 ? product.reviews : [];
   }, [product]);
 
   const averageRating = useMemo(() => {
@@ -353,12 +316,6 @@ export default function ProductDetailsPage() {
               </p>
             )}
           </div>
-
-          {product.shortDescription && (
-            <p className="mt-5 text-sm leading-relaxed text-ink/70">
-              {product.shortDescription}
-            </p>
-          )}
 
           <div className="rule-gold my-8" />
 
@@ -561,20 +518,6 @@ export default function ProductDetailsPage() {
         </div>
       </div>
 
-      <section aria-labelledby="love-heading" className="border-y border-ink/10 bg-white">
-        <div className="mx-auto max-w-page px-5 py-14 sm:px-8">
-          <SectionHeading eyebrow="Why You'll Love It" title="Details that make the difference" />
-          <ul className="mt-9 grid gap-px border border-ink/10 bg-ink/10 sm:grid-cols-2 lg:grid-cols-4">
-            {loveCards.map((card) => (
-              <li key={card.title} className="bg-white p-7">
-                <h3 className="font-serif text-lg text-ink">{card.title}</h3>
-                <p className="mt-2.5 text-sm leading-relaxed text-ink/60">{card.body}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
       {productReviews.length > 0 && (
         <section aria-labelledby="product-reviews" className="mx-auto max-w-page px-5 py-14 sm:px-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -630,7 +573,13 @@ export default function ProductDetailsPage() {
         isOpen={reviewModalOpen}
         onClose={() => setReviewModalOpen(false)}
         onReviewSubmitted={(newReview) => {
-          setProductReviews((prev) => [newReview, ...prev]);
+          setProduct((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              reviews: [newReview, ...(prev.reviews || [])],
+            };
+          });
         }}
       />
     </>

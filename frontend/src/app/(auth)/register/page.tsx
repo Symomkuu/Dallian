@@ -9,6 +9,7 @@ import { TextField } from '@/components/ui/TextField';
 import { Button } from '@/components/ui/Button';
 import { ApiError } from '@/utils/api';
 import { GoogleLoginBlock } from '@/components/GoogleLoginBlock';
+import type { CredentialResponse } from '@react-oauth/google';
 import { ArrowLeftIcon, MailIcon } from 'lucide-react';
 
 export default function RegisterPage() {

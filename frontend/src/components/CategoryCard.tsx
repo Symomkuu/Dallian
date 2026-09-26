@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight as ArrowRightIcon } from 'lucide-react';
+import Image from 'next/image';
 import { Link } from '@/components/RouterCompat';
 
 interface CategoryCardProps {
@@ -19,11 +20,11 @@ export function CategoryCard({ title, body, cta, to, image, eyebrow }: CategoryC
       className="group relative flex aspect-[4/5] min-h-[220px] w-full flex-col justify-end overflow-hidden bg-neutral-900 sm:min-h-[380px] lg:min-h-[460px]"
       aria-label={`${title} — ${cta}`}
     >
-      <img
+      <Image
         src={image}
         alt={title}
-        loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+        fill
+        className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
       />
       {/* Dark gradient overlay for text legibility */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />

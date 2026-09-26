@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { HomeIcon, ShoppingBagIcon } from 'lucide-react';
+import { ShoppingBagIcon } from 'lucide-react';
 
 export default function NotFound() {
   return (

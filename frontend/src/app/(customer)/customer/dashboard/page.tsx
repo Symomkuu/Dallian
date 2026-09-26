@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { HeartIcon, PackageIcon, ShoppingBagIcon, ClockIcon, ExternalLinkIcon } from 'lucide-react';
 import { useStore } from '@/contexts/StoreContext';
-import { products } from '@/data/products';
 import { cx, formatDate, formatKsh } from '@/utils/format';
 import { fetchMyOrders, type BackendOrderListItem } from '@/utils/api';
 
@@ -53,7 +52,6 @@ export default function CustomerDashboardPage() {
   const { user, cartCount, wishlist, recentlyViewed, lastOrder } = useStore();
 
   const [liveOrders, setLiveOrders] = useState<BackendOrderListItem[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -63,19 +61,11 @@ export default function CustomerDashboardPage() {
       })
       .catch(() => {
         // Guest or network error, fallback gracefully
-      })
-      .finally(() => {
-        if (active) setLoadingOrders(false);
       });
     return () => {
       active = false;
     };
   }, []);
-
-  const recentlyViewedProducts = recentlyViewed
-    .map((id) => products.find((product) => product.id === id))
-    .filter((product): product is (typeof products)[number] => Boolean(product))
-    .slice(0, 4);
 
   const latestOrder = liveOrders[0];
   const lastOrderStatus = latestOrder
@@ -222,28 +212,15 @@ export default function CustomerDashboardPage() {
         )}
       </div>
 
-      {recentlyViewedProducts.length > 0 && (
-        <div className="border border-ink/10 bg-white p-5 sm:p-6 rounded-xl shadow-xs">
-          <p className="label-luxe text-ink/50 mb-4">Recently Viewed</p>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {recentlyViewedProducts.map((p) => (
-              <Link
-                key={p.id}
-                href={`/product/${p.slug}`}
-                className="group block border border-ink/10 p-3 hover:border-chestnut transition"
-              >
-                <img
-                  src={p.images[0]}
-                  alt={p.name}
-                  className="aspect-square w-full object-cover rounded"
-                />
-                <p className="mt-2 text-xs font-medium text-ink line-clamp-1 group-hover:text-chestnut">
-                  {p.name}
-                </p>
-                <p className="mt-0.5 text-xs text-ink/60">{formatKsh(p.price)}</p>
-              </Link>
-            ))}
+      {recentlyViewed.length > 0 && (
+        <div className="border border-ink/10 bg-white rounded-xl shadow-xs overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 sm:px-6 border-b border-ink/10">
+            <p className="label-luxe text-ink/75 font-semibold">Recently Viewed</p>
+            <span className="text-xs text-ink/45">{recentlyViewed.length} products</span>
           </div>
+          <p className="px-5 py-6 text-sm text-ink/55 sm:px-6">
+            Your recently viewed products will appear here once you browse the collection.
+          </p>
         </div>
       )}
     </div>
