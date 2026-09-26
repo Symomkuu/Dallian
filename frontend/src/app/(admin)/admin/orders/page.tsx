@@ -22,6 +22,7 @@ import {
   BackendOrderDetail,
 } from '@/utils/api';
 import { cx } from '@/utils/format';
+import { toast } from 'sonner';
 
 /* ── constants ───────────────────────────────────────────────────── */
 
@@ -74,9 +75,11 @@ function Badge({ value, display }: { value: string; display: string }) {
 function OrderModal({
   orderId,
   onClose,
+  onSaved,
 }: {
   orderId: number;
   onClose: () => void;
+  onSaved?: () => void;
 }) {
   const [detail, setDetail]   = useState<BackendOrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -131,11 +134,24 @@ function OrderModal({
       });
       // PATCH returns only the updatable fields — merge them into the full detail
       // so items, customer info, etc. (not returned by PATCH) are preserved.
-      setDetail((prev) => prev ? { ...prev, ...updated } : updated);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
-    } catch {
-      setSaveErr('Failed to save. Please try again.');
+      setDetail((prev) => (prev ? { ...prev, ...updated } : updated));
+
+      const statusLabel = ORDER_STATUSES.find((s) => s.value === status)?.label || status;
+      toast.success('Order status updated successfully.', {
+        description: `Order ${detail.order_number} is now "${statusLabel}".`,
+      });
+
+      onClose();
+      try {
+        onSaved?.();
+      } catch {}
+    } catch (err: unknown) {
+      console.error('Failed to save order:', err);
+      const errMsg = err instanceof Error ? err.message : 'Failed to save order. Please check your connection and try again.';
+      setSaveErr(errMsg);
+      toast.error('Failed to update order', {
+        description: errMsg,
+      });
     } finally {
       setSaving(false);
     }
@@ -375,14 +391,7 @@ function OrderModal({
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      setStatus(detail.status);
-                      setPayStatus(detail.payment_status);
-                      setPayRef(detail.payment_reference ?? '');
-                      setNotes(detail.staff_notes ?? '');
-                      setSaveErr('');
-                      setSaved(false);
-                    }}
+                    onClick={onClose}
                     disabled={saving}
                     className="rounded-lg border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink/60 transition hover:border-ink/30 hover:text-ink disabled:opacity-40"
                   >
@@ -632,7 +641,13 @@ export default function AdminOrdersPage() {
 
       {/* modal */}
       {openId !== null && (
-        <OrderModal orderId={openId} onClose={() => setOpenId(null)} />
+        <OrderModal
+          orderId={openId}
+          onClose={() => setOpenId(null)}
+          onSaved={() => {
+            fetchOrders(search, statusFilter, payFilter);
+          }}
+        />
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   ArrowLeftIcon,
   CheckIcon,
@@ -514,16 +515,16 @@ export default function EditProductPage() {
         sizes: validSizes,
       });
 
-      pushToast({
-        title: 'Product updated successfully.',
-        body: `${name} has been updated in the catalogue.`,
-        tone: 'success',
+      toast.success('Product updated successfully.', {
+        description: `${name} has been updated in the catalogue.`,
       });
       router.push('/admin/products');
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Something went wrong while saving changes.';
-      pushToast({ title: 'Failed to update product', body: message, tone: 'error' });
+      toast.error('Failed to update product', {
+        description: message,
+      });
     } finally {
       setSubmitting(false);
     }

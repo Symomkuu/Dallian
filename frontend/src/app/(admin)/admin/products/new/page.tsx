@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   CheckIcon,
   ImageIcon,
@@ -356,16 +357,16 @@ export default function NewProductPage() {
         })
       );
 
-      pushToast({
-        title: 'Product created successfully.',
-        body: `${name} was added to your catalogue.`,
-        tone: 'success',
+      toast.success('Product created successfully.', {
+        description: `${name} was added to your catalogue.`,
       });
       router.push('/admin/products');
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Something went wrong. Please try again.';
-      pushToast({ title: 'Failed to create product.', body: message, tone: 'error' });
+      toast.error('Failed to create product.', {
+        description: message,
+      });
     } finally {
       setSubmitting(false);
     }

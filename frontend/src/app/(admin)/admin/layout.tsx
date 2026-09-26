@@ -3,10 +3,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BoxesIcon, ClipboardListIcon, ExternalLinkIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, XIcon } from 'lucide-react';
+import { BoxesIcon, ClipboardListIcon, ExternalLinkIcon, KeyRoundIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, XIcon } from 'lucide-react';
 import { brand } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
 import { cx } from '@/utils/format';
+import { ResetPasswordModal } from '@/components/ResetPasswordModal';
 
 // Only "Dashboard" and "Products" exist today — Orders and the rest will be
 // added as their own sections later, without needing to touch this layout again.
@@ -26,6 +27,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
 
   // Close avatar dropdown when clicking outside
@@ -206,8 +208,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       </Link>
                       <button
                         type="button"
+                        onClick={() => {
+                          setAvatarOpen(false);
+                          setResetModalOpen(true);
+                        }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-ink/75 transition hover:bg-ink/5 hover:text-ink cursor-pointer"
+                      >
+                        <KeyRoundIcon width={15} height={15} />
+                        Reset Password
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => { setAvatarOpen(false); handleLogout(); }}
-                        className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50 cursor-pointer"
                       >
                         <LogOutIcon width={15} height={15} />
                         Logout
@@ -228,6 +241,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           )}
         </main>
       </div>
+
+      {user?.email && (
+        <ResetPasswordModal
+          isOpen={resetModalOpen}
+          onClose={() => setResetModalOpen(false)}
+          email={user.email}
+        />
+      )}
     </div>
   );
 }

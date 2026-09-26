@@ -4,10 +4,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { ArrowLeftIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, PackageIcon, SettingsIcon, ShoppingBagIcon, XIcon } from 'lucide-react';
+import { ArrowLeftIcon, KeyRoundIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, PackageIcon, SettingsIcon, ShoppingBagIcon, XIcon } from 'lucide-react';
 import { brand } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
 import { cx } from '@/utils/format';
+import { ResetPasswordModal } from '@/components/ResetPasswordModal';
 
 const navItems = [
   { label: 'Dashboard', href: '/customer/dashboard', icon: LayoutDashboardIcon },
@@ -25,6 +26,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
 
   // Close avatar dropdown when clicking outside
@@ -213,8 +215,19 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
                       </Link>
                       <button
                         type="button"
+                        onClick={() => {
+                          setAvatarOpen(false);
+                          setResetModalOpen(true);
+                        }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-ink/75 transition hover:bg-ink/5 hover:text-ink cursor-pointer"
+                      >
+                        <KeyRoundIcon width={15} height={15} />
+                        Reset Password
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => { setAvatarOpen(false); handleLogout(); }}
-                        className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50 cursor-pointer"
                       >
                         <LogOutIcon width={15} height={15} />
                         Logout
@@ -235,6 +248,14 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
           )}
         </main>
       </div>
+
+      {user?.email && (
+        <ResetPasswordModal
+          isOpen={resetModalOpen}
+          onClose={() => setResetModalOpen(false)}
+          email={user.email}
+        />
+      )}
     </div>
   );
 }

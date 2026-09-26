@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { EyeIcon, EyeOffIcon, PencilIcon, PlusIcon, SearchIcon, Trash2Icon } from 'lucide-react';
 import { cx, formatKsh } from '@/utils/format';
 import { useStore } from '@/contexts/StoreContext';
+import { toast } from 'sonner';
 import {
   fetchDashboardProducts,
   updateDashboardProduct,
@@ -57,17 +58,13 @@ export default function AdminProductsPage() {
       setProducts((prev) =>
         prev.map((p) => (p.id === product.id ? { ...p, is_active: nextActive } : p))
       );
-      pushToast({
-        title: nextActive ? 'Product published' : 'Product deactivated',
-        body: `${product.name} is now ${nextActive ? 'visible in the store' : 'hidden from customers'}.`,
-        tone: 'success',
+      toast.success(nextActive ? 'Product published' : 'Product deactivated', {
+        description: `${product.name} is now ${nextActive ? 'visible in the store' : 'hidden from customers'}.`,
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Could not update product status.';
-      pushToast({
-        title: 'Failed to update status',
-        body: message,
-        tone: 'error',
+      toast.error('Failed to update status', {
+        description: message,
       });
     } finally {
       setTogglingId(null);
@@ -82,18 +79,14 @@ export default function AdminProductsPage() {
       setProducts((prev) =>
         prev.map((p) => (p.id === productToDelete.id ? { ...p, is_active: false } : p))
       );
-      pushToast({
-        title: 'Product deactivated',
-        body: `${productToDelete.name} has been set to inactive and hidden from the boutique.`,
-        tone: 'success',
+      toast.success('Product deactivated', {
+        description: `${productToDelete.name} has been set to inactive and hidden from the boutique.`,
       });
       setProductToDelete(null);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Could not deactivate product.';
-      pushToast({
-        title: 'Failed to deactivate product',
-        body: message,
-        tone: 'error',
+      toast.error('Failed to deactivate product', {
+        description: message,
       });
     } finally {
       setDeleting(false);
@@ -106,18 +99,14 @@ export default function AdminProductsPage() {
     try {
       await deleteDashboardProduct(productToDelete.id);
       setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id));
-      pushToast({
-        title: 'Product deleted',
-        body: `${productToDelete.name} was removed from the catalogue.`,
-        tone: 'success',
+      toast.success('Product deleted', {
+        description: `${productToDelete.name} was removed from the catalogue.`,
       });
       setProductToDelete(null);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Could not delete product.';
-      pushToast({
-        title: 'Failed to delete product',
-        body: message,
-        tone: 'error',
+      toast.error('Failed to delete product', {
+        description: message,
       });
     } finally {
       setDeleting(false);
