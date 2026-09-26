@@ -5,45 +5,34 @@ import { cx, formatKsh } from '../utils/format';
 export interface FilterState {
   categories: string[];
   styles: string[];
-  lengths: string[];
-  colors: string[];
   availability: string[];
-  laceTypes: string[];
-  capTypes: string[];
   maxPrice: number;
 }
 
 export const emptyFilters: FilterState = {
   categories: [],
   styles: [],
-  lengths: [],
-  colors: [],
   availability: [],
-  laceTypes: [],
-  capTypes: [],
-  maxPrice: 35000
+  maxPrice: 60000,
 };
 
-const groups: {key: keyof FilterState;label: string;options: string[];}[] = [
-{ key: 'categories', label: 'Category', options: ['human-hair', 'futura'] },
-{
-  key: 'styles',
-  label: 'Hair Style',
-  options: ['Straight', 'Body Wave', 'Deep Wave', 'Curly', 'Bob']
-},
-{ key: 'lengths', label: 'Length', options: ['Short (≤14")', 'Mid (16"–22")', 'Long (24"+)'] },
-{ key: 'colors', label: 'Colour', options: ['Natural Black', 'Deep Chestnut', 'Rich Chestnut', 'Honey Gold'] },
-{ key: 'availability', label: 'Availability', options: ['in-stock', 'low-stock', 'out-of-stock'] },
-{ key: 'laceTypes', label: 'Lace Type', options: ['HD Lace', 'Transparent Lace'] },
-{ key: 'capTypes', label: 'Cap Type', options: ['Lace Front', 'Full Lace', 'Glueless'] }];
-
+const groups: { key: keyof FilterState; label: string; options: string[] }[] = [
+  {
+    key: 'styles',
+    label: 'Hair Style / Texture',
+    options: ['Straight', 'Body Wave', 'Deep Wave', 'Curly', 'Bob', 'Bone Straight', 'Kinky Curly'],
+  },
+  {
+    key: 'availability',
+    label: 'Availability',
+    options: ['in-stock', 'low-stock', 'out-of-stock'],
+  },
+];
 
 const optionLabels: Record<string, string> = {
-  'human-hair': 'Human Hair',
-  futura: 'Japanese Futura',
   'in-stock': 'In Stock',
   'low-stock': 'Low Stock',
-  'out-of-stock': 'Out of Stock'
+  'out-of-stock': 'Out of Stock',
 };
 
 interface ShopFiltersProps {

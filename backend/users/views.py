@@ -1,11 +1,16 @@
 """Views for the users app: registration, password reset and profile."""
 
-from rest_framework import generics, status
+from django.conf import settings
+from django.contrib.auth.models import update_last_login
+from django.core.mail import EmailMessage
+from django.middleware.csrf import get_token
+from rest_framework import generics, serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
-
+from rest_framework_simplejwt.tokens import RefreshToken
+from users.cookies import set_auth_cookies
 from users.models import OTP
 from users.serializers import (
     ChangePasswordSerializer,
@@ -31,6 +36,16 @@ class PublicAPIView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
+
+
+class CsrfTokenView(APIView):
+    """Return a fresh CSRF token and set the csrftoken cookie for SPAs."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({"csrfToken": get_token(request)})
 
 
 class RegisterView(PublicAPIView):
@@ -137,8 +152,17 @@ class ResetPasswordView(PublicAPIView):
             )
 
         user.set_password(data["new_password"])
-        user.save(update_fields=["password"])
-        return Response({"message": "Password updated."})
+        user.is_email_verified = True
+        user.save(update_fields=["password", "is_email_verified"])
+
+        update_last_login(None, user)
+        refresh = RefreshToken.for_user(user)
+        response = Response({
+            "message": "Password updated successfully.",
+            "csrfToken": get_token(request),
+        })
+        set_auth_cookies(response, access=str(refresh.access_token), refresh=str(refresh))
+        return response
 
 
 class UserMeView(generics.RetrieveUpdateAPIView):
@@ -151,6 +175,13 @@ class UserMeView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         """Return the logged-in customer, so nobody can read or edit another profile."""
         return self.request.user
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        data["csrfToken"] = get_token(request)
+        return Response(data)
 
 
 class ChangePasswordView(APIView):
@@ -167,3 +198,64 @@ class ChangePasswordView(APIView):
         request.user.set_password(serializer.validated_data["new_password"])
         request.user.save(update_fields=["password"])
         return Response({"message": "Password updated."})
+
+
+class ContactEnquirySerializer(serializers.Serializer):
+    """Input validation for public contact form enquiries."""
+
+    name = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
+    phone = serializers.CharField(max_length=32, required=False, allow_blank=True)
+    subject = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    message = serializers.CharField(max_length=5000)
+
+
+class ContactEnquiryView(PublicAPIView):
+    """Receive contact enquiries from visitors and email dallianltd@gmail.com."""
+
+    throttle_scope = "otp"
+
+    def post(self, request):
+        serializer = ContactEnquirySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        name = data["name"].strip()
+        email = data["email"].strip()
+        phone = data.get("phone", "").strip() or "Not provided"
+        subject = data.get("subject", "").strip() or "General Inquiry"
+        message = data["message"].strip()
+
+        target_recipient = "dallianltd@gmail.com"
+
+        email_subject = f"[Dallian Contact Enquiry] {subject} - from {name}"
+        email_body = f"""You have received a new contact message from the Dallian Luxe Hair website:
+
+Customer Name: {name}
+Email Address: {email}
+Phone Number:  {phone}
+Subject:       {subject}
+
+Message Content:
+------------------------------------------------------------
+{message}
+------------------------------------------------------------
+
+(To reply directly to the customer, click Reply in your email client.)
+"""
+        try:
+            email_msg = EmailMessage(
+                subject=email_subject,
+                body=email_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[target_recipient],
+                reply_to=[email],
+            )
+            email_msg.send(fail_silently=False)
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).error("Failed to deliver contact email: %s", exc)
+
+        return Response({
+            "message": "Thank you! Your message has been sent to our team at dallianltd@gmail.com."
+        })

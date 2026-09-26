@@ -1,26 +1,46 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboardIcon, LogOutIcon, MenuIcon, XIcon } from 'lucide-react';
+import { ArrowLeftIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, PackageIcon, SettingsIcon, ShoppingBagIcon, XIcon } from 'lucide-react';
 import { brand } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
 import { cx } from '@/utils/format';
 
-// Only "Dashboard" exists today — Orders, Wishlist and the rest of the
-// customer account sections will be added later without touching this layout.
-const navItems = [{ label: 'Dashboard', href: '/customer/dashboard', icon: LayoutDashboardIcon }];
+const navItems = [
+  { label: 'Dashboard', href: '/customer/dashboard', icon: LayoutDashboardIcon },
+  { label: 'My Orders', href: '/customer/orders', icon: PackageIcon },
+  { label: 'Settings', href: '/customer/settings', icon: SettingsIcon },
+];
 
 /**
  * Gate for every /customer/* route: only signed-in customers may pass. Staff
  * and signed-out visitors are redirected before any dashboard content renders.
  */
 export default function CustomerLayout({ children }: { children: React.ReactNode }) {
-  const { user, authReady, signOut, pushToast } = useStore();
+  const { user, authReady, signOut, pushToast, cart } = useStore();
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Close avatar dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     if (!authReady) return;
@@ -37,13 +57,9 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
     setMenuOpen(false);
   }, [pathname]);
 
-  if (!authReady || !user || user.role !== 'customer') {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-ink/60">Checking your access…</p>
-      </div>
-    );
-  }
+  // While hydrating or waiting for auth, render the same outer shell so the
+  // server-rendered HTML and client HTML always match (prevents hydration errors).
+  const isReady = mounted && authReady && !!user && user.role === 'customer';
 
   const handleLogout = async () => {
     await signOut();
@@ -113,10 +129,10 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex min-h-screen w-full bg-cream">
       <aside className="hidden w-64 shrink-0 lg:block">
-        <div className="fixed inset-y-0 left-0 w-64">{sidebar}</div>
+        <div className="fixed inset-y-0 left-0 w-64">{isReady ? sidebar : <div className="h-full bg-black" />}</div>
       </aside>
 
-      {menuOpen && (
+      {isReady && menuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
@@ -129,30 +145,103 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex items-center gap-4 border-b border-ink/10 bg-cream/95 px-5 py-3.5 backdrop-blur sm:px-8">
+        <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-ink/10 bg-cream/95 px-5 py-3.5 backdrop-blur sm:gap-4 sm:px-8">
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open account menu"
-            className="-ml-1 p-2 text-ink lg:hidden"
+            className={cx('-ml-1 p-2 text-ink lg:hidden', !isReady && 'invisible')}
           >
             <MenuIcon width={20} height={20} />
           </button>
           <p className="label-luxe text-ink/50">My Account</p>
-          <div className="ml-auto flex items-center gap-3">
-            <span className="hidden text-xs text-ink/55 sm:block">{user.full_name}</span>
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-chestnut-deep text-xs font-medium text-cream">
-              {user.full_name
-                ?.split(' ')
-                .map((part) => part[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase() || 'CU'}
-            </span>
+
+          <div className="ml-auto flex items-center gap-2.5 sm:gap-3.5">
+            {/* Continue Shopping button */}
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 rounded-full border border-[#8B3A2A]/30 bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-ink shadow-2xs transition hover:border-[#8B3A2A] hover:bg-[#8B3A2A] hover:text-white"
+            >
+              <ArrowLeftIcon width={13} height={13} />
+              <span className="hidden xs:inline sm:inline">Continue Shopping</span>
+              <span className="xs:hidden sm:hidden">Shop</span>
+            </Link>
+
+            {/* Cart — bigger icon for visibility */}
+            <Link
+              href="/cart"
+              aria-label={`Cart (${cart.length} items)`}
+              className="relative rounded-full p-2 text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
+            >
+              <ShoppingBagIcon width={26} height={26} />
+              {cart.length > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-chestnut-deep text-[10px] font-bold leading-none text-cream shadow">
+                  {cart.length > 9 ? '9+' : cart.length}
+                </span>
+              )}
+            </Link>
+
+            {/* Avatar + dropdown */}
+            {isReady && (
+              <div ref={avatarRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAvatarOpen((v) => !v)}
+                  aria-label="Account menu"
+                  className="flex items-center gap-2.5 rounded-full focus:outline-none"
+                >
+                  <span className="hidden text-sm text-ink/60 sm:block">{user!.full_name}</span>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-chestnut-deep text-sm font-semibold text-cream shadow-sm ring-2 ring-transparent transition hover:ring-chestnut-deep/30">
+                    {user!.full_name
+                      ?.split(' ')
+                      .map((part) => part[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase() || 'CU'}
+                  </span>
+                </button>
+
+                {/* dropdown */}
+                {avatarOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-ink/10 bg-white shadow-lg">
+                    {/* user info */}
+                    <div className="border-b border-ink/8 px-4 py-3">
+                      <p className="text-sm font-semibold text-ink leading-tight">{user!.full_name}</p>
+                      <p className="mt-0.5 text-[11px] text-ink/45 truncate">{user!.email}</p>
+                    </div>
+                    {/* actions */}
+                    <div className="py-1">
+                      <Link
+                        href="/customer/settings"
+                        onClick={() => setAvatarOpen(false)}
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-ink/75 transition hover:bg-ink/5 hover:text-ink"
+                      >
+                        <SettingsIcon width={15} height={15} />
+                        Settings
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => { setAvatarOpen(false); handleLogout(); }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                      >
+                        <LogOutIcon width={15} height={15} />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </header>
 
-        <main className="flex-1 px-5 py-8 sm:px-8">{children}</main>
+        <main className="flex-1 px-5 py-8 sm:px-8">
+          {isReady ? children : (
+            <div className="flex min-h-[40vh] items-center justify-center">
+              <p className="text-sm text-ink/50">Checking your access…</p>
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );

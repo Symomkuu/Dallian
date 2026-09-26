@@ -29,7 +29,7 @@ export function Cart() {
   return (
     <>
 
-      <div className="mx-auto max-w-page px-5 py-10 sm:px-8 lg:py-14">
+      <div className="mx-auto max-w-page px-4 py-8 sm:px-8 lg:py-14 pb-28 lg:pb-14">
         {activeCart.length === 0 ? (
           <EmptyState
             icon={<ShoppingBagIcon width={22} height={22} />}
@@ -56,7 +56,11 @@ export function Cart() {
                         <div>
                           <h2 className="font-serif text-xl text-ink">{item.name}</h2>
                           <p className="mt-1.5 text-xs text-ink/55">
-                            {item.length} in · {item.color} · {item.capType}
+                            {[
+                              item.size ? `Size: ${item.size}` : item.length ? `${item.length} in` : null,
+                              item.color ? `Colour: ${item.color}` : null,
+                              item.capType || null,
+                            ].filter(Boolean).join(' · ')}
                           </p>
                         </div>
                         <p className="shrink-0 font-serif text-lg text-ink">
@@ -135,31 +139,30 @@ export function Cart() {
             </section>
 
             <aside aria-label="Order summary" className="lg:sticky lg:top-28 lg:h-fit">
-              <div className="border border-ink/10 bg-white p-7">
+              <div className="border border-ink/10 bg-white p-6 sm:p-7 shadow-xs rounded-xl lg:rounded-none">
                 <h2 className="font-serif text-xl text-ink">Order Summary</h2>
                 <dl className="mt-6 space-y-3 text-sm">
                   <div className="flex justify-between">
                     <dt className="text-ink/60">Subtotal</dt>
-                    <dd className="text-ink">{formatKsh(subtotal)}</dd>
+                    <dd className="text-ink font-medium">{formatKsh(subtotal)}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-ink/60">Delivery fee</dt>
-                    <dd className="text-ink">{formatKsh(deliveryFee)}</dd>
+                    <dt className="text-ink/60">Estimated Delivery</dt>
+                    <dd className="text-ink font-medium">{formatKsh(deliveryFee)}</dd>
                   </div>
-                  <div className="flex justify-between">
-                    <dt className="text-ink/60">Discount</dt>
-                    <dd className={discountAmount ? 'text-chestnut' : 'text-ink/50'}>
-                      {discountAmount ? `− ${formatKsh(discountAmount)}` : '—'}
-                    </dd>
-                  </div>
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-chestnut">
+                      <dt>Discount</dt>
+                      <dd>− {formatKsh(discountAmount)}</dd>
+                    </div>
+                  )}
                 </dl>
                 <div className="mt-5 flex items-baseline justify-between border-t border-ink/10 pt-5">
                   <span className="label-luxe text-ink/55">Total</span>
-                  <span className="font-serif text-2xl text-ink">{formatKsh(total)}</span>
+                  <span className="font-serif text-2xl font-bold text-ink">{formatKsh(total)}</span>
                 </div>
                 <p className="mt-2 text-xs leading-relaxed text-ink/50">
-                  The delivery fee shown is indicative. Your final delivery option and fee are confirmed at
-                  checkout.
+                  Final delivery fee and method are selected during checkout.
                 </p>
 
                 <form
@@ -176,19 +179,34 @@ export function Cart() {
                     id="discount-code"
                     value={code}
                     onChange={(event) => setCode(event.target.value)}
-                    placeholder="Discount code"
-                    className="h-11 flex-1 border border-ink/20 px-3 text-sm focus:border-chestnut focus:outline-none" 
+                    placeholder="Promo or discount code"
+                    className="h-11 flex-1 border border-ink/20 px-3 text-xs sm:text-sm focus:border-chestnut focus:outline-none bg-white" 
                   />
-                  <Button type="submit" variant="secondary">
+                  <Button type="submit" variant="secondary" className="px-4">
                     Apply
                   </Button>
                 </form>
 
-                <LinkButton to="/checkout" size="lg" className="mt-5 w-full">
-                  Proceed to Checkout
+                <LinkButton to="/checkout" size="lg" className="mt-6 w-full h-13 shadow-sm">
+                  Proceed to Checkout →
                 </LinkButton>
               </div>
             </aside>
+          </div>
+        )}
+
+        {/* Sticky Mobile Checkout Bar */}
+        {activeCart.length > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-ink/10 bg-white/95 backdrop-blur-md px-5 py-3.5 lg:hidden shadow-lg">
+            <div className="flex items-center justify-between gap-4 max-w-md mx-auto">
+              <div>
+                <p className="text-[10px] uppercase font-bold tracking-wider text-ink/50">Total ({activeCart.length})</p>
+                <p className="font-serif text-lg font-bold text-ink">{formatKsh(total)}</p>
+              </div>
+              <LinkButton to="/checkout" size="md" className="flex-1 max-w-[220px] h-11 bg-black text-white font-semibold">
+                Proceed to Checkout →
+              </LinkButton>
+            </div>
           </div>
         )}
       </div>

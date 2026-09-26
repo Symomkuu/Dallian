@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
   HeartIcon,
+  LayoutDashboardIcon,
   MenuIcon,
   SearchIcon,
   ShoppingBagIcon,
@@ -31,6 +32,7 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -39,6 +41,7 @@ export function Navbar() {
   }`;
 
   useEffect(() => {
+    setMounted(true);
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -98,18 +101,19 @@ export function Navbar() {
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
-              className="p-2.5 text-ink transition-colors duration-200 hover:text-chestnut"
+              className="p-2 text-ink transition-colors duration-200 hover:text-chestnut"
             >
-              <SearchIcon width={18} height={18} />
+              <SearchIcon width={21} height={21} />
             </button>
             <Link
               href="/wishlist"
-              aria-label={`Wishlist, ${wishlist.length} items`}
-              className="relative hidden p-2.5 text-ink transition-colors duration-200 hover:text-chestnut sm:block"
+              aria-label={mounted && wishlist.length > 0 ? `Wishlist, ${wishlist.length} items` : 'Wishlist'}
+              suppressHydrationWarning
+              className="relative hidden p-2 text-ink transition-colors duration-200 hover:text-chestnut sm:block"
             >
-              <HeartIcon width={18} height={18} />
-              {wishlist.length > 0 && (
-                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-chestnut px-1 text-[9px] font-medium text-cream">
+              <HeartIcon width={23} height={23} />
+              {mounted && wishlist.length > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-chestnut px-1 text-[11px] font-bold text-cream shadow-xs ring-2 ring-cream">
                   {wishlist.length}
                 </span>
               )}
@@ -117,23 +121,35 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setCartOpen(true)}
-              aria-label={`Shopping bag, ${cartCount} items`}
-              className="relative p-2.5 text-ink transition-colors duration-200 hover:text-chestnut"
+              aria-label={mounted && cartCount > 0 ? `Shopping bag, ${cartCount} items` : 'Shopping bag'}
+              suppressHydrationWarning
+              className="relative p-2 text-ink transition-colors duration-200 hover:text-chestnut"
             >
-              <ShoppingBagIcon width={18} height={18} />
-              {cartCount > 0 && (
-                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[9px] font-semibold text-ink">
+              <ShoppingBagIcon width={25} height={25} strokeWidth={2} />
+              {mounted && cartCount > 0 && (
+                <span className="absolute -right-1 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1.5 text-[11px] font-bold text-ink shadow-sm ring-2 ring-cream">
                   {cartCount}
                 </span>
               )}
             </button>
-            <Link
-              href={user ? (user.role === 'staff' ? '/admin/dashboard' : '/customer/dashboard') : '/login'}
-              aria-label={user ? 'My account' : 'Sign in'}
-              className="hidden p-2.5 text-ink transition-colors duration-200 hover:text-chestnut sm:block"
-            >
-              <UserIcon width={18} height={18} />
-            </Link>
+            {mounted && user ? (
+              <Link
+                href={user.role === 'staff' ? '/admin/dashboard' : '/customer/dashboard'}
+                aria-label="Dashboard"
+                className="hidden items-center gap-1.5 rounded-full border border-ink/20 bg-white/90 px-3.5 py-1.5 text-xs font-semibold tracking-wider uppercase text-ink shadow-2xs transition-all duration-200 hover:border-chestnut hover:bg-white hover:text-chestnut sm:flex"
+              >
+                <LayoutDashboardIcon width={14} height={14} className="text-chestnut" />
+                <span>Dashboard</span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                aria-label="Sign in"
+                className="hidden p-2.5 text-ink transition-colors duration-200 hover:text-chestnut sm:block"
+              >
+                <UserIcon width={18} height={18} />
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -179,6 +195,27 @@ export function Navbar() {
                     className="label-luxe block py-4 text-ink/80"
                   >
                     Track Order
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href={mounted && user ? (user.role === 'staff' ? '/admin/dashboard' : '/customer/dashboard') : '/login'}
+                    onClick={() => setMenuOpen(false)}
+                    className="label-luxe flex items-center justify-between py-4 text-ink/80 transition-colors duration-150 hover:text-chestnut"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      {mounted && user ? (
+                        <LayoutDashboardIcon width={16} height={16} className="text-chestnut" />
+                      ) : (
+                        <UserIcon width={16} height={16} />
+                      )}
+                      <span>{mounted && user ? 'Dashboard' : 'Sign In / Account'}</span>
+                    </span>
+                    {mounted && user && (
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                        {user.role === 'staff' ? 'Admin' : 'Member'}
+                      </span>
+                    )}
                   </Link>
                 </li>
                 <li>

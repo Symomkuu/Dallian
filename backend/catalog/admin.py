@@ -9,8 +9,32 @@ one-primary-image rule always holds.
 from django.contrib import admin
 from django.utils.html import format_html
 
-from catalog.models import Category, HairStyle, Product, ProductImage
+from catalog.models import (
+    Category,
+    HairStyle,
+    Product,
+    ProductColor,
+    ProductImage,
+    ProductReview,
+    ProductSize,
+)
 from catalog.services import add_product_image, assign_slug, delete_product_image, set_primary_image
+
+
+class ProductColorInline(admin.TabularInline):
+    """Optional color variants for the product."""
+
+    model = ProductColor
+    extra = 0
+    fields = ("name", "hex_code", "image", "image_url", "stock_quantity", "price", "sort_order", "is_active")
+
+
+class ProductSizeInline(admin.TabularInline):
+    """Optional size/length variants for the product."""
+
+    model = ProductSize
+    extra = 0
+    fields = ("name", "price", "stock_quantity", "sort_order", "is_active")
 
 
 class ProductImageInline(admin.TabularInline):
@@ -85,7 +109,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ("name", "sku")
     readonly_fields = ("slug", "created_at", "updated_at")
     autocomplete_fields = ("category", "hairstyle")
-    inlines = [ProductImageInline]
+    inlines = [ProductImageInline, ProductColorInline, ProductSizeInline]
 
     def save_model(self, request, obj, form, change):
         """Assign the slug (once) before saving."""
@@ -130,15 +154,50 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    """Standalone list of all product images, mainly for search and debugging.
-
-    Edits here are plain Django admin saves. Prefer the Product page's
-    inline table, or the dashboard, for day-to-day image management, since
-    those route through catalog.services.
-    """
+    """Standalone list of all product images, mainly for search and debugging."""
 
     ordering = ("product", "sort_order")
     list_display = ("product", "is_primary", "sort_order", "created_at")
     list_filter = ("is_primary",)
     search_fields = ("product__name",)
+    autocomplete_fields = ("product",)
+
+
+@admin.register(ProductColor)
+class ProductColorAdmin(admin.ModelAdmin):
+    """Standalone admin for product colors."""
+
+    ordering = ("product", "sort_order")
+    list_display = ("name", "product", "hex_code", "image", "stock_quantity", "price", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("name", "product__name")
+    autocomplete_fields = ("product",)
+
+
+@admin.register(ProductSize)
+class ProductSizeAdmin(admin.ModelAdmin):
+    """Standalone admin for product sizes."""
+
+    ordering = ("product", "sort_order")
+    list_display = ("name", "product", "price", "stock_quantity", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("name", "product__name")
+    autocomplete_fields = ("product",)
+
+
+@admin.register(ProductReview)
+class ProductReviewAdmin(admin.ModelAdmin):
+    """Admin for customer reviews."""
+
+    list_display = (
+        "author_name",
+        "product",
+        "rating",
+        "title",
+        "is_verified_buyer",
+        "is_published",
+        "created_at",
+    )
+    list_filter = ("rating", "is_verified_buyer", "is_published", "created_at")
+    search_fields = ("author_name", "title", "comment", "product__name")
     autocomplete_fields = ("product",)

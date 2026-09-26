@@ -5,7 +5,7 @@ import { faqs } from '@/data/content';
 import { Accordion } from '@/components/ui/Accordion';
 import { LinkButton } from '@/components/ui/Button';
 
-export function FAQ() {
+export default function FAQ() {
   return (
     <>
 

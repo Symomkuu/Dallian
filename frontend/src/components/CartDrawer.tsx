@@ -84,7 +84,11 @@ export function CartDrawer() {
                             </span>
                           </div>
                           <p className="mt-1 text-xs text-stone-500">
-                            {item.length}" · {item.color} · {item.capType}
+                            {[
+                              item.size ? `Size: ${item.size}` : item.length ? `${item.length}"` : null,
+                              item.color ? `Colour: ${item.color}` : null,
+                              item.capType || null,
+                            ].filter(Boolean).join(' · ')}
                           </p>
                         </div>
 

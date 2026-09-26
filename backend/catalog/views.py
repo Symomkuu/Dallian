@@ -7,18 +7,23 @@ from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 
-from catalog.models import Category, HairStyle, Product
+from catalog.models import Category, HairStyle, Product, ProductReview
 from catalog.serializers import (
     CategorySerializer,
     HairStyleSerializer,
     ProductDetailSerializer,
     ProductListSerializer,
+    ProductReviewSerializer,
 )
 
 ORDERING_FIELDS = {
     "newest": "-created_at",
     "price_asc": "price",
     "price_desc": "-price",
+    "price-asc": "price",
+    "price-desc": "-price",
+    "featured": "-is_featured",
+    "popular": "-created_at",
 }
 
 
@@ -85,7 +90,7 @@ class ProductListView(PublicReadOnlyAPIView, generics.ListAPIView):
         queryset = (
             Product.objects.filter(is_active=True)
             .select_related("category", "hairstyle")
-            .prefetch_related("images")
+            .prefetch_related("images", "colors__image", "sizes")
         )
 
         category_slug = params.get("category")
@@ -106,6 +111,18 @@ class ProductListView(PublicReadOnlyAPIView, generics.ListAPIView):
 
         if params.get("in_stock") == "true":
             queryset = queryset.filter(stock_quantity__gt=0)
+
+        featured = params.get("featured") or params.get("is_featured")
+        if featured == "true":
+            queryset = queryset.filter(is_featured=True)
+
+        color = params.get("color")
+        if color:
+            queryset = queryset.filter(colors__name__iexact=color, colors__is_active=True)
+
+        size = params.get("size")
+        if size:
+            queryset = queryset.filter(sizes__name__iexact=size, sizes__is_active=True)
 
         search = params.get("q")
         if search:
@@ -131,5 +148,36 @@ class ProductDetailView(PublicReadOnlyAPIView, generics.RetrieveAPIView):
         return (
             Product.objects.filter(is_active=True)
             .select_related("category", "hairstyle")
-            .prefetch_related("images")
+            .prefetch_related("images", "colors__image", "sizes", "reviews")
+        )
+
+
+class ProductReviewListCreateView(PublicReadOnlyAPIView, generics.ListCreateAPIView):
+    """List published reviews for an active product, or submit a new customer review."""
+
+    serializer_class = ProductReviewSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        slug = self.kwargs.get("slug")
+        return ProductReview.objects.filter(
+            product__slug=slug,
+            product__is_active=True,
+            is_published=True,
+        ).order_by("-created_at")
+
+    def perform_create(self, serializer):
+        slug = self.kwargs.get("slug")
+        product = generics.get_object_or_404(Product, slug=slug, is_active=True)
+        user = self.request.user if getattr(self.request, "user", None) and self.request.user.is_authenticated else None
+
+        author_name = serializer.validated_data.get("author_name")
+        if not author_name and user:
+            author_name = getattr(user, "full_name", "") or getattr(user, "email", "Verified Customer")
+
+        serializer.save(
+            product=product,
+            user=user,
+            author_name=author_name or "Verified Customer",
+            is_published=True,
         )

@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 
 import { products } from '@/data/products';
+import type { Product } from '@/types';
+import { fetchStoreProducts, formatProductFromBackend } from '@/utils/api';
 import { ProductGrid } from '@/components/ProductGrid';
 import {
   ShopFilters,
@@ -32,20 +34,53 @@ const heroImages = [
   '/shop-hero-3.jpg',
 ];
 
-function matchesLength(lengths: number[], buckets: string[]): boolean {
-  if (buckets.length === 0) return true;
 
-  return buckets.some((bucket) => {
-    if (bucket.startsWith('Short')) {
-      return Math.min(...lengths) <= 14;
+const SUBTITLE_TEXT =
+  'Curated HD lace frontals and premium human hair extensions designed for the woman who demands excellence as a standard.';
+
+function TypewriterText() {
+  const [displayText, setDisplayText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    if (!isDeleting) {
+      if (displayText.length < SUBTITLE_TEXT.length) {
+        timeout = setTimeout(() => {
+          setDisplayText(SUBTITLE_TEXT.slice(0, displayText.length + 1));
+        }, 32);
+      } else {
+        // Finished typing: wait 3.5 seconds before typing again
+        timeout = setTimeout(() => {
+          setIsDeleting(true);
+        }, 3500);
+      }
+    } else {
+      if (displayText.length > 0) {
+        timeout = setTimeout(() => {
+          setDisplayText(SUBTITLE_TEXT.slice(0, displayText.length - 1));
+        }, 16);
+      } else {
+        // Finished clearing: brief pause before restarting
+        timeout = setTimeout(() => {
+          setIsDeleting(false);
+        }, 500);
+      }
     }
 
-    if (bucket.startsWith('Mid')) {
-      return lengths.some((l) => l >= 16 && l <= 22);
-    }
+    return () => clearTimeout(timeout);
+  }, [displayText, isDeleting]);
 
-    return Math.max(...lengths) >= 24;
-  });
+  return (
+    <span className="relative inline">
+      <span>{displayText}</span>
+      <span
+        aria-hidden="true"
+        className="inline-block w-[2px] h-[1em] ml-0.5 bg-gold align-baseline animate-pulse shadow-sm"
+      />
+    </span>
+  );
 }
 
 function ShopHero() {
@@ -54,9 +89,10 @@ function ShopHero() {
   useEffect(() => {
     if (heroImages.length <= 1) return;
 
+    // Fast carousel interval (2800ms)
     const id = setInterval(() => {
       setActive((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
+    }, 2800);
 
     return () => clearInterval(id);
   }, []);
@@ -69,7 +105,7 @@ function ShopHero() {
           key={src}
           src={src}
           alt=""
-          className={`absolute inset-0 h-full w-full object-cover object-[70%_20%] transition-opacity duration-1000 ease-in-out ${
+          className={`absolute inset-0 h-full w-full object-cover object-[70%_20%] transition-opacity duration-700 ease-in-out ${
             index === active ? 'opacity-100' : 'opacity-0'
           }`}
         />
@@ -87,13 +123,12 @@ function ShopHero() {
             </span>
           </div>
 
-          <h1 className="font-serif text-2xl italic leading-[1.15] text-white sm:text-3xl lg:text-5xl">
+          <h1 className="font-serif text-2xl italic leading-[1.15] text-white sm:text-3xl lg:text-5xl animate-hero-land">
             The Art of Unspoken Elegance
           </h1>
 
-          <p className="mt-2 hidden text-sm leading-relaxed text-white/80 sm:mt-3 sm:block sm:text-base">
-            Curated HD lace frontals and premium human hair extensions
-            designed for the woman who demands excellence as a standard.
+          <p className="mt-2 text-xs leading-relaxed text-white/85 sm:mt-3 sm:text-base min-h-[3.6rem] sm:min-h-[3rem]">
+            <TypewriterText />
           </p>
         </div>
       </div>
@@ -138,12 +173,40 @@ export default function ShopPage() {
 
   const [sort, setSort] = useState(searchParams.get('sort') ?? 'featured');
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [productList, setProductList] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+
+    fetchStoreProducts({ page_size: 100 })
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.results && res.results.length > 0) {
+          setProductList(res.results.map(formatProductFromBackend));
+        } else {
+          setProductList(products);
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error('Failed to load products from backend:', err);
+        setProductList(products);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    const filtered = products.filter((product) => {
+    const filtered = productList.filter((product) => {
       if (
         filters.categories.length &&
         !filters.categories.includes(product.category)
@@ -158,34 +221,9 @@ export default function ShopPage() {
         return false;
       }
 
-      if (!matchesLength(product.lengths, filters.lengths)) {
-        return false;
-      }
-
-      if (
-        filters.colors.length &&
-        !product.colors.some((color) => filters.colors.includes(color.name))
-      ) {
-        return false;
-      }
-
       if (
         filters.availability.length &&
         !filters.availability.includes(product.availability)
-      ) {
-        return false;
-      }
-
-      if (
-        filters.laceTypes.length &&
-        !product.laceTypes.some((lace) => filters.laceTypes.includes(lace))
-      ) {
-        return false;
-      }
-
-      if (
-        filters.capTypes.length &&
-        !product.capTypes.some((cap) => filters.capTypes.includes(cap))
       ) {
         return false;
       }
@@ -196,7 +234,7 @@ export default function ShopPage() {
 
       if (
         badge === 'featured' &&
-        !product.badges.includes('featured')
+        !product.badges?.includes('featured')
       ) {
         return false;
       }
@@ -230,23 +268,23 @@ export default function ShopPage() {
     }
 
     if (sort === 'newest') {
-      sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      sorted.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     }
 
     if (sort === 'popular') {
-      sorted.sort((a, b) => b.popularity - a.popularity);
+      sorted.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
     }
 
     if (sort === 'featured') {
       sorted.sort(
         (a, b) =>
-          Number(b.badges.includes('featured')) -
-          Number(a.badges.includes('featured'))
+          Number(b.badges?.includes('featured')) -
+          Number(a.badges?.includes('featured'))
       );
     }
 
     return sorted;
-  }, [filters, sort, query, badge]);
+  }, [productList, filters, sort, query, badge]);
 
   const updateParams = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams.toString());

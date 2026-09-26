@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight as ArrowRightIcon,
   Clock as ClockIcon,
   Headphones as HeadphonesIcon,
-  Heart as HeartIcon,
   Info as InfoIcon,
   MapPin as MapPinIcon,
   ShieldCheck as ShieldCheckIcon,
@@ -17,8 +16,10 @@ import {
 } from 'lucide-react';
 
 import { brand, imagery } from '@/data/brand';
-import { categoryMeta, products, type Product } from '@/data/products';
+import { categoryMeta, products } from '@/data/products';
+import type { Product } from '@/types';
 import { careGuide, reviews, trustPoints } from '@/data/content';
+import { fetchStoreFeaturedProducts, formatProductFromBackend } from '@/utils/api';
 
 import { Hero } from '@/components/Hero';
 import { CategoryCard } from '@/components/CategoryCard';
@@ -44,10 +45,35 @@ export default function Home() {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [email, setEmail] = useState('');
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
 
-  const featured = products.filter((p) =>
-    p.badges.includes('featured')
-  );
+  useEffect(() => {
+    let isMounted = true;
+    setLoadingFeatured(true);
+
+    fetchStoreFeaturedProducts()
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.results && res.results.length > 0) {
+          setFeaturedProducts(res.results.map(formatProductFromBackend));
+        } else {
+          setFeaturedProducts(products.filter((p) => p.badges.includes('featured')));
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error('Failed to load featured products from backend:', err);
+        setFeaturedProducts(products.filter((p) => p.badges.includes('featured')));
+      })
+      .finally(() => {
+        if (isMounted) setLoadingFeatured(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const bestSellers = products.filter((p) =>
     p.badges.includes('bestseller')
@@ -152,7 +178,7 @@ export default function Home() {
           </div>
 
           <div className="mt-6 sm:mt-10">
-            <ProductGrid products={featured} columns={3} />
+            <ProductGrid products={featuredProducts} columns={3} loading={loadingFeatured} />
           </div>
         </div>
       </section>

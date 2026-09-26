@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboardIcon, LogOutIcon, MenuIcon, XIcon, BoxesIcon } from 'lucide-react';
+import { BoxesIcon, ClipboardListIcon, ExternalLinkIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, XIcon } from 'lucide-react';
 import { brand } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
 import { cx } from '@/utils/format';
@@ -11,8 +11,9 @@ import { cx } from '@/utils/format';
 // Only "Dashboard" and "Products" exist today — Orders and the rest will be
 // added as their own sections later, without needing to touch this layout again.
 const navItems = [
-  { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboardIcon },
-  { label: 'Products', href: '/admin/products', icon: BoxesIcon },
+  { label: 'Dashboard',  href: '/admin/dashboard', icon: LayoutDashboardIcon },
+  { label: 'Products',   href: '/admin/products',  icon: BoxesIcon },
+  { label: 'Orders',     href: '/admin/orders',    icon: ClipboardListIcon },
 ];
 
 /**
@@ -24,6 +25,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [mounted, setMounted]   = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // Close avatar dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     if (!authReady) return;
@@ -40,13 +57,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setMenuOpen(false);
   }, [pathname]);
 
-  if (!authReady || !user || user.role !== 'staff') {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-ink/60">Checking your access…</p>
-      </div>
-    );
-  }
+  // While hydrating or waiting for auth, render the same outer shell so the
+  // server-rendered HTML and client HTML always match (prevents hydration errors).
+  const isReady = mounted && authReady && !!user && user.role === 'staff';
 
   const handleLogout = async () => {
     await signOut();
@@ -109,11 +122,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen w-full bg-cream">
+      {/* Sidebar — only rendered once we know the user is staff */}
       <aside className="hidden w-64 shrink-0 lg:block">
-        <div className="fixed inset-y-0 left-0 w-64">{sidebar}</div>
+        <div className="fixed inset-y-0 left-0 w-64">{isReady ? sidebar : <div className="h-full bg-black" />}</div>
       </aside>
 
-      {menuOpen && (
+      {isReady && menuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
@@ -131,25 +145,91 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open admin menu"
-            className="-ml-1 p-2 text-ink lg:hidden"
+            className={cx('-ml-1 p-2 text-ink lg:hidden', !isReady && 'invisible')}
           >
             <MenuIcon width={20} height={20} />
           </button>
           <p className="label-luxe text-ink/50">Store Administration</p>
-          <div className="ml-auto flex items-center gap-3">
-            <span className="hidden text-xs text-ink/55 sm:block">{user.full_name}</span>
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-chestnut-deep text-xs font-medium text-cream">
-              {user.full_name
-                ?.split(' ')
-                .map((part) => part[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase() || 'ST'}
-            </span>
-          </div>
+          {isReady && (
+            <div className="ml-auto flex items-center gap-3">
+              {/* Visit Store Button */}
+              <Link
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-ink shadow-2xs transition hover:border-[#8B3A2A] hover:bg-[#8B3A2A] hover:text-white"
+              >
+                <ExternalLinkIcon width={13} height={13} />
+                <span className="hidden xs:inline sm:inline">Visit Store</span>
+                <span className="xs:hidden sm:hidden">Store</span>
+              </Link>
+
+              {/* Avatar + dropdown with Logout */}
+              <div ref={avatarRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAvatarOpen((v) => !v)}
+                  aria-label="Staff account menu"
+                  className="flex items-center gap-2.5 rounded-full focus:outline-none"
+                >
+                  <span className="hidden text-xs text-ink/65 sm:block">{user!.full_name}</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-chestnut-deep text-xs font-semibold text-cream shadow-sm ring-2 ring-transparent transition hover:ring-chestnut-deep/30">
+                    {user!.full_name
+                      ?.split(' ')
+                      .map((part) => part[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase() || 'ST'}
+                  </span>
+                </button>
+
+                {/* dropdown */}
+                {avatarOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-ink/10 bg-white shadow-lg">
+                    {/* user info */}
+                    <div className="border-b border-ink/8 px-4 py-3">
+                      <p className="text-sm font-semibold text-ink leading-tight">{user!.full_name}</p>
+                      <p className="mt-0.5 text-[11px] text-ink/45 truncate">{user!.email}</p>
+                      <span className="mt-1.5 inline-block rounded bg-[#8B3A2A]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#8B3A2A] uppercase">
+                        Staff Admin
+                      </span>
+                    </div>
+
+                    {/* actions */}
+                    <div className="py-1">
+                      <Link
+                        href="/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setAvatarOpen(false)}
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-ink/75 transition hover:bg-ink/5 hover:text-ink"
+                      >
+                        <ExternalLinkIcon width={15} height={15} />
+                        View Storefront
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => { setAvatarOpen(false); handleLogout(); }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                      >
+                        <LogOutIcon width={15} height={15} />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </header>
 
-        <main className="flex-1 px-5 py-8 sm:px-8">{children}</main>
+        <main className="flex-1 px-5 py-8 sm:px-8">
+          {isReady ? children : (
+            <div className="flex min-h-[40vh] items-center justify-center">
+              <p className="text-sm text-ink/50">Checking your access…</p>
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );
