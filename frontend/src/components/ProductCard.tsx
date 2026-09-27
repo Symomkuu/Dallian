@@ -148,14 +148,9 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
                     e.preventDefault();
                     e.stopPropagation();
                     setSelectedColor(color.name);
-                    if (color.image) {
-                      setDisplayedImage(color.image);
-                    }
                   }}
                   onMouseEnter={() => {
-                    if (color.image) {
-                      setDisplayedImage(color.image);
-                    }
+                    setSelectedColor(color.name);
                   }}
                   className={cx(
                     'h-4 w-4 rounded-full border transition-all duration-150',
