@@ -16,12 +16,14 @@ Including another URLconf
 """
 
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import include, path
 
 from users.views import ContactEnquiryView
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("healthz/", lambda r: JsonResponse({"status": "ok"}), name="healthz"),
+    path("wakuu/", admin.site.urls),
     path("api/auth/", include("users.urls")),
     path("api/store/", include("catalog.urls")),
     path("api/dashboard/", include("catalog.urls_dashboard")),
