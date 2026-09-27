@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { BoxesIcon, ClipboardListIcon, ExternalLinkIcon, KeyRoundIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, XIcon } from 'lucide-react';
 import { brand } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
@@ -26,6 +27,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setMenuOpen(false);
+  }
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
@@ -52,10 +58,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [authReady, user, router]);
 
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
-
   // While hydrating or waiting for auth, render the same outer shell so the
   // server-rendered HTML and client HTML always match (prevents hydration errors).
   const isReady = authReady && !!user && user.role === 'staff';
@@ -69,7 +71,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const sidebar = (
     <div className="flex h-full flex-col bg-black text-white">
       <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
-        <img src={brand.logo} alt="" className="h-9 w-9 rounded-full border border-[#D99B26]/40 object-cover" />
+        <Image src={brand.logo} alt="Dallian" width={36} height={36} className="h-9 w-9 rounded-full border border-[#D99B26]/40 object-cover" />
         <div className="leading-none">
           <p className="font-serif text-sm tracking-[0.12em]">DALLIAN</p>
           <p className="mt-1 text-[9px] tracking-[0.3em] text-[#D99B26]">ADMIN</p>

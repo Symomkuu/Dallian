@@ -1,18 +1,16 @@
-import React from 'react';
+import React, { useSyncExternalStore } from 'react';
 import { Link, useLocation } from '@/components/RouterCompat';
 import { HeartIcon, HomeIcon, MessageCircleIcon, ShoppingBagIcon, StoreIcon } from 'lucide-react';
 import { brand } from '../data/brand';
 import { useStore } from '../contexts/StoreContext';
 import { cx } from '../utils/format';
 
+const emptySubscribe = () => () => {};
+
 export function MobileTabBar() {
   const { cartCount, setCartOpen } = useStore();
   const { pathname } = useLocation();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const items = [
     { label: 'Home', to: '/home', icon: HomeIcon },

@@ -7,10 +7,10 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from catalog.models import Category, Product
-from catalog.services import create_category, create_product
+from catalog.services import assign_slug
 from orders.models import Order, OrderStatus
+from rest_framework_simplejwt.tokens import RefreshToken
 from users.cookies import ACCESS_COOKIE
-from users.jwt_tokens import create_token_pair
 
 User = get_user_model()
 
@@ -18,14 +18,19 @@ User = get_user_model()
 class CheckoutTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.category = create_category({"name": "Human Hair Wigs"})
-        self.product = create_product({
-            "name": "Luxury Silk Straight",
-            "category_id": self.category.id,
-            "price": Decimal("25000.00"),
-            "stock_quantity": 10,
-            "sku": "WIG-TEST-001",
-        })
+        self.category = Category(name="Human Hair Wigs")
+        assign_slug(self.category)
+        self.category.save()
+
+        self.product = Product(
+            name="Luxury Silk Straight",
+            category=self.category,
+            price=Decimal("25000.00"),
+            stock_quantity=10,
+            sku="WIG-TEST-001",
+        )
+        assign_slug(self.product)
+        self.product.save()
         self.user = User.objects.create_user(
             email="jane@example.com",
             password="StrongPassword123!",
@@ -35,19 +40,22 @@ class CheckoutTests(TestCase):
 
     def _sample_payload(self):
         return {
-            "customer_name": "Amina Mwangi",
-            "customer_email": "amina@example.com",
-            "customer_phone": "+254712345678",
-            "shipping_address": "Kilimani, Argwings Kodhek Rd, Apt 4B",
+            "name": "Amina Mwangi",
+            "email": "amina@example.com",
+            "phone": "+254712345678",
+            "delivery_method": "Nairobi Courier",
+            "address": "Kilimani, Argwings Kodhek Rd, Apt 4B",
             "city": "Nairobi",
+            "delivery_fee": "300.00",
             "payment_method": "mpesa",
             "items": [
                 {
-                    "product_id": self.product.id,
+                    "product_id": str(self.product.id),
                     "product_name": self.product.name,
                     "unit_price": "25000.00",
                     "quantity": 2,
-                    "selected_options": {"length": "24 inch", "cap_size": "Medium"},
+                    "size": "Medium",
+                    "length": 24,
                 }
             ],
         }
@@ -70,7 +78,7 @@ class CheckoutTests(TestCase):
 
     def test_authenticated_checkout_links_user(self):
         """Authenticated users have their orders linked to their User account."""
-        access_token, _ = create_token_pair(self.user)
+        access_token = str(RefreshToken.for_user(self.user).access_token)
         self.client.cookies[ACCESS_COOKIE] = access_token
 
         # Get CSRF token
@@ -91,7 +99,7 @@ class CheckoutTests(TestCase):
     def test_cookie_without_csrf_does_not_403(self):
         """If a user has an auth cookie but CSRF is missing or mismatched during checkout,
         it does NOT return 403 Forbidden; it safely processes as a guest order."""
-        access_token, _ = create_token_pair(self.user)
+        access_token = str(RefreshToken.for_user(self.user).access_token)
         self.client.cookies[ACCESS_COOKIE] = access_token
 
         payload = self._sample_payload()
@@ -112,7 +120,7 @@ class CheckoutTests(TestCase):
         self.assertIn("csrfToken", resp.data)
 
         # 2. /api/auth/me/
-        access_token, _ = create_token_pair(self.user)
+        access_token = str(RefreshToken.for_user(self.user).access_token)
         self.client.cookies[ACCESS_COOKIE] = access_token
         me_resp = self.client.get("/api/auth/me/")
         self.assertEqual(me_resp.status_code, status.HTTP_200_OK)

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { Link } from '@/components/RouterCompat';
 import { brand } from '../data/brand';
@@ -44,11 +45,13 @@ export function Footer() {
         <div className="grid gap-8 lg:grid-cols-[1.5fr_repeat(3,1fr)] lg:gap-12">
           {/* Brand Info */}
           <div>
-            <img
+            <Image
               src={brand.logo}
               alt={brand.name}
+              width={160}
+              height={80}
               className="h-14 w-auto object-contain sm:h-20"
-              loading="lazy"
+              unoptimized
             />
 
             <h3 className="mt-4 font-serif text-xl font-normal text-white sm:mt-6 sm:text-2xl">

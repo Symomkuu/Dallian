@@ -1,34 +1,28 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { imagery } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
 import { TextField } from '@/components/ui/TextField';
 import { Button } from '@/components/ui/Button';
 import { ApiError } from '@/utils/api';
-import { ArrowLeftIcon, CheckCircleIcon, KeyRoundIcon, ShieldCheckIcon } from 'lucide-react';
+import { ArrowLeftIcon, CheckCircleIcon, ShieldCheckIcon } from 'lucide-react';
 
 function ResetPasswordForm() {
   const { resetPassword, forgotPassword, pushToast } = useStore();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => searchParams?.get('email')?.trim() || '');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
-
-  useEffect(() => {
-    const fromQuery = searchParams?.get('email');
-    if (fromQuery) {
-      setEmail(fromQuery.trim());
-    }
-  }, [searchParams]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -120,10 +114,13 @@ function ResetPasswordForm() {
     <div className="grid lg:min-h-[80vh] lg:grid-cols-2">
       {/* Left visual column */}
       <div className="relative hidden lg:block">
-        <img
+        <Image
           src={imagery.categoryHumanHair}
           alt="Dallian Luxe Hair"
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          priority
+          sizes="50vw"
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/50 to-transparent" />
         <div className="relative flex h-full flex-col justify-end p-12 text-cream">

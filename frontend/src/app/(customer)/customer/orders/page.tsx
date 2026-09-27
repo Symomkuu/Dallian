@@ -10,13 +10,8 @@ import {
   RefreshCwIcon,
   MapPinIcon,
   CreditCardIcon,
-  PhoneIcon,
-  ReceiptTextIcon,
   ShoppingBagIcon,
-  CalendarIcon,
-  ClockIcon,
   CheckIcon,
-  UserIcon,
 } from 'lucide-react';
 import {
   fetchMyOrders,

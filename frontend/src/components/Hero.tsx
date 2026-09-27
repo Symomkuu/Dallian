@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { imagery } from '../data/brand';
 import { LinkButton } from './ui/Button';
 
@@ -6,10 +7,13 @@ export function Hero() {
   return (
     <section aria-labelledby="hero-heading" className="relative min-h-[60vh] w-full overflow-hidden bg-black text-white sm:min-h-[65vh] lg:min-h-[68vh]">
       {/* Hero Model Image */}
-      <img
+      <Image
+        fill
+        priority
+        sizes="100vw"
         src={imagery.hero}
         alt="Model wearing a long chestnut body wave wig from Dallian Luxe Hair"
-        className="absolute inset-0 h-full w-full object-cover object-[55%_center] md:object-[60%_center]"
+        className="object-cover object-[55%_center] md:object-[60%_center]"
       />
 
       {/* Dark Gradient Overlay to match exact screenshot dimming */}

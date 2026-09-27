@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { imagery } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
@@ -13,16 +14,11 @@ export default function VerifyEmailPage() {
   const { verifyEmail, resendCode, pushToast } = useStore();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => searchParams?.get('email') || '');
   const [code, setCode] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
-
-  useEffect(() => {
-    const fromQuery = searchParams?.get('email');
-    if (fromQuery) setEmail(fromQuery);
-  }, [searchParams]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -68,7 +64,7 @@ export default function VerifyEmailPage() {
   return (
     <div className="grid lg:min-h-[80vh] lg:grid-cols-2">
       <div className="relative hidden lg:block">
-        <img src={imagery.categoryHumanHair} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <Image src={imagery.categoryHumanHair} alt="Dallian Luxe Hair" fill priority sizes="50vw" className="object-cover" />
         <div className="absolute inset-0 bg-ink/45" />
         <div className="relative flex h-full flex-col justify-end p-12">
           <p className="label-luxe text-gold">Almost there</p>

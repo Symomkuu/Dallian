@@ -8,7 +8,6 @@ import {
   CopyIcon,
   CheckIcon,
   PackageIcon,
-  PhoneIcon,
   TruckIcon,
   CreditCardIcon,
   ArrowRightIcon,

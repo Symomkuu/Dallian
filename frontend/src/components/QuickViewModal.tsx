@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Link } from '@/components/RouterCompat';
 import { motion } from 'framer-motion';
 import { XIcon } from 'lucide-react';
@@ -16,18 +17,17 @@ interface QuickViewModalProps {
 
 export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
   const { addToCart } = useStore();
-  const [size, setSize] = useState<string | null>(null);
-  const [length, setLength] = useState<number | null>(null);
-  const [color, setColor] = useState<string | null>(null);
+  const [prevProduct, setPrevProduct] = useState(product);
+  const [size, setSize] = useState<string | null>(() => product?.sizes?.[0]?.name ?? null);
+  const [length, setLength] = useState<number | null>(() => product?.lengths?.[0] ?? null);
+  const [color, setColor] = useState<string | null>(() => product?.colors?.[0]?.name ?? null);
 
-  // Initialize selected values whenever product changes
-  useEffect(() => {
-    if (product) {
-      setSize(product.sizes?.[0]?.name ?? null);
-      setLength(product.lengths?.[0] ?? null);
-      setColor(product.colors?.[0]?.name ?? null);
-    }
-  }, [product]);
+  if (prevProduct?.id !== product?.id) {
+    setPrevProduct(product);
+    setSize(product?.sizes?.[0]?.name ?? null);
+    setLength(product?.lengths?.[0] ?? null);
+    setColor(product?.colors?.[0]?.name ?? null);
+  }
 
   // Handle ESC key press
   useEffect(() => {
@@ -84,11 +84,14 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
         </button>
 
         {/* Product Image */}
-        <div className="bg-[#F5EFE6]">
-          <img
+        <div className="relative bg-[#F5EFE6] max-sm:aspect-[4/5] min-h-[300px]">
+          <Image
             src={modalImage}
             alt={product.name}
-            className="h-full w-full object-cover transition-all duration-300 max-sm:aspect-[4/5]"
+            fill
+            sizes="(max-width: 640px) 100vw, 50vw"
+            className="object-cover transition-all duration-300"
+            unoptimized
           />
         </div>
 

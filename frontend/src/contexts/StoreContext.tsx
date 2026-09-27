@@ -111,10 +111,51 @@ interface StoredWishlistEnvelope {
   expiresAt: number;
 }
 
+function getStoredCart(): CartItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const rawCart = localStorage.getItem(CART_STORAGE_KEY);
+    if (rawCart) {
+      const envelope: StoredCartEnvelope = JSON.parse(rawCart);
+      if (envelope && Array.isArray(envelope.items)) {
+        const now = Date.now();
+        if (envelope.expiresAt && now < envelope.expiresAt) {
+          return envelope.items;
+        } else {
+          localStorage.removeItem(CART_STORAGE_KEY);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error reading cart from storage', e);
+  }
+  return [];
+}
+
+function getStoredWishlist(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const rawWishlist = localStorage.getItem(WISHLIST_STORAGE_KEY);
+    if (rawWishlist) {
+      const envelope: StoredWishlistEnvelope = JSON.parse(rawWishlist);
+      if (envelope && Array.isArray(envelope.items)) {
+        if (envelope.expiresAt && Date.now() < envelope.expiresAt) {
+          return envelope.items;
+        } else {
+          localStorage.removeItem(WISHLIST_STORAGE_KEY);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error reading wishlist from storage', e);
+  }
+  return [];
+}
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => getStoredCart());
   const [cartOpen, setCartOpen] = useState(false);
-  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>(() => getStoredWishlist());
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -124,44 +165,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
 
   // Flag to avoid overwriting storage during initial hydration
-  const isHydratedRef = useRef(false);
-
-  // 1. On mount: Restore cart & wishlist if within the 7-day window
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      const rawCart = localStorage.getItem(CART_STORAGE_KEY);
-      if (rawCart) {
-        const envelope: StoredCartEnvelope = JSON.parse(rawCart);
-        if (envelope && Array.isArray(envelope.items)) {
-          const now = Date.now();
-          if (envelope.expiresAt && now < envelope.expiresAt) {
-            setCart(envelope.items);
-          } else {
-            // Expired after 7 days of inactivity
-            localStorage.removeItem(CART_STORAGE_KEY);
-          }
-        }
-      }
-
-      const rawWishlist = localStorage.getItem(WISHLIST_STORAGE_KEY);
-      if (rawWishlist) {
-        const envelope: StoredWishlistEnvelope = JSON.parse(rawWishlist);
-        if (envelope && Array.isArray(envelope.items)) {
-          if (envelope.expiresAt && Date.now() < envelope.expiresAt) {
-            setWishlist(envelope.items);
-          } else {
-            localStorage.removeItem(WISHLIST_STORAGE_KEY);
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('Error reading cart or wishlist from storage', e);
-    } finally {
-      isHydratedRef.current = true;
-    }
-  }, []);
+  const isHydratedRef = useRef(true);
 
   // 2. Persist cart with a 7-day sliding expiry whenever it changes
   useEffect(() => {
@@ -223,7 +227,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (typeof window !== 'undefined') {
         const path = window.location.pathname;
         if (path.startsWith('/admin') || path.startsWith('/customer')) {
-          window.location.href = '/login';
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+          window.location.assign('/login');
         }
       }
     };

@@ -39,10 +39,10 @@ interface ShopFiltersProps {
   value: FilterState;
   onChange: (next: FilterState) => void;
   onClose?: () => void;
-  resultCount: number;
+  resultCount?: number;
 }
 
-export function ShopFilters({ value, onChange, onClose, resultCount }: ShopFiltersProps) {
+export function ShopFilters({ value, onChange, onClose }: ShopFiltersProps) {
   const toggle = (key: keyof FilterState, option: string) => {
     const current = value[key] as string[];
     onChange({
