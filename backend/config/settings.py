@@ -73,10 +73,16 @@ TEMPLATES = [
 ]
 
 
-DATABASES = {
+# --- Database: PostgreSQL 
+if os.getenv("POSTGRES_DB"):
+    DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("POSTGRES_DB"),
+            "USER": os.getenv("POSTGRES_USER",),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+            "HOST": os.getenv("POSTGRES_HOST"),
+            "PORT": os.getenv("POSTGRES_PORT", "5432"),
         }
     }
 
@@ -109,12 +115,8 @@ USE_TZ = True
 # --- Static and media files (WhiteNoise) ---
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
-
-WHITENOISE_USE_FINDERS = DEBUG or ("test" in sys.argv or "pytest" in sys.argv[0])
 
 STORAGES = {
     "default": {
