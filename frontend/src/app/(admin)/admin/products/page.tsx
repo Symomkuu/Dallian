@@ -2,9 +2,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { EyeIcon, EyeOffIcon, PencilIcon, PlusIcon, SearchIcon, Trash2Icon } from 'lucide-react';
 import { cx, formatKsh } from '@/utils/format';
-import { useStore } from '@/contexts/StoreContext';
 import { toast } from 'sonner';
 import {
   fetchDashboardProducts,
@@ -32,7 +32,6 @@ function stockLabel(status: ReturnType<typeof stockStatus>) {
 }
 
 export default function AdminProductsPage() {
-  const { pushToast } = useStore();
   const [products, setProducts] = useState<DashboardProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -203,10 +202,13 @@ export default function AdminProductsPage() {
               >
                 <div className="relative aspect-square overflow-hidden bg-cream">
                   {primaryImage ? (
-                    <img
+                    <Image
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 300px"
                       src={primaryImage.image_url}
                       alt={product.name}
-                      className="h-full w-full object-cover"
+                      className="object-cover"
+                      unoptimized
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-ink/20 text-xs">
@@ -346,10 +348,13 @@ export default function AdminProductsPage() {
             <div className="flex items-center gap-3 rounded-xl border border-ink/10 bg-cream/30 p-3">
               <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-cream">
                 {productToDelete.images?.[0]?.image_url ? (
-                  <img
+                  <Image
                     src={productToDelete.images[0].image_url}
                     alt=""
+                    width={48}
+                    height={48}
                     className="h-full w-full object-cover"
+                    unoptimized
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-[10px] text-ink/30">

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { ChevronLeftIcon, ChevronRightIcon, ExpandIcon, XIcon } from 'lucide-react';
 import { cx } from '../utils/format';
 
@@ -10,18 +11,20 @@ interface ProductGalleryProps {
 
 export function ProductGallery({ images, name, activeImage }: ProductGalleryProps) {
   const [active, setActive] = useState(0);
+  const [prevActiveImage, setPrevActiveImage] = useState(activeImage);
+  if (prevActiveImage !== activeImage) {
+    setPrevActiveImage(activeImage);
+    if (activeImage) {
+      const clean = (u: string) => u.split('?')[0].replace(/^https?:\/\/[^/]+/, '');
+      const target = clean(activeImage);
+      const idx = images.findIndex((img) => img === activeImage || clean(img) === target);
+      if (idx !== -1) {
+        setActive(idx);
+      }
+    }
+  }
   const [zoom, setZoom] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-
-  useEffect(() => {
-    if (!activeImage) return;
-    const clean = (u: string) => u.split('?')[0].replace(/^https?:\/\/[^/]+/, '');
-    const target = clean(activeImage);
-    const idx = images.findIndex((img) => img === activeImage || clean(img) === target);
-    if (idx !== -1) {
-      setActive(idx);
-    }
-  }, [activeImage, images]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -38,15 +41,20 @@ export function ProductGallery({ images, name, activeImage }: ProductGalleryProp
   return (
     <div key={name}>
       <div className="relative overflow-hidden bg-cream-deep">
-        <img
+        <Image
           src={currentDisplayImage}
           alt={`${name} — view ${active + 1} of ${images.length}`}
+          width={600}
+          height={750}
+          priority
           onMouseEnter={() => setZoom(true)}
           onMouseLeave={() => setZoom(false)}
           className={cx(
             'aspect-[4/5] w-full object-cover transition-transform duration-500 ease-[var(--ease-luxe)]',
             zoom && 'scale-[1.35]'
-          )} />
+          )}
+          unoptimized
+        />
         
         <button
           type="button"
@@ -74,7 +82,7 @@ export function ProductGallery({ images, name, activeImage }: ProductGalleryProp
             active === index ? 'border-gold' : 'border-ink/12 hover:border-ink/40'
           )}>
           
-            <img src={image} alt="" className="aspect-[4/5] w-full object-cover" loading="lazy" />
+            <Image src={image} alt="" width={100} height={125} className="aspect-[4/5] w-full object-cover" unoptimized />
           </button>
         )}
       </div>
@@ -97,10 +105,14 @@ export function ProductGallery({ images, name, activeImage }: ProductGalleryProp
           
             <ChevronLeftIcon width={28} height={28} />
           </button>
-          <img
-          src={currentDisplayImage}
-          alt={`${name} — view ${active + 1}`}
-          className="max-h-[88vh] w-auto object-contain" />
+          <Image
+            src={currentDisplayImage}
+            alt={`${name} — view ${active + 1}`}
+            width={1200}
+            height={1500}
+            className="max-h-[88vh] w-auto object-contain"
+            unoptimized
+          />
         
           <button
           type="button"

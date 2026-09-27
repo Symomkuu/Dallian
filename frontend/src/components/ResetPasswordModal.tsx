@@ -5,11 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   EyeIcon,
   EyeOffIcon,
-  KeyRoundIcon,
   LockIcon,
   MailIcon,
   RotateCcwIcon,
-  ShieldCheckIcon,
   XIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -64,20 +62,22 @@ export function ResetPasswordModal({ isOpen, onClose, email }: ResetPasswordModa
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Reset internal state when modal opens/closes
-  useEffect(() => {
-    if (isOpen) {
-      setStep(1);
-      setCode('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setShowNewPassword(false);
-      setShowConfirmPassword(false);
-      setErrors({});
-      setLoading(false);
-      setResending(false);
-    }
-  }, [isOpen]);
+  // Reset internal state when modal opens
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (!prevIsOpen && isOpen) {
+    setPrevIsOpen(true);
+    setStep(1);
+    setCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setErrors({});
+    setLoading(false);
+    setResending(false);
+  } else if (prevIsOpen && !isOpen) {
+    setPrevIsOpen(false);
+  }
 
   // Handle countdown timer for resend code
   useEffect(() => {
@@ -233,7 +233,7 @@ export function ResetPasswordModal({ isOpen, onClose, email }: ResetPasswordModa
                     Forgot your password?
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-ink/65">
-                    No worries — we'll email a verification code to{' '}
+                    No worries — we&apos;ll email a verification code to{' '}
                     <span className="font-semibold text-ink">{masked}</span>.
                   </p>
                 </div>

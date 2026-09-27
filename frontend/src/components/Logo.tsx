@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Link } from '@/components/RouterCompat';
 import { brand } from '../data/brand';
 import { cx } from '../utils/format';
@@ -16,12 +17,15 @@ export function Logo({ onDark, compact, className, to = '/' }: LogoProps) {
   return (
     <Link to={to} className={cx('group flex items-center gap-3', className)} aria-label={`${brand.name} — home`}>
       <span className="relative block h-10 w-10 shrink-0 overflow-hidden rounded-sm border border-gold/50">
-        <img
+        <Image
           src={brand.logo}
           alt=""
+          width={40}
+          height={40}
           className="h-full w-full scale-[1.55] object-cover object-[50%_22%]"
-          loading="eager" />
-        
+          priority
+          unoptimized
+        />
       </span>
       <span className="flex flex-col leading-none">
         <span

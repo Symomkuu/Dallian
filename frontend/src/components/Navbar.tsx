@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
@@ -19,6 +19,8 @@ import { cx } from '@/utils/format';
 import { Logo } from './Logo';
 import { SearchOverlay } from './SearchOverlay';
 
+const emptySubscribe = () => () => {};
+
 const navLinks = [
   { label: 'Home', to: '/home' },
   { label: 'Shop', to: '/' },
@@ -32,7 +34,7 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -41,7 +43,6 @@ export function Navbar() {
   }`;
 
   useEffect(() => {
-    setMounted(true);
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });

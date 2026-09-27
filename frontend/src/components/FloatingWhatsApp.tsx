@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { brand } from '@/data/brand';
+
+const emptySubscribe = () => () => {};
 
 /**
  * Floating, draggable WhatsApp button that appears on every page.
@@ -13,7 +15,7 @@ export function FloatingWhatsApp() {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const dragStartRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number }>({
     startX: 0,
@@ -26,7 +28,6 @@ export function FloatingWhatsApp() {
 
   // Set default initial position on the bottom-right once mounted in the browser
   useEffect(() => {
-    setMounted(true);
     const updateDefaultPos = () => {
       const buttonSize = 56;
       const margin = 24;

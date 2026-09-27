@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   SearchIcon,
   RefreshCwIcon,
@@ -268,7 +269,7 @@ function OrderModal({
                     <li key={item.id} className="flex items-start gap-3">
                       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-ink/5">
                         {item.product_image
-                          ? <img src={item.product_image} alt={item.product_name} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                          ? <Image src={item.product_image} alt={item.product_name} width={48} height={48} className="h-full w-full object-cover" unoptimized />
                           : <div className="flex h-full w-full items-center justify-center"><PackageIcon width={16} height={16} className="text-ink/20" /></div>
                         }
                       </div>
@@ -508,7 +509,20 @@ export default function AdminOrdersPage() {
   };
 
   useEffect(() => {
-    fetchOrders('', '', '').finally(() => setLoading(false));
+    let active = true;
+    (async () => {
+      try {
+        const data = await adminFetchOrders({});
+        if (active) setOrders(data);
+      } catch {
+        if (active) setError("Couldn't load orders.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSearch = (val: string) => {

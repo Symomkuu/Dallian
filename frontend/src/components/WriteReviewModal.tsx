@@ -29,20 +29,20 @@ export function WriteReviewModal({
 
   const [rating, setRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number>(0);
-  const [authorName, setAuthorName] = useState<string>('');
+  const [authorName, setAuthorName] = useState<string>(() => user?.full_name || '');
+  const [prevUser, setPrevUser] = useState(user);
+  if (user !== prevUser) {
+    setPrevUser(user);
+    if (user?.full_name && !authorName) {
+      setAuthorName(user.full_name);
+    }
+  }
   const [location, setLocation] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [comment, setComment] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
-
-  // Pre-fill user details if logged in
-  useEffect(() => {
-    if (user) {
-      if (user.full_name) setAuthorName(user.full_name);
-    }
-  }, [user]);
 
   // Handle ESC key press
   useEffect(() => {

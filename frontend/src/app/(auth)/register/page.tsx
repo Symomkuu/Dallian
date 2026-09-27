@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { imagery } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
@@ -20,7 +21,6 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     const syncEmailFormState = () => {
@@ -57,7 +57,6 @@ export default function RegisterPage() {
         return;
       }
       setFormError('');
-      setGoogleLoading(true);
       try {
         const me = await loginWithGoogle(response.credential);
         pushToast({
@@ -71,8 +70,6 @@ export default function RegisterPage() {
           error instanceof ApiError ? error.message : 'Unable to sign up with Google. Please try again.';
         setFormError(message);
         pushToast({ title: 'Google sign-up failed', body: message, tone: 'error' });
-      } finally {
-        setGoogleLoading(false);
       }
     },
     [loginWithGoogle, pushToast, router]
@@ -275,10 +272,13 @@ export default function RegisterPage() {
       </div>
 
       <div className="relative hidden lg:block">
-        <img
+        <Image
+          fill
+          priority
+          sizes="(min-width: 1024px) 50vw, 100vw"
           src={imagery.categoryHumanHair}
           alt="Dallian Luxe Hair Model"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="object-cover"
         />
       </div>
     </div>

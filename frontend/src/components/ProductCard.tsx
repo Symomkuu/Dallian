@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import { Link } from '@/components/RouterCompat';
 import { EyeIcon, HeartIcon, ShoppingBagIcon } from 'lucide-react';
 import type { Product } from '../types';
@@ -20,18 +21,9 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
   const saved = isWishlisted(product.id);
   const soldOut = product.availability === 'out-of-stock';
   const [selectedColor, setSelectedColor] = useState<string>(product.colors?.[0]?.name ?? '');
-  const [displayedImage, setDisplayedImage] = useState<string>(
-    product.colors?.[0]?.image || product.images?.[0] || '/ee976c31-e0c9-4d59-a85f-bc2c81c58448.jpg'
-  );
 
-  useEffect(() => {
-    const col = product.colors?.find((c) => c.name === selectedColor) || product.colors?.[0];
-    if (col?.image) {
-      setDisplayedImage(col.image);
-    } else {
-      setDisplayedImage(product.images?.[0] || '/ee976c31-e0c9-4d59-a85f-bc2c81c58448.jpg');
-    }
-  }, [product, selectedColor]);
+  const activeColorObj = product.colors?.find((c) => c.name === selectedColor) || product.colors?.[0];
+  const displayedImage = activeColorObj?.image || product.images?.[0] || '/ee976c31-e0c9-4d59-a85f-bc2c81c58448.jpg';
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,11 +55,13 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
       {/* Image Container */}
       <div className="relative overflow-hidden bg-stone-100">
         <Link to={`/product/${product.slug}`} aria-label={product.name} className="block">
-          <img
+          <Image
             src={displayedImage}
             alt={`${product.name} — ${product.style || ''} wig modelled`}
-            loading="lazy"
+            width={400}
+            height={500}
             className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized
           />
         </Link>
 

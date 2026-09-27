@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import {
   CheckIcon,
@@ -9,10 +10,7 @@ import {
   PlusIcon,
   Trash2Icon,
   UploadIcon,
-  SparklesIcon,
-  LayersIcon,
 } from 'lucide-react';
-import { useStore } from '@/contexts/StoreContext';
 import { cx, formatKsh } from '@/utils/format';
 import InlineAddPanel from '@/components/admin/InlineAddPanel';
 import { uploadImageToCloudinary } from '@/utils/cloudinary';
@@ -63,7 +61,6 @@ const labelClass = 'mb-2 block text-xs font-semibold uppercase tracking-wider te
 
 export default function NewProductPage() {
   const router = useRouter();
-  const { pushToast } = useStore();
   const [stepIndex, setStepIndex] = useState(0);
   const step: Step = steps[stepIndex];
   const [submitting, setSubmitting] = useState(false);
@@ -612,7 +609,7 @@ export default function NewProductPage() {
                       key={image.url}
                       className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-2xs"
                     >
-                      <img src={image.url} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                      <Image fill sizes="(max-width: 640px) 50vw, 20vw" src={image.url} alt="" className="object-cover transition-transform group-hover:scale-105" unoptimized />
                       {index === 0 && (
                         <span className="absolute top-2 left-2 rounded-md bg-slate-900 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase shadow-xs">
                           Primary
@@ -960,10 +957,13 @@ export default function NewProductPage() {
                                         ))}
                                       </select>
                                       {c.image_index != null && images[c.image_index] && (
-                                        <img
+                                        <Image
                                           src={images[c.image_index].url}
                                           alt=""
+                                          width={24}
+                                          height={24}
                                           className="h-6 w-6 rounded-md object-cover border border-slate-200"
+                                          unoptimized
                                         />
                                       )}
                                     </div>
@@ -1090,10 +1090,13 @@ export default function NewProductPage() {
               <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
                 <div className="relative aspect-square bg-slate-100">
                   {images[0] ? (
-                    <img
+                    <Image
+                      fill
+                      sizes="(max-width: 768px) 100vw, 400px"
                       src={images[0].url}
                       alt=""
-                      className="h-full w-full object-cover"
+                      className="object-cover"
+                      unoptimized
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-slate-300">
