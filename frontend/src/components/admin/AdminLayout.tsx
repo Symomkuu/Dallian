@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from '@/components/RouterCompat';
+import Image from 'next/image';
 import {
   BarChart3Icon,
   BoxesIcon,
@@ -76,7 +77,7 @@ export function AdminLayout() {
   const sidebar =
   <div className="flex h-full flex-col bg-ink text-cream">
       <div className="flex items-center gap-3 border-b border-cream/10 px-5 py-5">
-        <img src={brand.logo} alt="" className="h-9 w-9 border border-gold/40 object-cover" />
+        <Image src={brand.logo} alt="" width={36} height={36} className="rounded border border-gold/40 object-cover" />
         <div className="leading-none">
           <p className="font-serif text-sm tracking-[0.12em]">DALLIAN</p>
           <p className="mt-1 text-[9px] tracking-[0.3em] text-gold">ADMIN</p>

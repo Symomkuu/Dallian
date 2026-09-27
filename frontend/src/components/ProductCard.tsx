@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from '@/components/RouterCompat';
 import { EyeIcon, HeartIcon, ShoppingBagIcon } from 'lucide-react';
 import type { Product } from '../types';
@@ -19,16 +19,39 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
   const { addToCart, setCartOpen, toggleWishlist, isWishlisted } = useStore();
   const saved = isWishlisted(product.id);
   const soldOut = product.availability === 'out-of-stock';
+  const [selectedColor, setSelectedColor] = useState<string>(product.colors?.[0]?.name ?? '');
+  const [displayedImage, setDisplayedImage] = useState<string>(
+    product.colors?.[0]?.image || product.images?.[0] || '/ee976c31-e0c9-4d59-a85f-bc2c81c58448.jpg'
+  );
+
+  useEffect(() => {
+    const col = product.colors?.find((c) => c.name === selectedColor) || product.colors?.[0];
+    if (col?.image) {
+      setDisplayedImage(col.image);
+    } else {
+      setDisplayedImage(product.images?.[0] || '/ee976c31-e0c9-4d59-a85f-bc2c81c58448.jpg');
+    }
+  }, [product, selectedColor]);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // 1. Add selected item to active cart state
+    const defaultSize = product.sizes?.[0];
+    const activeColorObj = product.colors?.find((c) => c.name === selectedColor) || product.colors?.[0];
+    const defaultLength = product.lengths?.[0];
+
     addToCart(product, {
-      length: product.lengths[Math.floor(product.lengths.length / 2)] ?? product.lengths[0],
-      color: product.colors[0]?.name ?? '',
-      capType: product.capTypes[0] ?? '',
+      size: defaultSize?.name,
+      length: defaultLength,
+      color: activeColorObj?.name,
+      capType: product.capTypes?.[0],
+      price:
+        defaultSize?.price != null
+          ? defaultSize.price
+          : activeColorObj?.price != null
+            ? activeColorObj.price
+            : product.price,
     });
 
     // 2. Explicitly trigger side drawer modal to open
@@ -36,13 +59,13 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
   };
 
   return (
-    <article className="group flex h-full flex-col border border-stone-200 bg-white p-4 transition-all duration-300 hover:shadow-md">
+    <article className="group flex h-full flex-col border border-stone-200 bg-white p-2.5 sm:p-4 transition-all duration-300 hover:shadow-md">
       {/* Image Container */}
       <div className="relative overflow-hidden bg-stone-100">
         <Link to={`/product/${product.slug}`} aria-label={product.name} className="block">
           <img
-            src={product.images[0]}
-            alt={`${product.name} — ${product.style} wig modelled`}
+            src={displayedImage}
+            alt={`${product.name} — ${product.style || ''} wig modelled`}
             loading="lazy"
             className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
@@ -51,17 +74,17 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
         {/* Badges */}
         <div className="absolute left-0 top-0 flex flex-col gap-1">
           {product.badges?.includes('bestseller') && (
-            <span className="bg-[#D99B26] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-white">
+            <span className="bg-[#D99B26] px-1.5 py-0.5 sm:px-3 sm:py-1.5 text-[9px] sm:text-[11px] font-semibold uppercase tracking-wider sm:tracking-widest text-white">
               Best Seller
             </span>
           )}
           {product.badges?.includes('new') && (
-            <span className="bg-black px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-white">
+            <span className="bg-black px-1.5 py-0.5 sm:px-3 sm:py-1.5 text-[9px] sm:text-[11px] font-semibold uppercase tracking-wider sm:tracking-widest text-white">
               New
             </span>
           )}
           {soldOut && (
-            <span className="bg-white/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-stone-700">
+            <span className="bg-white/90 px-1.5 py-0.5 sm:px-3 sm:py-1.5 text-[9px] sm:text-[11px] font-semibold uppercase tracking-wider sm:tracking-widest text-stone-700">
               Sold Out
             </span>
           )}
@@ -73,9 +96,9 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
           onClick={() => toggleWishlist(product)}
           aria-pressed={saved}
           aria-label={saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-stone-900 shadow-sm transition-colors duration-200 hover:text-[#D99B26]"
+          className="absolute right-2 top-2 sm:right-3 sm:top-3 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-white text-stone-900 shadow-sm transition-colors duration-200 hover:text-[#D99B26]"
         >
-          <HeartIcon width={14} height={14} className={saved ? 'fill-[#4A2820] text-[#4A2820]' : 'stroke-[1.5]'} />
+          <HeartIcon width={13} height={13} className={saved ? 'fill-[#4A2820] text-[#4A2820]' : 'stroke-[1.5]'} />
         </button>
 
         {/* Quick View Bar on Hover */}
@@ -94,33 +117,67 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
       </div>
 
       {/* Product Details */}
-      <div className="flex flex-1 flex-col pt-4">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
-          {product.category === 'human-hair' ? 'Human Hair' : 'Japanese Futura'}
-        </p>
+      <div className="flex flex-1 flex-col pt-3 sm:pt-4">
+        {product.category && (
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+            {product.category}
+          </p>
+        )}
 
-        <h3 className="mt-1 font-serif text-lg font-medium leading-snug text-stone-900">
+        <h3 className="mt-1 font-serif text-sm sm:text-lg font-medium leading-snug text-stone-900 line-clamp-2">
           <Link to={`/product/${product.slug}`} className="transition-colors duration-150 hover:underline">
             {product.name}
           </Link>
         </h3>
 
-        <p className="mt-1 text-xs text-stone-500">
-          {product.style} - {product.lengths[0]}"–{product.lengths[product.lengths.length - 1]}"
-        </p>
+        {(product.style || (product.sizes && product.sizes.length > 0)) && (
+          <p className="mt-1 text-xs text-stone-500">
+            {product.style || ''}
+            {product.sizes && product.sizes.length > 0
+              ? `${product.style ? ' · ' : ''}${product.sizes.map((s) => s.name).join(', ')}`
+              : ''}
+          </p>
+        )}
 
         {/* Available Swatches */}
-        <div className="mt-3 flex items-center gap-1.5" aria-label="Available colours">
-          {product.colors.map((color) => (
-            <span
-              key={color.name}
-              title={color.name}
-              className="h-3.5 w-3.5 rounded-full border border-stone-300"
-              style={{ backgroundColor: color.hex }}
-            />
-          ))}
-          <span className="ml-1 text-[11px] text-stone-400">{product.colors.length} colours</span>
-        </div>
+        {product.colors && product.colors.length > 0 && (
+          <div className="mt-3 flex items-center gap-1.5" aria-label="Available colours">
+            {product.colors.map((color) => {
+              const isSelected = selectedColor === color.name;
+              return (
+                <button
+                  key={color.name}
+                  type="button"
+                  title={color.name}
+                  aria-label={`Select ${color.name} color`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSelectedColor(color.name);
+                    if (color.image) {
+                      setDisplayedImage(color.image);
+                    }
+                  }}
+                  onMouseEnter={() => {
+                    if (color.image) {
+                      setDisplayedImage(color.image);
+                    }
+                  }}
+                  className={cx(
+                    'h-4 w-4 rounded-full border transition-all duration-150',
+                    isSelected
+                      ? 'border-[#4A2820] ring-1 ring-[#4A2820] scale-110'
+                      : 'border-stone-300 hover:scale-105'
+                  )}
+                  style={{ backgroundColor: color.hex }}
+                />
+              );
+            })}
+            <span className="ml-1 text-[11px] text-stone-400">
+              {product.colors.length} {product.colors.length === 1 ? 'colour' : 'colours'}
+            </span>
+          </div>
+        )}
 
         {/* Star Rating */}
         <div className="mt-2">
@@ -128,15 +185,15 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
         </div>
 
         {/* Price & Stock Status */}
-        <div className="mt-auto pt-4">
-          <div className="flex items-baseline justify-between gap-2">
-            <p className="font-serif text-lg font-medium text-stone-900">
+        <div className="mt-auto pt-3 sm:pt-4">
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-2">
+            <p className="font-serif text-sm sm:text-lg font-medium text-stone-900">
               {formatKsh(product.price)}
             </p>
 
             <span
               className={cx(
-                'text-xs font-medium',
+                'text-[10px] sm:text-xs font-medium',
                 product.availability === 'in-stock' && 'text-emerald-700',
                 product.availability === 'low-stock' && 'text-[#B36B39]',
                 soldOut && 'text-stone-400'
@@ -147,7 +204,7 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
           </div>
 
           {product.compareAtPrice && (
-            <p className="mt-0.5 text-xs text-stone-400 line-through">
+            <p className="mt-0.5 text-[10px] sm:text-xs text-stone-400 line-through">
               {formatKsh(product.compareAtPrice)}
             </p>
           )}
@@ -158,10 +215,10 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
               type="button"
               disabled={soldOut}
               onClick={handleAddToCart}
-              className="mt-4 flex w-full items-center justify-center gap-2 border border-black bg-white py-3 text-xs font-semibold uppercase tracking-widest text-black transition-all hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:border-stone-200 disabled:text-stone-300 disabled:hover:bg-transparent"
+              className="mt-3 sm:mt-4 flex w-full items-center justify-center gap-1.5 sm:gap-2 border border-black bg-white py-2 sm:py-3 text-[10px] sm:text-xs font-semibold uppercase tracking-wider sm:tracking-widest text-black transition-all hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:border-stone-200 disabled:text-stone-300 disabled:hover:bg-transparent"
             >
-              <ShoppingBagIcon width={14} height={14} />
-              {soldOut ? 'Notify Me' : 'Add To Cart'}
+              <ShoppingBagIcon width={13} height={13} className="shrink-0" />
+              <span>{soldOut ? 'Notify Me' : 'Add To Cart'}</span>
             </button>
           )}
         </div>

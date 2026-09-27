@@ -4,6 +4,7 @@ from django.urls import path
 
 from users.views import (
     ChangePasswordView,
+    CsrfTokenView,
     ForgotPasswordView,
     RegisterView,
     ResendVerificationView,
@@ -26,6 +27,7 @@ urlpatterns = [
     path("google/", CookieGoogleLoginView.as_view(), name="google-login"),
     path("refresh/", CookieTokenRefreshView.as_view(), name="refresh"),
     path("logout/", LogoutView.as_view(), name="logout"),
+    path("csrf/", CsrfTokenView.as_view(), name="csrf"),
     path("me/", UserMeView.as_view(), name="me"),
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
     path("password/forgot/", ForgotPasswordView.as_view(), name="password-forgot"),

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight as ArrowRightIcon,
   Clock as ClockIcon,
   Headphones as HeadphonesIcon,
-  Heart as HeartIcon,
   Info as InfoIcon,
   MapPin as MapPinIcon,
   ShieldCheck as ShieldCheckIcon,
@@ -17,8 +17,10 @@ import {
 } from 'lucide-react';
 
 import { brand, imagery } from '@/data/brand';
-import { categoryMeta, products, type Product } from '@/data/products';
+import { categoryMeta, products } from '@/data/products';
+import type { Product } from '@/types';
 import { careGuide, reviews, trustPoints } from '@/data/content';
+import { fetchStoreFeaturedProducts, formatProductFromBackend } from '@/utils/api';
 
 import { Hero } from '@/components/Hero';
 import { CategoryCard } from '@/components/CategoryCard';
@@ -41,33 +43,40 @@ interface ToastState {
 }
 
 export default function Home() {
-  const [wishlist, setWishlist] = useState<string[]>([]);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [email, setEmail] = useState('');
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
 
-  const featured = products.filter((p) =>
-    p.badges.includes('featured')
-  );
+  useEffect(() => {
+    let isMounted = true;
 
-  const bestSellers = products.filter((p) =>
-    p.badges.includes('bestseller')
-  );
+    fetchStoreFeaturedProducts()
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.results && res.results.length > 0) {
+          setFeaturedProducts(res.results.map(formatProductFromBackend));
+        } else {
+          setFeaturedProducts(products.filter((p) => p.badges.includes('featured')));
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error('Failed to load featured products from backend:', err);
+        setFeaturedProducts(products.filter((p) => p.badges.includes('featured')));
+      })
+      .finally(() => {
+        if (isMounted) setLoadingFeatured(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const published = reviews
     .filter((r) => r.status === 'published')
     .slice(0, 3);
-
-  const toggleWishlist = (product: Product) => {
-    const isLiked = wishlist.includes(product.id);
-
-    if (isLiked) {
-      setWishlist((prev) => prev.filter((id) => id !== product.id));
-      setToast({ title: product.name, action: 'removed' });
-    } else {
-      setWishlist((prev) => [...prev, product.id]);
-      setToast({ title: product.name, action: 'added' });
-    }
-  };
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,7 +161,7 @@ export default function Home() {
           </div>
 
           <div className="mt-6 sm:mt-10">
-            <ProductGrid products={featured} columns={3} />
+            <ProductGrid products={featuredProducts} columns={3} loading={loadingFeatured} />
           </div>
         </div>
       </section>
@@ -269,12 +278,14 @@ export default function Home() {
         className="bg-cream"
       >
         <div className="mx-auto grid max-w-page items-center gap-6 px-4 py-10 sm:gap-10 sm:px-8 sm:py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
-          <img
-            src={imagery.care}
-            alt="Wig care essentials arranged on a marble surface"
-            loading="lazy"
-            className="aspect-[16/10] w-full object-cover sm:aspect-[3/2]"
-          />
+          <div className="relative aspect-[16/10] overflow-hidden sm:aspect-[3/2]">
+            <Image
+              src={imagery.care}
+              alt="Wig care essentials arranged on a marble surface"
+              fill
+              className="object-cover"
+            />
+          </div>
 
           <div>
             <SectionHeading
@@ -312,15 +323,15 @@ export default function Home() {
         className="relative bg-[#110E0C] text-white overflow-hidden"
       >
         {/* Background Image with Dark Overlay */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={imagery.store}
-            alt="Inside the Dallian Luxe Hair store"
-            loading="lazy"
-            className="h-full w-full object-cover opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
-        </div>
+<div className="absolute inset-0 z-0">
+            <Image
+              src={imagery.store}
+              alt="Inside the Dallian Luxe Hair store"
+              fill
+              className="object-cover opacity-30"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
+          </div>
 
         <div className="relative z-10 mx-auto max-w-page px-5 py-12 sm:px-12 sm:py-20 lg:py-28">
           <div className="max-w-xl">

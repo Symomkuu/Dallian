@@ -11,12 +11,14 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from catalog.models import Category, HairStyle, Product, ProductImage
+from catalog.models import Category, HairStyle, Product, ProductColor, ProductImage, ProductSize
 from catalog.serializers import (
     CategoryAdminSerializer,
     HairStyleAdminSerializer,
     ProductAdminSerializer,
+    ProductColorAdminSerializer,
     ProductImageAdminSerializer,
+    ProductSizeAdminSerializer,
 )
 from catalog.services import delete_product_image, set_primary_image
 from users.permissions import IsStaffRole
@@ -108,7 +110,9 @@ class ProductViewSet(viewsets.ModelViewSet):
     """Full CRUD for products. The list includes inactive products too."""
 
     queryset = (
-        Product.objects.all().select_related("category", "hairstyle").prefetch_related("images")
+        Product.objects.all()
+        .select_related("category", "hairstyle")
+        .prefetch_related("images", "colors", "sizes")
     )
     serializer_class = ProductAdminSerializer
     permission_classes = [IsStaffRole]
@@ -138,3 +142,31 @@ class ProductImageViewSet(viewsets.ModelViewSet):
         set_primary_image(image)
         image.refresh_from_db()
         return Response(self.get_serializer(image).data)
+
+
+class ProductColorViewSet(viewsets.ModelViewSet):
+    """Manage a product's colors. Filter the list with ?product=<id>."""
+
+    queryset = ProductColor.objects.all()
+    serializer_class = ProductColorAdminSerializer
+    permission_classes = [IsStaffRole]
+
+    def get_queryset(self):
+        """Optionally filter to one product's colors."""
+        queryset = super().get_queryset()
+        product_id = self.request.query_params.get("product")
+        return queryset.filter(product_id=product_id) if product_id else queryset
+
+
+class ProductSizeViewSet(viewsets.ModelViewSet):
+    """Manage a product's sizes. Filter the list with ?product=<id>."""
+
+    queryset = ProductSize.objects.all()
+    serializer_class = ProductSizeAdminSerializer
+    permission_classes = [IsStaffRole]
+
+    def get_queryset(self):
+        """Optionally filter to one product's sizes."""
+        queryset = super().get_queryset()
+        product_id = self.request.query_params.get("product")
+        return queryset.filter(product_id=product_id) if product_id else queryset

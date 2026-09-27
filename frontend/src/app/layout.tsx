@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import './globals.css';
 import { Providers } from '@/components/Provider';
 import { SiteChrome } from '@/components/SiteChrome';
+import { FloatingWhatsApp } from '@/components/FloatingWhatsApp';
 
 export const metadata: Metadata = {
   title: 'Dallian Luxe Hair E-Commerce Platform',
@@ -21,6 +22,7 @@ export default function RootLayout({
         <Providers>
           <Suspense fallback={null}>
             <SiteChrome>{children}</SiteChrome>
+            <FloatingWhatsApp />
           </Suspense>
         </Providers>
       </body>

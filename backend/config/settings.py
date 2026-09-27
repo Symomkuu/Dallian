@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "users",
     "catalog",
+    "orders",
 ]
 
 AUTH_USER_MODEL = "users.User"
@@ -44,6 +45,7 @@ AUTH_USER_MODEL = "users.User"
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -71,23 +73,16 @@ TEMPLATES = [
 ]
 
 
-# --- Database: SQLite by default, PostgreSQL when POSTGRES_DB is set ---
+# --- Database: PostgreSQL 
 if os.getenv("POSTGRES_DB"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.getenv("POSTGRES_DB"),
-            "USER": os.getenv("POSTGRES_USER", ""),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
-            "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+            "USER": os.getenv("POSTGRES_USER",),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+            "HOST": os.getenv("POSTGRES_HOST"),
             "PORT": os.getenv("POSTGRES_PORT", "5432"),
-        }
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
@@ -117,11 +112,20 @@ USE_I18N = True
 USE_TZ = True
 
 
-# --- Static and media files ---
+# --- Static and media files (WhiteNoise) ---
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -144,12 +148,15 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
 }
+
+SESSION_COOKIE_AGE = 86400  # 24 hours / 1 day
+SESSION_SAVE_EVERY_REQUEST = True
 
 
 # --- Cookies, CSRF and CORS ---
@@ -161,7 +168,8 @@ SESSION_COOKIE_SECURE = AUTH_COOKIE_SECURE
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
-        "CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173"
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000,https://dallian.online,https://www.dallian.online",
     ).split(",")
     if origin.strip()
 ]
@@ -171,10 +179,15 @@ CORS_URLS_REGEX = r"^/api/.*$"
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
-        "CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://localhost:5173"
+        "CSRF_TRUSTED_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000,https://dallian.online,https://www.dallian.online",
     ).split(",")
     if origin.strip()
 ]
+
+# Security Headers
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
 
 # Only turn this on when Django really sits behind a proxy such as Caddy
 if os.getenv("BEHIND_PROXY", "False").strip().lower() in ("1", "true", "yes"):
@@ -188,18 +201,18 @@ EMAIL_BACKEND = os.getenv("EMAIL_BACKEND") or "django.core.mail.backends.console
 EMAIL_HOST = os.getenv("EMAIL_HOST", "")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False").strip().lower() in ("1", "true", "yes")
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL") or "Dallian <noreply@dallian.com>"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 # Read by Django's SMTP backend (not referenced in our code): caps each send attempt
 EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))
 
 
 # --- Google sign-in ---
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 
 # --- Cloudinary ---
-CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "")
-CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY", "")
-CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")

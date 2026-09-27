@@ -5,12 +5,23 @@ import { cx } from '../utils/format';
 interface ProductGalleryProps {
   images: string[];
   name: string;
+  activeImage?: string;
 }
 
-export function ProductGallery({ images, name }: ProductGalleryProps) {
+export function ProductGallery({ images, name, activeImage }: ProductGalleryProps) {
   const [active, setActive] = useState(0);
   const [zoom, setZoom] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (!activeImage) return;
+    const clean = (u: string) => u.split('?')[0].replace(/^https?:\/\/[^/]+/, '');
+    const target = clean(activeImage);
+    const idx = images.findIndex((img) => img === activeImage || clean(img) === target);
+    if (idx !== -1) {
+      setActive(idx);
+    }
+  }, [activeImage, images]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -22,11 +33,13 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [fullscreen, images.length]);
 
+  const currentDisplayImage = images[active] || activeImage || '/ee976c31-e0c9-4d59-a85f-bc2c81c58448.jpg';
+
   return (
     <div key={name}>
       <div className="relative overflow-hidden bg-cream-deep">
         <img
-          src={images[active]}
+          src={currentDisplayImage}
           alt={`${name} — view ${active + 1} of ${images.length}`}
           onMouseEnter={() => setZoom(true)}
           onMouseLeave={() => setZoom(false)}
@@ -85,7 +98,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
             <ChevronLeftIcon width={28} height={28} />
           </button>
           <img
-          src={images[active]}
+          src={currentDisplayImage}
           alt={`${name} — view ${active + 1}`}
           className="max-h-[88vh] w-auto object-contain" />
         

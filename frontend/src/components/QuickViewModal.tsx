@@ -16,14 +16,16 @@ interface QuickViewModalProps {
 
 export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
   const { addToCart } = useStore();
+  const [size, setSize] = useState<string | null>(null);
   const [length, setLength] = useState<number | null>(null);
   const [color, setColor] = useState<string | null>(null);
 
   // Initialize selected values whenever product changes
   useEffect(() => {
     if (product) {
-      setLength(product.lengths[2] ?? product.lengths[0] ?? null);
-      setColor(product.colors[0]?.name ?? null);
+      setSize(product.sizes?.[0]?.name ?? null);
+      setLength(product.lengths?.[0] ?? null);
+      setColor(product.colors?.[0]?.name ?? null);
     }
   }, [product]);
 
@@ -39,6 +41,18 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
   if (!product) return null;
 
   const soldOut = product.availability === 'out-of-stock';
+
+  const selectedSizeObj = product.sizes?.find((s) => s.name === size);
+  const selectedColorObj = product.colors?.find((c) => c.name === color);
+  const activePrice =
+    selectedSizeObj?.price != null
+      ? selectedSizeObj.price
+      : selectedColorObj?.price != null
+        ? selectedColorObj.price
+        : product.price;
+
+  const modalImage =
+    selectedColorObj?.image || product.images?.[0] || '/ee976c31-e0c9-4d59-a85f-bc2c81c58448.jpg';
 
   return (
     <div className="fixed inset-0 z-[65] flex items-center justify-center p-4">
@@ -72,88 +86,97 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
         {/* Product Image */}
         <div className="bg-[#F5EFE6]">
           <img
-            src={product.images[0]}
+            src={modalImage}
             alt={product.name}
-            className="h-full w-full object-cover max-sm:aspect-[4/5]"
+            className="h-full w-full object-cover transition-all duration-300 max-sm:aspect-[4/5]"
           />
         </div>
 
         {/* Details & Actions */}
         <div className="flex flex-col justify-between p-6 sm:p-8">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/50">
-              {product.category === 'human-hair' ? 'Human Hair' : 'Japanese Futura'}
-            </p>
+            {product.category && (
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/50">
+                {product.category}
+              </p>
+            )}
 
             <h2 className="mt-1.5 font-serif text-2xl font-normal text-ink">
               {product.name}
             </h2>
 
-            <div className="mt-2 flex items-center gap-2">
-              <StarRating rating={product.rating} count={product.reviewCount} />
-            </div>
+            {product.rating > 0 && product.reviewCount > 0 && (
+              <div className="mt-2 flex items-center gap-2">
+                <StarRating rating={product.rating} count={product.reviewCount} />
+              </div>
+            )}
 
             <p className="mt-4 font-serif text-xl font-normal text-ink">
-              {formatKsh(product.price)}
+              {formatKsh(activePrice)}
             </p>
 
-            <p className="mt-3 text-xs leading-relaxed text-ink/65">
-              {product.shortDescription ||
-                'Glass-smooth, mirror-shine straight hair with a weightless fall.'}
-            </p>
-
-            {/* Length Options */}
-            <div className="mt-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/60">
-                Length
+            {(product.shortDescription || product.description) && (
+              <p className="mt-3 text-xs leading-relaxed text-ink/65 line-clamp-3">
+                {product.shortDescription || product.description}
               </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {product.lengths.map((option) => {
-                  const isSelected = length === option;
-                  return (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => setLength(option)}
-                      className={`flex h-10 w-12 items-center justify-center border text-xs font-medium transition-all ${
-                        isSelected
-                          ? 'border-[#D99B26] bg-[#FAF7F2] text-ink font-semibold'
-                          : 'border-ink/20 bg-white text-ink/70 hover:border-ink/40'
-                      }`}
-                    >
-                      {option}"
-                    </button>
-                  );
-                })}
+            )}
+
+            {/* Size / Length Options */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="mt-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/60">
+                  Size / Length {size && <span className="font-normal text-ink">— {size}</span>}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {product.sizes.map((option) => {
+                    const isSelected = size === option.name;
+                    return (
+                      <button
+                        key={option.name}
+                        type="button"
+                        onClick={() => setSize(option.name)}
+                        className={`flex h-10 min-w-12 items-center justify-center border px-2.5 text-xs font-medium transition-all ${
+                          isSelected
+                            ? 'border-[#D99B26] bg-[#FAF7F2] font-semibold text-ink ring-1 ring-[#D99B26]'
+                            : 'border-ink/20 bg-white text-ink/70 hover:border-ink/40'
+                        }`}
+                      >
+                        {option.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Colour Options */}
-            <div className="mt-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/60">
-                Colour — <span className="uppercase text-ink">{color}</span>
-              </p>
-              <div className="mt-2.5 flex items-center gap-3">
-                {product.colors.map((option) => {
-                  const isSelected = color === option.name;
-                  return (
-                    <button
-                      key={option.name}
-                      type="button"
-                      onClick={() => setColor(option.name)}
-                      aria-label={option.name}
-                      aria-pressed={isSelected}
-                      className={`h-7 w-7 rounded-full transition-all ${
-                        isSelected
-                          ? 'ring-2 ring-ink ring-offset-2'
-                          : 'border border-ink/20 hover:scale-105'
-                      }`}
-                      style={{ backgroundColor: option.hex }}
-                    />
-                  );
-                })}
+            {product.colors && product.colors.length > 0 && (
+              <div className="mt-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/60">
+                  Colour — <span className="uppercase text-ink">{color}</span>
+                </p>
+                <div className="mt-2.5 flex items-center gap-3">
+                  {product.colors.map((option) => {
+                    const isSelected = color === option.name;
+                    return (
+                      <button
+                        key={option.name}
+                        type="button"
+                        onClick={() => setColor(option.name)}
+                        aria-label={option.name}
+                        aria-pressed={isSelected}
+                        className={`h-7 w-7 rounded-full transition-all ${
+                          isSelected
+                            ? 'ring-2 ring-ink ring-offset-2'
+                            : 'border border-ink/20 hover:scale-105'
+                        }`}
+                        style={{ backgroundColor: option.hex }}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             <p className="mt-4 text-xs font-medium text-emerald-700">In Stock</p>
           </div>
@@ -164,14 +187,14 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
               type="button"
               disabled={soldOut}
               onClick={() => {
-                if (length !== null && color !== null) {
-                  addToCart(product, {
-                    length,
-                    color,
-                    capType: product.capTypes?.[0] ?? 'Lace Front',
-                  });
-                  onClose();
-                }
+                addToCart(product, {
+                  length: length ?? undefined,
+                  size: size ?? undefined,
+                  color: color ?? undefined,
+                  capType: product.capTypes?.[0] ?? 'Lace Front',
+                  price: activePrice,
+                });
+                onClose();
               }}
               className="w-full bg-black py-3.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-black/85 disabled:bg-ink/30"
             >
