@@ -2,35 +2,26 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowRight, Sparkles, ShieldCheck, HelpCircle, Scissors } from 'lucide-react';
+import { ArrowRight, Sparkles, ShieldCheck, HelpCircle, Scissors, Layers } from 'lucide-react';
 import {
   fetchStoreCategories,
   fetchStoreHairStyles,
-  cleanImageUrl,
+  fetchStoreProducts,
   type StoreCategory,
   type StoreHairStyle,
 } from '@/utils/api';
 import { categoryMeta } from '@/data/products';
 
-const fallbackCategories = [
-  {
-    id: 1,
-    name: 'Premium Human Hair',
-    slug: 'human-hair',
-    image_url: '/7944b14b-3fd0-4899-8dbf-c03571669315.jpg',
-    blurb: '100% authentic raw and virgin human hair pieces that can be washed, heat-styled, and dyed freely with unmatched natural movement.',
-    features: ['100% Cuticle Aligned', 'Bleach & Dye Friendly', 'Lifespan: 2-3+ Years', 'Customizable HD Lace'],
+const defaultCategoryDescriptions: Record<string, { blurb: string; highlights: string[] }> = {
+  'human-hair': {
+    blurb: '100% authentic raw and virgin human hair pieces that can be washed, heat-styled, dyed, and customized freely with natural movement.',
+    highlights: ['Cuticle Aligned Raw Strands', 'Bleach & Heat Stylable', 'Longest Lasting Durability'],
   },
-  {
-    id: 2,
-    name: 'Japanese Futura Fibre',
-    slug: 'futura',
-    image_url: '/6cac8a29-06d2-466c-b5ea-c7d4d8d00223.jpg',
-    blurb: 'High-grade heat-resistant Japanese synthetic fibre designed to hold pristine styling and curl memory with zero fuss.',
-    features: ['Heat Resistant up to 180°C', 'Style & Curl Memory', 'Everyday Ready-to-Wear', 'Approachable Luxury'],
+  'futura': {
+    blurb: 'High-grade Japanese heat-resistant synthetic fibre formulated to retain styling and curl memory after washing with effortless ease.',
+    highlights: ['Heat Resistant up to 180°C', 'Superior Curl & Style Memory', 'Ready-to-Wear Everyday'],
   },
-];
+};
 
 const popularTextures = [
   { name: 'Straight', query: 'Straight', desc: 'Sleek, mirror-shine finish with fluid movement.' },
@@ -44,6 +35,7 @@ const popularTextures = [
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<StoreCategory[]>([]);
   const [hairstyles, setHairStyles] = useState<StoreHairStyle[]>([]);
+  const [productCounts, setProductCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -51,13 +43,28 @@ export default function CategoriesPage() {
     Promise.all([
       fetchStoreCategories().catch(() => []),
       fetchStoreHairStyles().catch(() => []),
-    ]).then(([cats, styles]) => {
+      fetchStoreProducts({ page_size: 100 }).catch(() => null),
+    ]).then(([cats, styles, productsRes]) => {
       if (!isMounted) return;
+
       if (Array.isArray(cats) && cats.length > 0) {
         setCategories(cats);
       }
       if (Array.isArray(styles) && styles.length > 0) {
         setHairStyles(styles);
+      }
+
+      if (productsRes && productsRes.results) {
+        const counts: Record<string, number> = {};
+        productsRes.results.forEach((p) => {
+          if (p.category?.slug) {
+            counts[p.category.slug] = (counts[p.category.slug] || 0) + 1;
+          }
+          if (p.category?.name) {
+            counts[p.category.name] = (counts[p.category.name] || 0) + 1;
+          }
+        });
+        setProductCounts(counts);
       }
     });
 
@@ -70,26 +77,51 @@ export default function CategoriesPage() {
     categories.length > 0
       ? categories.map((cat, idx) => {
           const meta = categoryMeta[cat.slug as keyof typeof categoryMeta];
-          const fallback = fallbackCategories.find((f) => f.slug === cat.slug) || fallbackCategories[idx % fallbackCategories.length];
+          const defaultDesc = defaultCategoryDescriptions[cat.slug];
+          const count = productCounts[cat.slug] ?? productCounts[cat.name] ?? 0;
+
+          const blurb =
+            meta?.blurb ||
+            defaultDesc?.blurb ||
+            `Explore our curated ${cat.name} collection, crafted with meticulous attention to detail, density, and natural finish.`;
+
+          const highlights =
+            defaultDesc?.highlights || [
+              'Artisan Craftsmanship',
+              'Quality Assured',
+              'Comfort-Fit Construction',
+            ];
+
           return {
             id: cat.id,
             name: cat.name,
             slug: cat.slug,
-            image: cleanImageUrl(cat.image_url) || meta?.image || fallback.image_url,
-            blurb: meta?.blurb || fallback.blurb,
-            features: fallback.features,
+            blurb,
+            highlights,
+            count,
             eyebrow: `Range 0${idx + 1}`,
           };
         })
-      : fallbackCategories.map((cat, idx) => ({
-          id: cat.id,
-          name: cat.name,
-          slug: cat.slug,
-          image: cat.image_url,
-          blurb: cat.blurb,
-          features: cat.features,
-          eyebrow: `Range 0${idx + 1}`,
-        }));
+      : [
+          {
+            id: 1,
+            name: 'Premium Human Hair',
+            slug: 'human-hair',
+            blurb: defaultCategoryDescriptions['human-hair'].blurb,
+            highlights: defaultCategoryDescriptions['human-hair'].highlights,
+            count: productCounts['human-hair'] ?? 0,
+            eyebrow: 'Range 01',
+          },
+          {
+            id: 2,
+            name: 'Japanese Futura Fibre',
+            slug: 'futura',
+            blurb: defaultCategoryDescriptions.futura.blurb,
+            highlights: defaultCategoryDescriptions.futura.highlights,
+            count: productCounts.futura ?? 0,
+            eyebrow: 'Range 02',
+          },
+        ];
 
   const textureList =
     hairstyles.length > 0
@@ -127,76 +159,69 @@ export default function CategoriesPage() {
             Explore by Category
           </h1>
           <p className="mt-3.5 text-sm leading-relaxed text-ink/75 sm:mt-5 sm:text-base lg:text-lg">
-            Every Dallian Luxe Hair piece is crafted to the highest standard of finish. Choose the range that aligns with your lifestyle — authentic human hair you can style freely, or Japanese Futura fibre that holds its look effortlessly.
+            Every Dallian Luxe Hair piece is crafted to an uncompromising standard. Choose the range that aligns with your routine and personal aesthetic.
           </p>
         </div>
 
-        {/* Categories Main Grid */}
-        <section aria-label="Wig Categories" className="mt-10 sm:mt-14">
-          <div className="grid gap-8 sm:gap-10 lg:grid-cols-2">
+        {/* Categories Grid (2 cards per row) */}
+        <section aria-label="Wig Categories" className="mt-10 sm:mt-12">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-2">
             {displayList.map((cat) => (
               <div
                 key={cat.id}
-                className="group relative flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-sm transition-all duration-300 hover:border-[#C89D34]/50 hover:shadow-md"
+                className="group flex flex-col justify-between rounded-2xl border border-ink/10 bg-white p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#D99B26]/80 hover:shadow-md sm:p-8"
               >
-                {/* Image Banner */}
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-neutral-900 sm:aspect-[16/9]">
-                  <Image
-                    src={cat.image}
-                    alt={cat.name}
-                    fill
-                    className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-                  
-                  {/* Floating Badge */}
-                  <div className="absolute left-4 top-4 rounded-full bg-black/75 px-3 py-1 text-[10px] font-semibold tracking-widest uppercase text-[#D99B26] backdrop-blur-sm sm:left-6 sm:top-6 sm:text-xs">
-                    {cat.eyebrow}
-                  </div>
+                <div>
+                  {/* Top Badges Row */}
+                  <div className="flex items-center justify-between gap-2 border-b border-ink/8 pb-4">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FAF7F2] px-3 py-1 text-[10px] font-semibold tracking-wider uppercase text-[#C89D34]">
+                      <Layers width={12} height={12} />
+                      {cat.eyebrow}
+                    </span>
 
-                  {/* Overlaid Title on Image */}
-                  <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6">
-                    <h2 className="font-serif text-2xl font-normal text-white sm:text-3xl lg:text-4xl">
-                      {cat.name}
-                    </h2>
-                  </div>
-                </div>
-
-                {/* Details Body */}
-                <div className="flex flex-1 flex-col justify-between p-5 sm:p-8">
-                  <div>
-                    <p className="text-sm leading-relaxed text-ink/70 sm:text-base">
-                      {cat.blurb}
-                    </p>
-
-                    {/* Features List */}
-                    {cat.features && (
-                      <div className="mt-5 border-t border-ink/8 pt-5">
-                        <p className="text-[11px] font-semibold tracking-wider uppercase text-ink/50">
-                          Signature Characteristics
-                        </p>
-                        <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                          {cat.features.map((feat, i) => (
-                            <li key={i} className="flex items-center gap-2 text-xs text-ink/80 sm:text-sm">
-                              <Sparkles width={13} height={13} className="shrink-0 text-[#C89D34]" />
-                              <span>{feat}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                    {cat.count > 0 ? (
+                      <span className="text-xs font-medium text-ink/60">
+                        {cat.count} {cat.count === 1 ? 'Piece' : 'Pieces'}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-medium text-ink/40">In Stock</span>
                     )}
                   </div>
 
-                  {/* Action Link */}
-                  <div className="mt-6 border-t border-ink/8 pt-5 sm:mt-8">
-                    <Link
-                      href={`/?category=${encodeURIComponent(cat.slug || cat.name)}`}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-black px-6 py-3.5 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-neutral-800 sm:w-auto"
-                    >
-                      <span>Shop {cat.name}</span>
-                      <ArrowRight width={14} height={14} />
-                    </Link>
+                  {/* Title & Description */}
+                  <div className="mt-5">
+                    <h2 className="font-serif text-2xl font-normal text-ink group-hover:text-chestnut sm:text-3xl">
+                      {cat.name}
+                    </h2>
+                    <p className="mt-3 text-sm leading-relaxed text-ink/70 sm:text-base">
+                      {cat.blurb}
+                    </p>
                   </div>
+
+                  {/* Feature Highlights */}
+                  {cat.highlights && cat.highlights.length > 0 && (
+                    <div className="mt-5 pt-3">
+                      <ul className="space-y-2">
+                        {cat.highlights.map((feat, i) => (
+                          <li key={i} className="flex items-center gap-2.5 text-xs text-ink/80 sm:text-sm">
+                            <Sparkles width={13} height={13} className="shrink-0 text-[#C89D34]" />
+                            <span>{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom CTA Button */}
+                <div className="mt-8 border-t border-ink/8 pt-5">
+                  <Link
+                    href={`/?category=${encodeURIComponent(cat.slug || cat.name)}`}
+                    className="inline-flex w-full items-center justify-between rounded-xl bg-black px-5 py-3.5 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-neutral-800 sm:px-6"
+                  >
+                    <span>Shop {cat.name}</span>
+                    <ArrowRight width={14} height={14} className="text-[#D99B26]" />
+                  </Link>
                 </div>
               </div>
             ))}

@@ -2,7 +2,7 @@
 
 from decimal import Decimal, InvalidOperation
 
-from django.db.models import Q
+from django.db.models import F, Q
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
@@ -150,6 +150,12 @@ class ProductDetailView(PublicReadOnlyAPIView, generics.RetrieveAPIView):
             .select_related("category", "hairstyle")
             .prefetch_related("images", "colors__image", "sizes", "reviews")
         )
+
+    def retrieve(self, request, *args, **kwargs):
+        slug = self.kwargs.get("slug")
+        if slug:
+            Product.objects.filter(slug=slug, is_active=True).update(views_count=F("views_count") + 1)
+        return super().retrieve(request, *args, **kwargs)
 
 
 class ProductReviewListCreateView(PublicReadOnlyAPIView, generics.ListCreateAPIView):

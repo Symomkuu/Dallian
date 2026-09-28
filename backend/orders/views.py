@@ -1,20 +1,22 @@
 """Views for order checkout, customer order tracking, and staff management."""
 
-from django.db.models import Q, Sum
+import csv
+from django.db.models import Count, Q, Sum
+from django.http import HttpResponse
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from catalog.models import Product
-from orders.models import Order, OrderStatus
+from orders.models import Order, OrderItem, OrderStatus
 from orders.serializers import (
     CheckoutInputSerializer,
     OrderAdminUpdateSerializer,
     OrderDetailSerializer,
     OrderListSerializer,
 )
-from orders.services import process_checkout
+from orders.services import get_unified_customers, process_checkout
 from users.authentication import CookieJWTAuthentication, enforce_csrf
 from users.cookies import ACCESS_COOKIE
 from users.models import User
@@ -195,3 +197,225 @@ class AdminOrderStatsView(APIView):
             "total_customers": total_customers,
             "total_products": total_products,
         })
+
+
+class AdminCustomerListView(APIView):
+    """Unified list of registered members and guest checkout customers for staff dashboard."""
+
+    permission_classes = [IsStaffRole]
+
+    def get(self, request):
+        search_query = request.query_params.get("q", "").strip()
+        customer_type = request.query_params.get("type", "all").strip().lower()
+        ordering = request.query_params.get("ordering", "-created_at").strip()
+        page = int(request.query_params.get("page", 1))
+        page_size = int(request.query_params.get("page_size", 25))
+
+        data = get_unified_customers(
+            search_query=search_query,
+            customer_type=customer_type,
+            ordering=ordering,
+        )
+
+        all_customers = data["customers"]
+        total_count = len(all_customers)
+
+        # Pagination
+        start = (page - 1) * page_size
+        end = start + page_size
+        paginated = all_customers[start:end]
+
+        return Response({
+            "stats": data["stats"],
+            "count": total_count,
+            "page": page,
+            "page_size": page_size,
+            "results": paginated,
+        })
+
+
+class AdminCustomerExportView(APIView):
+    """Export unified customer records (members + guests) as a CSV file for Excel / Sheets."""
+
+    permission_classes = [IsStaffRole]
+
+    def get(self, request):
+        search_query = request.query_params.get("q", "").strip()
+        customer_type = request.query_params.get("type", "all").strip().lower()
+        ordering = request.query_params.get("ordering", "-created_at").strip()
+
+        data = get_unified_customers(
+            search_query=search_query,
+            customer_type=customer_type,
+            ordering=ordering,
+        )
+
+        response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+        response["Content-Disposition"] = 'attachment; filename="dallian_luxe_customers.csv"'
+
+        writer = csv.writer(response)
+        # Header Row
+        writer.writerow([
+            "Customer ID",
+            "Customer Type",
+            "Full Name",
+            "Email Address",
+            "Phone Number",
+            "Delivery Address",
+            "City / Town",
+            "Orders Placed",
+            "Total Spend (KSh)",
+            "Account / First Order Date",
+            "Last Order Date",
+            "Email Verified",
+        ])
+
+        for c in data["customers"]:
+            writer.writerow([
+                c["id"],
+                "Registered Member" if c["customer_type"] == "registered" else "Guest Customer",
+                c["full_name"],
+                c["email"],
+                c["phone"],
+                c["delivery_address"],
+                c["city"],
+                c["orders_count"],
+                f"{c['total_spent']:.2f}",
+                c["created_at"][:10] if c["created_at"] else "",
+                c["last_order_at"][:10] if c["last_order_at"] else "N/A",
+                "Yes" if c["is_email_verified"] else "No",
+            ])
+
+        return response
+
+
+class AdminTopProductsAnalyticsView(APIView):
+    """Returns top 10 most viewed products and top 10 most ordered products for dashboard analytics."""
+
+    permission_classes = [IsStaffRole]
+
+    def get(self, request):
+        # 1. Top 10 Most Viewed Products
+        viewed_products = (
+            Product.objects.filter(is_active=True)
+            .select_related("category", "hairstyle")
+            .prefetch_related("images")
+            .order_by("-views_count", "-created_at")[:10]
+        )
+
+        most_viewed_list = []
+        for p in viewed_products:
+            primary_img = p.images.filter(is_primary=True).first() or p.images.first()
+            img_url = primary_img.image_url if primary_img else ""
+
+            order_stats = OrderItem.objects.filter(
+                product_id=p.id,
+                order__status__in=[
+                    OrderStatus.PENDING,
+                    OrderStatus.PAYMENT_CONFIRMED,
+                    OrderStatus.PROCESSING,
+                    OrderStatus.READY_FOR_DELIVERY,
+                    OrderStatus.OUT_FOR_DELIVERY,
+                    OrderStatus.DELIVERED,
+                ],
+            ).aggregate(
+                units_sold=Sum("quantity"),
+                orders_count=Count("order_id", distinct=True),
+                total_revenue=Sum("total_price"),
+            )
+
+            most_viewed_list.append({
+                "id": p.id,
+                "name": p.name,
+                "slug": p.slug,
+                "category_name": p.category.name if p.category else "Wigs",
+                "price": float(p.price),
+                "previous_price": float(p.previous_price) if p.previous_price else None,
+                "primary_image": img_url,
+                "views_count": p.views_count,
+                "stock_quantity": p.stock_quantity,
+                "is_in_stock": p.stock_quantity > 0,
+                "is_featured": p.is_featured,
+                "average_rating": p.average_rating,
+                "review_count": p.review_count,
+                "units_sold": order_stats["units_sold"] or 0,
+                "orders_count": order_stats["orders_count"] or 0,
+                "total_revenue": float(order_stats["total_revenue"] or 0),
+            })
+
+        # 2. Top 10 Most Ordered Products
+        ordered_aggregated = list(
+            OrderItem.objects.filter(
+                order__status__in=[
+                    OrderStatus.PENDING,
+                    OrderStatus.PAYMENT_CONFIRMED,
+                    OrderStatus.PROCESSING,
+                    OrderStatus.READY_FOR_DELIVERY,
+                    OrderStatus.OUT_FOR_DELIVERY,
+                    OrderStatus.DELIVERED,
+                ]
+            )
+            .values("product_id", "product_name")
+            .annotate(
+                units_sold=Sum("quantity"),
+                total_revenue=Sum("total_price"),
+                orders_count=Count("order_id", distinct=True),
+            )
+            .order_by("-units_sold", "-total_revenue")[:10]
+        )
+
+        product_ids = [item["product_id"] for item in ordered_aggregated if item["product_id"]]
+        product_map = {
+            p.id: p
+            for p in Product.objects.filter(id__in=product_ids)
+            .select_related("category")
+            .prefetch_related("images")
+        }
+
+        most_ordered_list = []
+        for idx, item in enumerate(ordered_aggregated):
+            p = product_map.get(item["product_id"])
+            if p:
+                primary_img = p.images.filter(is_primary=True).first() or p.images.first()
+                img_url = primary_img.image_url if primary_img else ""
+                name = p.name
+                slug = p.slug
+                cat_name = p.category.name if p.category else "Wigs"
+                price = float(p.price)
+                stock = p.stock_quantity
+                views = p.views_count
+                in_stock = p.stock_quantity > 0
+                prod_id = p.id
+            else:
+                sample_item = OrderItem.objects.filter(product_name=item["product_name"]).first()
+                img_url = sample_item.product_image if sample_item else ""
+                name = item["product_name"]
+                slug = ""
+                cat_name = "Wigs"
+                price = float(item["total_revenue"] / item["units_sold"]) if item["units_sold"] else 0.0
+                stock = 0
+                views = 0
+                in_stock = False
+                prod_id = item["product_id"] or f"ordered-{idx}"
+
+            most_ordered_list.append({
+                "id": prod_id,
+                "name": name,
+                "slug": slug,
+                "category_name": cat_name,
+                "price": price,
+                "primary_image": img_url,
+                "units_sold": item["units_sold"] or 0,
+                "total_revenue": float(item["total_revenue"] or 0),
+                "orders_count": item["orders_count"] or 0,
+                "views_count": views,
+                "stock_quantity": stock,
+                "is_in_stock": in_stock,
+            })
+
+        return Response({
+            "most_viewed": most_viewed_list,
+            "most_ordered": most_ordered_list,
+        })
+
+
