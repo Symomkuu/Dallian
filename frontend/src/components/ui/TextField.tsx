@@ -4,6 +4,8 @@ import { cx } from '../../utils/format';
 
 interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
+  hideLabel?: boolean;
+  labelRight?: React.ReactNode;
   error?: string;
   hint?: string;
   onDark?: boolean;
@@ -11,6 +13,8 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export function TextField({
   label,
+  hideLabel,
+  labelRight,
   error,
   hint,
   onDark,
@@ -26,9 +30,17 @@ export function TextField({
 
   return (
     <div className={cx('flex flex-col gap-1.5', className)}>
-      <label htmlFor={fieldId} className={cx('label-luxe', onDark ? 'text-cream/70' : 'text-ink/60')}>
-        {label}
-      </label>
+      {(label || labelRight) && (
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor={fieldId}
+            className={cx('label-luxe', hideLabel && 'sr-only', onDark ? 'text-cream/70' : 'text-ink/60')}
+          >
+            {label}
+          </label>
+          {labelRight}
+        </div>
+      )}
       <div className="relative w-full">
         <input
           id={fieldId}

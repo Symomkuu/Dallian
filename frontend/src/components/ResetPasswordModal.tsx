@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  ClockIcon,
   EyeIcon,
   EyeOffIcon,
   LockIcon,
@@ -18,6 +19,12 @@ interface ResetPasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   email: string;
+}
+
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
 function maskEmail(email: string): string {
@@ -53,6 +60,7 @@ export function ResetPasswordModal({ isOpen, onClose, email }: ResetPasswordModa
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [codeExpiresIn, setCodeExpiresIn] = useState(10 * 60);
 
   // Form fields
   const [code, setCode] = useState('');
@@ -75,11 +83,12 @@ export function ResetPasswordModal({ isOpen, onClose, email }: ResetPasswordModa
     setErrors({});
     setLoading(false);
     setResending(false);
+    setCodeExpiresIn(10 * 60);
   } else if (prevIsOpen && !isOpen) {
     setPrevIsOpen(false);
   }
 
-  // Handle countdown timer for resend code
+  // Handle countdown timer for resend code and code expiration
   useEffect(() => {
     if (countdown <= 0) return;
     const timer = setInterval(() => {
@@ -87,6 +96,14 @@ export function ResetPasswordModal({ isOpen, onClose, email }: ResetPasswordModa
     }, 1000);
     return () => clearInterval(timer);
   }, [countdown]);
+
+  useEffect(() => {
+    if (step !== 2 || codeExpiresIn <= 0) return;
+    const timer = setInterval(() => {
+      setCodeExpiresIn((c) => Math.max(0, c - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [step, codeExpiresIn]);
 
   // Handle ESC key press
   useEffect(() => {
@@ -111,6 +128,7 @@ export function ResetPasswordModal({ isOpen, onClose, email }: ResetPasswordModa
       await forgotPassword(email);
       toast.success(`Verification code sent to ${email}`);
       setCountdown(59);
+      setCodeExpiresIn(10 * 60);
       setStep(2);
     } catch (err) {
       const message =
@@ -128,6 +146,7 @@ export function ResetPasswordModal({ isOpen, onClose, email }: ResetPasswordModa
       await forgotPassword(email);
       toast.success(`New verification code sent to ${email}`);
       setCountdown(59);
+      setCodeExpiresIn(10 * 60);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Could not resend code. Please try again.';
@@ -296,21 +315,39 @@ export function ResetPasswordModal({ isOpen, onClose, email }: ResetPasswordModa
                       <label className="text-[11px] font-bold tracking-wider text-ink/60 uppercase">
                         Verification Code
                       </label>
-                      {countdown > 0 ? (
-                        <span className="text-[11px] font-medium text-ink/45">
-                          Resend ({countdown}s)
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={resending}
-                          onClick={handleResendCode}
-                          className="flex items-center gap-1 text-[11px] font-semibold text-[#8B3A2A] hover:underline disabled:opacity-50 cursor-pointer"
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-mono font-medium transition-all ${
+                            codeExpiresIn > 60
+                              ? 'border-[#D99B26]/30 bg-[#D99B26]/10 text-ink'
+                              : codeExpiresIn > 0
+                              ? 'animate-pulse border-amber-300 bg-amber-50 text-amber-800'
+                              : 'border-rose-200 bg-rose-50 text-rose-700 font-sans'
+                          }`}
                         >
-                          <RotateCcwIcon width={10} height={10} className={resending ? 'animate-spin' : ''} />
-                          Resend code
-                        </button>
-                      )}
+                          <ClockIcon width={10} height={10} className={codeExpiresIn > 0 ? 'text-[#D99B26]' : 'text-rose-600'} />
+                          {codeExpiresIn > 0 ? (
+                            <span>Expires {formatTime(codeExpiresIn)}</span>
+                          ) : (
+                            <span>Expired</span>
+                          )}
+                        </div>
+                        {countdown > 0 ? (
+                          <span className="text-[11px] font-medium text-ink/45">
+                            Resend ({countdown}s)
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={resending}
+                            onClick={handleResendCode}
+                            className="flex items-center gap-1 text-[11px] font-semibold text-[#8B3A2A] hover:underline disabled:opacity-50 cursor-pointer"
+                          >
+                            <RotateCcwIcon width={10} height={10} className={resending ? 'animate-spin' : ''} />
+                            Resend
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <input
                       type="text"

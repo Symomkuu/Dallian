@@ -17,10 +17,16 @@ import {
 } from 'lucide-react';
 
 import { brand, imagery } from '@/data/brand';
-import { categoryMeta, products } from '@/data/products';
+import { categoryMeta } from '@/data/products';
 import type { Product } from '@/types';
 import { careGuide, reviews, trustPoints } from '@/data/content';
-import { fetchStoreFeaturedProducts, formatProductFromBackend } from '@/utils/api';
+import {
+  fetchStoreFeaturedProducts,
+  fetchStoreCategories,
+  formatProductFromBackend,
+  cleanImageUrl,
+  type StoreCategory,
+} from '@/utils/api';
 
 import { Hero } from '@/components/Hero';
 import { CategoryCard } from '@/components/CategoryCard';
@@ -47,6 +53,7 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
+  const [categories, setCategories] = useState<StoreCategory[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -54,19 +61,31 @@ export default function Home() {
     fetchStoreFeaturedProducts()
       .then((res) => {
         if (!isMounted) return;
-        if (res.results && res.results.length > 0) {
+        if (res.results && Array.isArray(res.results)) {
           setFeaturedProducts(res.results.map(formatProductFromBackend));
         } else {
-          setFeaturedProducts(products.filter((p) => p.badges.includes('featured')));
+          setFeaturedProducts([]);
         }
       })
       .catch((err) => {
         if (!isMounted) return;
         console.error('Failed to load featured products from backend:', err);
-        setFeaturedProducts(products.filter((p) => p.badges.includes('featured')));
+        setFeaturedProducts([]);
       })
       .finally(() => {
         if (isMounted) setLoadingFeatured(false);
+      });
+
+    fetchStoreCategories()
+      .then((cats) => {
+        if (!isMounted) return;
+        if (Array.isArray(cats) && cats.length > 0) {
+          setCategories(cats);
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error('Failed to load categories from backend:', err);
       });
 
     return () => {
@@ -84,6 +103,46 @@ export default function Home() {
     setToast({ title: 'Thank you for subscribing!', action: 'added' });
     setEmail('');
   };
+
+  const displayCategories =
+    categories.length > 0
+      ? categories.map((cat, idx) => {
+          const meta = categoryMeta[cat.slug as keyof typeof categoryMeta];
+          return {
+            id: String(cat.id || cat.slug),
+            eyebrow: `Range 0${idx + 1}`,
+            title: cat.name,
+            body: meta?.blurb || 'Discover our luxury collection of handcrafted pieces tailored for effortless beauty.',
+            cta: meta?.cta || `SHOP ${cat.name.toUpperCase()}`,
+            to: `/?category=${encodeURIComponent(cat.slug || cat.name)}`,
+            image:
+              cleanImageUrl(cat.image_url) ||
+              meta?.image ||
+              (idx % 2 === 0
+                ? '/7944b14b-3fd0-4899-8dbf-c03571669315.jpg'
+                : '/6cac8a29-06d2-466c-b5ea-c7d4d8d00223.jpg'),
+          };
+        })
+      : [
+          {
+            id: 'human-hair',
+            eyebrow: 'Range 01',
+            title: categoryMeta['human-hair'].label,
+            body: categoryMeta['human-hair'].blurb,
+            cta: categoryMeta['human-hair'].cta,
+            to: '/?category=human-hair',
+            image: categoryMeta['human-hair'].image,
+          },
+          {
+            id: 'futura',
+            eyebrow: 'Range 02',
+            title: categoryMeta.futura.label,
+            body: categoryMeta.futura.blurb,
+            cta: categoryMeta.futura.cta,
+            to: '/?category=futura',
+            image: categoryMeta.futura.image,
+          },
+        ];
 
   return (
     <>
@@ -110,24 +169,26 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6">
-            <CategoryCard
-              eyebrow="Range 01"
-              title={categoryMeta['human-hair'].label}
-              body={categoryMeta['human-hair'].blurb}
-              cta={categoryMeta['human-hair'].cta}
-              to="/?category=human-hair"
-              image={categoryMeta['human-hair'].image}
-            />
-
-            <CategoryCard
-              eyebrow="Range 02"
-              title={categoryMeta.futura.label}
-              body={categoryMeta.futura.blurb}
-              cta={categoryMeta.futura.cta}
-              to="/?category=futura"
-              image={categoryMeta.futura.image}
-            />
+          <div
+            className={`mt-6 grid gap-3 sm:mt-8 sm:gap-6 ${
+              displayCategories.length === 1
+                ? 'grid-cols-1 max-w-lg mx-auto'
+                : displayCategories.length === 3
+                ? 'grid-cols-2 md:grid-cols-3'
+                : 'grid-cols-2'
+            }`}
+          >
+            {displayCategories.map((cat) => (
+              <CategoryCard
+                key={cat.id}
+                eyebrow={cat.eyebrow}
+                title={cat.title}
+                body={cat.body}
+                cta={cat.cta}
+                to={cat.to}
+                image={cat.image}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -161,7 +222,19 @@ export default function Home() {
           </div>
 
           <div className="mt-6 sm:mt-10">
-            <ProductGrid products={featuredProducts} columns={3} loading={loadingFeatured} />
+            {featuredProducts.length > 0 || loadingFeatured ? (
+              <ProductGrid products={featuredProducts} columns={3} loading={loadingFeatured} />
+            ) : (
+              <div className="rounded-2xl border border-dashed border-ink/15 bg-[#FAF7F2]/60 py-12 text-center">
+                <p className="text-sm font-medium text-ink/60">No featured products currently listed.</p>
+                <Link
+                  href="/"
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#8B3A2A] hover:underline"
+                >
+                  Explore the full catalog →
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </section>

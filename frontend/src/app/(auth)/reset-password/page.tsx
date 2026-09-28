@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -9,7 +9,13 @@ import { useStore } from '@/contexts/StoreContext';
 import { TextField } from '@/components/ui/TextField';
 import { Button } from '@/components/ui/Button';
 import { ApiError } from '@/utils/api';
-import { ArrowLeftIcon, CheckCircleIcon, ShieldCheckIcon } from 'lucide-react';
+import { ArrowLeftIcon, CheckCircleIcon, ClockIcon, RotateCcwIcon, ShieldCheckIcon } from 'lucide-react';
+
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
 
 function ResetPasswordForm() {
   const { resetPassword, forgotPassword, pushToast } = useStore();
@@ -23,6 +29,15 @@ function ResetPasswordForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(10 * 60); // 10 minutes expiration
+
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -40,6 +55,8 @@ function ResetPasswordForm() {
       next.code = 'Please enter the verification code sent to your email.';
     } else if (trimmedCode.length < 4) {
       next.code = 'Verification code must be at least 4 digits.';
+    } else if (timeLeft <= 0) {
+      next.code = 'This verification code has expired. Please click Resend to receive a new code.';
     }
 
     if (!newPassword) {
@@ -51,7 +68,6 @@ function ResetPasswordForm() {
     if (!confirmPassword) {
       next.confirmPassword = 'Please confirm your new password.';
     } else if (newPassword !== confirmPassword) {
-      // Explicit frontend password confirmation validation
       next.confirmPassword = 'Passwords do not match. Please verify and try again.';
     }
 
@@ -66,7 +82,6 @@ function ResetPasswordForm() {
         body: 'Welcome back to Dallian Luxe Hair.',
         tone: 'success',
       });
-      // Redirect to dashboard based on role
       const targetDashboard = me?.role === 'staff' ? '/admin/dashboard' : '/customer/dashboard';
       router.push(targetDashboard);
     } catch (error) {
@@ -96,9 +111,11 @@ function ResetPasswordForm() {
     setResending(true);
     try {
       await forgotPassword(trimmedEmail);
+      setTimeLeft(10 * 60); // Reset timer to 10 minutes
+      if (errors.code) setErrors((prev) => ({ ...prev, code: '' }));
       pushToast({
         title: 'New code sent.',
-        body: 'Please check your email inbox for the new reset code.',
+        body: 'Please check your email inbox for your 10-minute reset code.',
         tone: 'info',
       });
     } catch (error) {
@@ -134,7 +151,7 @@ function ResetPasswordForm() {
           <div className="mt-6 space-y-2 text-xs text-cream/70">
             <div className="flex items-center gap-2">
               <CheckCircleIcon width={14} height={14} className="text-gold" />
-              <span>Instant verification via secure one-time code</span>
+              <span>Instant verification via secure one-time code (valid for 10 min)</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircleIcon width={14} height={14} className="text-gold" />
@@ -157,7 +174,7 @@ function ResetPasswordForm() {
 
           <h1 className="font-serif text-3xl text-ink">Reset Password</h1>
           <p className="mt-2 text-sm text-ink/60">
-            Enter the verification code sent to your email and your new password below.
+            Enter the verification code sent to your email (valid for 10 minutes) and your new password below.
           </p>
 
           <form onSubmit={submit} noValidate className="mt-8 space-y-4">
@@ -176,19 +193,46 @@ function ResetPasswordForm() {
                 label="Verification Code"
                 value={code}
                 error={errors.code}
-                onChange={(event) => setCode(event.target.value)}
+                onChange={(event) => {
+                  setCode(event.target.value);
+                  if (errors.code) setErrors((prev) => ({ ...prev, code: '' }));
+                }}
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 placeholder="e.g. 123456"
+                labelRight={
+                  <div
+                    className={`flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-mono font-medium transition-all ${
+                      timeLeft > 60
+                        ? 'border-[#D99B26]/30 bg-[#D99B26]/10 text-ink'
+                        : timeLeft > 0
+                        ? 'animate-pulse border-amber-300 bg-amber-50 text-amber-800'
+                        : 'border-red-200 bg-red-50 text-red-700 font-sans'
+                    }`}
+                  >
+                    <ClockIcon width={12} height={12} className={timeLeft > 0 ? 'text-[#D99B26]' : 'text-red-600'} />
+                    {timeLeft > 0 ? (
+                      <span>
+                        Expires in <strong className="font-bold">{formatTime(timeLeft)}</strong>
+                      </span>
+                    ) : (
+                      <span className="font-semibold">Code expired</span>
+                    )}
+                  </div>
+                }
               />
-              <div className="mt-1 flex justify-end">
+              <div className="mt-2 flex items-center justify-between text-xs">
+                <span className="text-[11px] text-ink/45">
+                  {timeLeft > 0 ? '10 min code validity' : 'Request a new code below'}
+                </span>
                 <button
                   type="button"
                   onClick={handleResend}
                   disabled={resending}
-                  className="text-xs text-chestnut underline hover:opacity-80 transition-opacity disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-chestnut underline hover:opacity-80 transition-opacity disabled:opacity-50 cursor-pointer"
                 >
-                  {resending ? 'Sending code…' : "Didn't receive a code? Resend"}
+                  <RotateCcwIcon width={11} height={11} className={resending ? 'animate-spin' : ''} />
+                  <span>{resending ? 'Sending code…' : "Didn't receive a code? Resend"}</span>
                 </button>
               </div>
             </div>

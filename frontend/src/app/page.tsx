@@ -9,7 +9,13 @@ import {
 } from 'lucide-react';
 
 import type { Product } from '@/types';
-import { fetchStoreProducts, formatProductFromBackend } from '@/utils/api';
+import {
+  fetchStoreProducts,
+  fetchStoreCategories,
+  formatProductFromBackend,
+  type StoreCategory,
+} from '@/utils/api';
+import { categoryMeta } from '@/data/products';
 import { ProductGrid } from '@/components/ProductGrid';
 import {
   ShopFilters,
@@ -161,26 +167,59 @@ export default function ShopPage() {
 
   const query = searchParams.get('q') ?? '';
   const badge = searchParams.get('badge');
+  const categoryParam = searchParams.get('category');
+  const styleParam = searchParams.get('style');
 
-  // Interactive filter state initialized from URL params
-  const [filters, setFilters] = useState<FilterState>(() => {
-    const category = searchParams.get('category');
-    const style = searchParams.get('style');
+  // Interactive filter state
+  const [localFilters, setLocalFilters] = useState<FilterState>(() => ({
+    ...emptyFilters,
+    categories: categoryParam ? [categoryParam] : [],
+    styles: styleParam ? [styleParam] : [],
+  }));
+
+  const filters: FilterState = useMemo(() => {
+    // If local state hasn't been modified by user yet, use URL params
+    const categories =
+      localFilters.categories.length > 0
+        ? localFilters.categories
+        : categoryParam
+        ? [categoryParam]
+        : [];
+
+    const styles =
+      localFilters.styles.length > 0
+        ? localFilters.styles
+        : styleParam
+        ? [styleParam]
+        : [];
 
     return {
-      ...emptyFilters,
-      categories: category ? [category] : [],
-      styles: style ? [style] : [],
+      ...localFilters,
+      categories,
+      styles,
     };
-  });
+  }, [localFilters, categoryParam, styleParam]);
 
   const [sort, setSort] = useState(searchParams.get('sort') ?? 'featured');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [productList, setProductList] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<StoreCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
+
+    fetchStoreCategories()
+      .then((cats) => {
+        if (!isMounted) return;
+        if (Array.isArray(cats)) {
+          setCategories(cats);
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error('Failed to load categories from backend:', err);
+      });
 
     fetchStoreProducts({ page_size: 100 })
       .then((res) => {
@@ -206,11 +245,27 @@ export default function ShopPage() {
     const q = query.trim().toLowerCase();
 
     const filtered = productList.filter((product) => {
-      if (
-        filters.categories.length &&
-        !filters.categories.includes(product.category)
-      ) {
-        return false;
+      if (filters.categories.length) {
+        const matchesCategory = filters.categories.some((catFilter) => {
+          const filterLower = catFilter.trim().toLowerCase();
+          const productCat = (product.category || '').toLowerCase();
+          const productSlug = (product.categorySlug || '').toLowerCase();
+          const metaLabel = (
+            categoryMeta[catFilter as keyof typeof categoryMeta]?.label || ''
+          ).toLowerCase();
+
+          return (
+            productSlug === filterLower ||
+            productCat === filterLower ||
+            (metaLabel && productCat === metaLabel) ||
+            (filterLower === 'human-hair' && productCat.includes('human')) ||
+            (filterLower === 'futura' && productCat.includes('futura'))
+          );
+        });
+
+        if (!matchesCategory) {
+          return false;
+        }
       }
 
       if (
@@ -308,8 +363,9 @@ export default function ShopPage() {
           <div className="sticky top-28">
             <ShopFilters
               value={filters}
-              onChange={setFilters}
+              onChange={setLocalFilters}
               resultCount={results.length}
+              availableCategories={categories}
             />
           </div>
         </aside>
@@ -358,7 +414,7 @@ export default function ShopPage() {
               <Button
                 className="mt-7"
                 onClick={() => {
-                  setFilters(emptyFilters);
+                  setLocalFilters(emptyFilters);
                   window.history.replaceState(null, '', '/');
                   window.dispatchEvent(new PopStateEvent('popstate'));
                 }}
@@ -384,9 +440,10 @@ export default function ShopPage() {
           <div className="absolute bottom-0 left-0 right-0 max-h-[88vh] overflow-y-auto bg-cream px-4 pb-6 pt-5 shadow-panel sm:px-5">
             <ShopFilters
               value={filters}
-              onChange={setFilters}
+              onChange={setLocalFilters}
               onClose={() => setDrawerOpen(false)}
               resultCount={results.length}
+              availableCategories={categories}
             />
 
             <Button
