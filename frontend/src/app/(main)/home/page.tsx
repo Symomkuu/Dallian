@@ -22,10 +22,7 @@ import type { Product } from '@/types';
 import { careGuide, reviews, trustPoints } from '@/data/content';
 import {
   fetchStoreFeaturedProducts,
-  fetchStoreCategories,
   formatProductFromBackend,
-  cleanImageUrl,
-  type StoreCategory,
 } from '@/utils/api';
 
 import { Hero } from '@/components/Hero';
@@ -53,7 +50,6 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
-  const [categories, setCategories] = useState<StoreCategory[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -76,18 +72,6 @@ export default function Home() {
         if (isMounted) setLoadingFeatured(false);
       });
 
-    fetchStoreCategories()
-      .then((cats) => {
-        if (!isMounted) return;
-        if (Array.isArray(cats) && cats.length > 0) {
-          setCategories(cats);
-        }
-      })
-      .catch((err) => {
-        if (!isMounted) return;
-        console.error('Failed to load categories from backend:', err);
-      });
-
     return () => {
       isMounted = false;
     };
@@ -103,46 +87,6 @@ export default function Home() {
     setToast({ title: 'Thank you for subscribing!', action: 'added' });
     setEmail('');
   };
-
-  const displayCategories =
-    categories.length > 0
-      ? categories.map((cat, idx) => {
-          const meta = categoryMeta[cat.slug as keyof typeof categoryMeta];
-          return {
-            id: String(cat.id || cat.slug),
-            eyebrow: `Range 0${idx + 1}`,
-            title: cat.name,
-            body: meta?.blurb || 'Discover our luxury collection of handcrafted pieces tailored for effortless beauty.',
-            cta: meta?.cta || `SHOP ${cat.name.toUpperCase()}`,
-            to: `/?category=${encodeURIComponent(cat.slug || cat.name)}`,
-            image:
-              cleanImageUrl(cat.image_url) ||
-              meta?.image ||
-              (idx % 2 === 0
-                ? '/7944b14b-3fd0-4899-8dbf-c03571669315.jpg'
-                : '/6cac8a29-06d2-466c-b5ea-c7d4d8d00223.jpg'),
-          };
-        })
-      : [
-          {
-            id: 'human-hair',
-            eyebrow: 'Range 01',
-            title: categoryMeta['human-hair'].label,
-            body: categoryMeta['human-hair'].blurb,
-            cta: categoryMeta['human-hair'].cta,
-            to: '/?category=human-hair',
-            image: categoryMeta['human-hair'].image,
-          },
-          {
-            id: 'futura',
-            eyebrow: 'Range 02',
-            title: categoryMeta.futura.label,
-            body: categoryMeta.futura.blurb,
-            cta: categoryMeta.futura.cta,
-            to: '/?category=futura',
-            image: categoryMeta.futura.image,
-          },
-        ];
 
   return (
     <>
@@ -169,26 +113,24 @@ export default function Home() {
             </p>
           </div>
 
-          <div
-            className={`mt-6 grid gap-3 sm:mt-8 sm:gap-6 ${
-              displayCategories.length === 1
-                ? 'grid-cols-1 max-w-lg mx-auto'
-                : displayCategories.length === 3
-                ? 'grid-cols-2 md:grid-cols-3'
-                : 'grid-cols-2'
-            }`}
-          >
-            {displayCategories.map((cat) => (
-              <CategoryCard
-                key={cat.id}
-                eyebrow={cat.eyebrow}
-                title={cat.title}
-                body={cat.body}
-                cta={cat.cta}
-                to={cat.to}
-                image={cat.image}
-              />
-            ))}
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6">
+            <CategoryCard
+              eyebrow="Range 01"
+              title={categoryMeta['human-hair'].label}
+              body={categoryMeta['human-hair'].blurb}
+              cta={categoryMeta['human-hair'].cta}
+              to="/?category=human-hair"
+              image={categoryMeta['human-hair'].image}
+            />
+
+            <CategoryCard
+              eyebrow="Range 02"
+              title={categoryMeta.futura.label}
+              body={categoryMeta.futura.blurb}
+              cta={categoryMeta.futura.cta}
+              to="/?category=futura"
+              image={categoryMeta.futura.image}
+            />
           </div>
         </div>
       </section>
