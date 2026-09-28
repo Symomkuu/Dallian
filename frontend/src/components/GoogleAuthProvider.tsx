@@ -10,7 +10,7 @@ interface GoogleAuthProviderProps {
 export function GoogleAuthProvider({ children }: GoogleAuthProviderProps) {
   const clientId =
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-    '55361185279-o8oukqff92vq926b76orgm936n5tb7o5.apps.googleusercontent.com';
+    '420729352352-l3vvp4uqn5p82fhibdphagoe2bma9gj3.apps.googleusercontent.com';
 
   if (!clientId) {
     return <>{children}</>;

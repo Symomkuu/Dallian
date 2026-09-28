@@ -157,7 +157,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'https://dallian.online' }}
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://dallian.online' }}
-            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '55361185279-o8oukqff92vq926b76orgm936n5tb7o5.apps.googleusercontent.com' }}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '420729352352-l3vvp4uqn5p82fhibdphagoe2bma9gj3.apps.googleusercontent.com' }}
           push: true
           tags: |
             ${{ env.IMAGE_PREFIX }}/dallian-frontend:latest
