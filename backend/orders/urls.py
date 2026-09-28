@@ -8,6 +8,7 @@ from orders.views import (
     AdminOrderDetailView,
     AdminOrderListView,
     AdminOrderStatsView,
+    AdminTopProductsAnalyticsView,
     CheckoutView,
     CustomerOrdersView,
     GuestOrderTrackView,
@@ -24,6 +25,7 @@ urlpatterns = [
     # Staff / Admin Dashboard endpoints
     path("admin/list/", AdminOrderListView.as_view(), name="admin-orders-list"),
     path("admin/stats/", AdminOrderStatsView.as_view(), name="admin-orders-stats"),
+    path("admin/top-products/", AdminTopProductsAnalyticsView.as_view(), name="admin-top-products-stats"),
     path("admin/<int:id>/", AdminOrderDetailView.as_view(), name="admin-order-detail"),
     path("admin/customers/", AdminCustomerListView.as_view(), name="admin-customers-list"),
     path("admin/customers/export/", AdminCustomerExportView.as_view(), name="admin-customers-export"),

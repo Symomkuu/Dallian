@@ -106,25 +106,26 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    Promise.all([adminFetchStats(), adminFetchOrders()])
+  const loadData = () => {
+    return Promise.all([
+      adminFetchStats(),
+      adminFetchOrders(),
+    ])
       .then(([statsData, ordersData]) => {
         setStats(statsData);
         setRecentOrders(ordersData.slice(0, 6));
       })
-      .catch(() => setError('Failed to load dashboard data. Please check your connection.'))
-      .finally(() => setLoading(false));
+      .catch(() => setError('Failed to load dashboard data. Please check your connection.'));
+  };
+
+  useEffect(() => {
+    loadData().finally(() => setLoading(false));
   }, []);
 
   const handleRefresh = () => {
     setLoading(true);
-    Promise.all([adminFetchStats(), adminFetchOrders()])
-      .then(([statsData, ordersData]) => {
-        setStats(statsData);
-        setRecentOrders(ordersData.slice(0, 6));
-      })
-      .catch(() => setError('Failed to load dashboard data. Please check your connection.'))
-      .finally(() => setLoading(false));
+    setError('');
+    loadData().finally(() => setLoading(false));
   };
 
   return (
@@ -364,3 +365,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+

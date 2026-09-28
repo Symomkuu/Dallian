@@ -1014,4 +1014,36 @@ export function getAdminCustomersExportUrl(params: AdminCustomerListParams = {})
   return `${API_BASE_URL}/api/orders/admin/customers/export/${qs ? `?${qs}` : ''}`;
 }
 
+// ── Admin top products analytics ──────────────────────────────────────────────
+
+export interface TopProductItem {
+  id: number | string;
+  name: string;
+  slug: string;
+  category_name: string;
+  price: number;
+  previous_price?: number | null;
+  primary_image: string;
+  views_count: number;
+  stock_quantity: number;
+  is_in_stock: boolean;
+  is_featured?: boolean;
+  average_rating?: number;
+  review_count?: number;
+  units_sold?: number;
+  orders_count?: number;
+  total_revenue?: number;
+}
+
+export interface TopProductsAnalyticsResponse {
+  most_viewed: TopProductItem[];
+  most_ordered: TopProductItem[];
+}
+
+/** Admin: fetch top 10 most viewed and top 10 most ordered products. */
+export function adminFetchTopProducts() {
+  return get<TopProductsAnalyticsResponse>('/api/orders/admin/top-products/');
+}
+
+
 

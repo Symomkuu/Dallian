@@ -1,7 +1,7 @@
 """Views for order checkout, customer order tracking, and staff management."""
 
 import csv
-from django.db.models import Q, Sum
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from catalog.models import Product
-from orders.models import Order, OrderStatus
+from orders.models import Order, OrderItem, OrderStatus
 from orders.serializers import (
     CheckoutInputSerializer,
     OrderAdminUpdateSerializer,
@@ -287,4 +287,135 @@ class AdminCustomerExportView(APIView):
             ])
 
         return response
+
+
+class AdminTopProductsAnalyticsView(APIView):
+    """Returns top 10 most viewed products and top 10 most ordered products for dashboard analytics."""
+
+    permission_classes = [IsStaffRole]
+
+    def get(self, request):
+        # 1. Top 10 Most Viewed Products
+        viewed_products = (
+            Product.objects.filter(is_active=True)
+            .select_related("category", "hairstyle")
+            .prefetch_related("images")
+            .order_by("-views_count", "-created_at")[:10]
+        )
+
+        most_viewed_list = []
+        for p in viewed_products:
+            primary_img = p.images.filter(is_primary=True).first() or p.images.first()
+            img_url = primary_img.image_url if primary_img else ""
+
+            order_stats = OrderItem.objects.filter(
+                product_id=p.id,
+                order__status__in=[
+                    OrderStatus.PENDING,
+                    OrderStatus.PAYMENT_CONFIRMED,
+                    OrderStatus.PROCESSING,
+                    OrderStatus.READY_FOR_DELIVERY,
+                    OrderStatus.OUT_FOR_DELIVERY,
+                    OrderStatus.DELIVERED,
+                ],
+            ).aggregate(
+                units_sold=Sum("quantity"),
+                orders_count=Count("order_id", distinct=True),
+                total_revenue=Sum("total_price"),
+            )
+
+            most_viewed_list.append({
+                "id": p.id,
+                "name": p.name,
+                "slug": p.slug,
+                "category_name": p.category.name if p.category else "Wigs",
+                "price": float(p.price),
+                "previous_price": float(p.previous_price) if p.previous_price else None,
+                "primary_image": img_url,
+                "views_count": p.views_count,
+                "stock_quantity": p.stock_quantity,
+                "is_in_stock": p.stock_quantity > 0,
+                "is_featured": p.is_featured,
+                "average_rating": p.average_rating,
+                "review_count": p.review_count,
+                "units_sold": order_stats["units_sold"] or 0,
+                "orders_count": order_stats["orders_count"] or 0,
+                "total_revenue": float(order_stats["total_revenue"] or 0),
+            })
+
+        # 2. Top 10 Most Ordered Products
+        ordered_aggregated = list(
+            OrderItem.objects.filter(
+                order__status__in=[
+                    OrderStatus.PENDING,
+                    OrderStatus.PAYMENT_CONFIRMED,
+                    OrderStatus.PROCESSING,
+                    OrderStatus.READY_FOR_DELIVERY,
+                    OrderStatus.OUT_FOR_DELIVERY,
+                    OrderStatus.DELIVERED,
+                ]
+            )
+            .values("product_id", "product_name")
+            .annotate(
+                units_sold=Sum("quantity"),
+                total_revenue=Sum("total_price"),
+                orders_count=Count("order_id", distinct=True),
+            )
+            .order_by("-units_sold", "-total_revenue")[:10]
+        )
+
+        product_ids = [item["product_id"] for item in ordered_aggregated if item["product_id"]]
+        product_map = {
+            p.id: p
+            for p in Product.objects.filter(id__in=product_ids)
+            .select_related("category")
+            .prefetch_related("images")
+        }
+
+        most_ordered_list = []
+        for idx, item in enumerate(ordered_aggregated):
+            p = product_map.get(item["product_id"])
+            if p:
+                primary_img = p.images.filter(is_primary=True).first() or p.images.first()
+                img_url = primary_img.image_url if primary_img else ""
+                name = p.name
+                slug = p.slug
+                cat_name = p.category.name if p.category else "Wigs"
+                price = float(p.price)
+                stock = p.stock_quantity
+                views = p.views_count
+                in_stock = p.stock_quantity > 0
+                prod_id = p.id
+            else:
+                sample_item = OrderItem.objects.filter(product_name=item["product_name"]).first()
+                img_url = sample_item.product_image if sample_item else ""
+                name = item["product_name"]
+                slug = ""
+                cat_name = "Wigs"
+                price = float(item["total_revenue"] / item["units_sold"]) if item["units_sold"] else 0.0
+                stock = 0
+                views = 0
+                in_stock = False
+                prod_id = item["product_id"] or f"ordered-{idx}"
+
+            most_ordered_list.append({
+                "id": prod_id,
+                "name": name,
+                "slug": slug,
+                "category_name": cat_name,
+                "price": price,
+                "primary_image": img_url,
+                "units_sold": item["units_sold"] or 0,
+                "total_revenue": float(item["total_revenue"] or 0),
+                "orders_count": item["orders_count"] or 0,
+                "views_count": views,
+                "stock_quantity": stock,
+                "is_in_stock": in_stock,
+            })
+
+        return Response({
+            "most_viewed": most_viewed_list,
+            "most_ordered": most_ordered_list,
+        })
+
 

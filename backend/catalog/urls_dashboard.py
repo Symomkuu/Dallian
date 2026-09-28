@@ -13,7 +13,11 @@ from catalog.views_dashboard import (
     ProductViewSet,
 )
 
-from orders.views import AdminCustomerExportView, AdminCustomerListView
+from orders.views import (
+    AdminCustomerExportView,
+    AdminCustomerListView,
+    AdminTopProductsAnalyticsView,
+)
 
 router = DefaultRouter()
 router.register("categories", CategoryViewSet, basename="dashboard-category")
@@ -38,5 +42,10 @@ urlpatterns = [
         "customers/export/",
         AdminCustomerExportView.as_view(),
         name="dashboard-customers-export",
+    ),
+    path(
+        "top-products/",
+        AdminTopProductsAnalyticsView.as_view(),
+        name="dashboard-top-products-stats",
     ),
 ] + router.urls
