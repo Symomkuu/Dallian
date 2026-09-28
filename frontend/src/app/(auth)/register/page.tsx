@@ -132,7 +132,7 @@ export default function RegisterPage() {
 
   return (
     <div className="grid lg:min-h-[80vh] lg:grid-cols-2">
-      <div className="flex items-center justify-center px-5 py-10 sm:px-8">
+      <div className="flex items-center justify-center px-4 py-8 sm:px-8 sm:py-10">
         <div className="w-full max-w-sm">
           {showEmailForm ? (
             <div>
@@ -150,7 +150,7 @@ export default function RegisterPage() {
               {formError && (
                 <p
                   role="alert"
-                  className="mt-4 flex items-center gap-2 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                  className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
                 >
                   {formError}
                 </p>
@@ -221,7 +221,7 @@ export default function RegisterPage() {
               {formError && (
                 <p
                   role="alert"
-                  className="mt-4 flex items-center gap-2 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                  className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
                 >
                   {formError}
                 </p>
@@ -250,7 +250,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={openEmailSignup}
-                  className="flex w-full items-center justify-center gap-2.5 border border-black bg-white px-5 py-3.5 text-xs font-semibold uppercase tracking-widest text-black transition-all hover:bg-black hover:text-white"
+                  className="flex w-full items-center justify-center gap-2.5 rounded-full border border-[#D99B26] bg-white px-4 sm:px-5 py-3 sm:py-3.5 text-xs font-semibold uppercase tracking-wider sm:tracking-widest text-ink transition-all hover:bg-[#D99B26] hover:text-black hover:border-[#D99B26] active:scale-[0.99] shadow-2xs cursor-pointer"
                 >
                   <MailIcon width={16} height={16} />
                   <span>Sign up with email</span>

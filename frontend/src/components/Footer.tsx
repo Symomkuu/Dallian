@@ -10,6 +10,7 @@ const columns = [
   {
     heading: 'SHOP',
     links: [
+      { label: 'Explore Categories', to: '/categories' },
       { label: 'Human Hair', to: '/?category=human-hair' },
       { label: 'Japanese Futura', to: '/?category=futura' },
       { label: 'New Arrivals', to: '/?sort=newest' },

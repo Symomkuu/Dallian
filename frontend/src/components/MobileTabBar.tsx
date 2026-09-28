@@ -25,18 +25,27 @@ export function MobileTabBar() {
     >
       <ul className="mx-auto flex max-w-md items-stretch">
         {items.map((item) => {
-          const active = pathname === item.to;
+          const active =
+            item.to === '/'
+              ? pathname === '/' || pathname.startsWith('/product/') || pathname.startsWith('/category/')
+              : item.to === '/home'
+              ? pathname === '/home'
+              : pathname === item.to || pathname.startsWith(`${item.to}/`);
+
           return (
-            <li key={item.label} className="flex-1">
+            <li key={item.label} className="flex-1 relative">
+              {active && (
+                <span className="absolute top-0 inset-x-3 h-[2.5px] rounded-full bg-gradient-to-r from-[#D99B26] to-[#8B3A2A] shadow-xs" />
+              )}
               <Link
                 to={item.to}
                 className={cx(
                   'flex h-16 flex-col items-center justify-center gap-1 text-[10px] tracking-wide transition-colors duration-200',
-                  active ? 'text-chestnut' : 'text-ink/60'
+                  active ? 'text-[#8B3A2A] font-bold' : 'text-ink/60 hover:text-ink'
                 )}
               >
-                <item.icon width={19} height={19} />
-                {item.label}
+                <item.icon width={19} height={19} className={active ? 'stroke-[2.5]' : 'stroke-2'} />
+                <span>{item.label}</span>
               </Link>
             </li>
           );

@@ -85,7 +85,7 @@ export default function LoginPage() {
 
   return (
     <div className="grid lg:min-h-[80vh] lg:grid-cols-2">
-      <div className="flex items-center justify-center px-5 py-14 sm:px-8">
+      <div className="flex items-center justify-center px-4 py-10 sm:px-8 sm:py-14">
         <div className="w-full max-w-sm">
           <h1 className="font-serif text-3xl text-ink">Sign In</h1>
           <p className="mt-2 text-sm text-ink/60">
@@ -93,7 +93,7 @@ export default function LoginPage() {
           </p>
 
           {errors.general && (
-            <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
               {errors.general}
             </div>
           )}

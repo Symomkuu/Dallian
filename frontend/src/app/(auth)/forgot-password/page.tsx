@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* Right form column */}
-      <div className="flex items-center justify-center px-5 py-14 sm:px-8">
+      <div className="flex items-center justify-center px-4 py-10 sm:px-8 sm:py-14">
         <div className="w-full max-w-sm">
           <Link
             href="/login"

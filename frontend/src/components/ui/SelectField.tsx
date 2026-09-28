@@ -18,7 +18,7 @@ export function SelectField({ label, options, hideLabel, className, id, ...rest 
       <div className="relative">
         <select
           id={fieldId}
-          className="h-11 w-full appearance-none rounded-sm border border-ink/20 bg-white pl-4 pr-10 text-sm text-ink transition-colors duration-200 focus:border-chestnut focus:outline-none"
+          className="h-11 w-full appearance-none rounded-xl border border-ink/20 bg-white pl-4 pr-10 text-sm text-ink transition-colors duration-200 focus:border-chestnut focus:outline-none"
           {...rest}>
           
           {options.map((option) =>
