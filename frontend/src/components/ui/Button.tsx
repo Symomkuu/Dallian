@@ -19,17 +19,22 @@ interface LinkButtonProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-black text-white hover:bg-neutral-800 hover:border-neutral-800 border border-black',
-  secondary: 'border border-neutral-300 bg-white text-black hover:bg-neutral-100',
-  gold: 'bg-[#D99B26] text-black border border-[#D99B26] hover:bg-[#c88d1f] font-semibold',
-  onDark: 'border border-[#D99B26]/80 bg-transparent text-white hover:bg-[#D99B26] hover:text-black hover:border-[#D99B26] font-medium',
-  ghost: 'border border-transparent bg-transparent text-white hover:bg-white/10',
+  primary:
+    'bg-black text-white hover:bg-neutral-800 hover:border-neutral-800 border border-black font-semibold transition-all active:scale-[0.99] shadow-xs',
+  secondary:
+    'border border-neutral-300 bg-white text-black hover:bg-neutral-100 transition-all active:scale-[0.99]',
+  gold:
+    'bg-[#D99B26] text-black border border-[#D99B26] hover:bg-[#c88d1f] hover:border-[#c88d1f] font-semibold shadow-xs transition-all active:scale-[0.99]',
+  onDark:
+    'border border-[#D99B26]/80 bg-transparent text-white hover:bg-[#D99B26] hover:text-black hover:border-[#D99B26] font-medium transition-all active:scale-[0.99]',
+  ghost:
+    'border border-transparent bg-transparent text-white hover:bg-white/10 transition-all active:scale-[0.99]',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'h-9 px-4 text-xs tracking-wider uppercase',
-  md: 'h-10 px-5 text-xs tracking-widest uppercase',
-  lg: 'h-12 px-7 text-xs tracking-[0.2em] uppercase',
+  sm: 'min-h-[36px] px-3.5 sm:px-4 text-xs tracking-wider uppercase',
+  md: 'min-h-[42px] px-4 sm:px-5 text-xs tracking-wider sm:tracking-widest uppercase',
+  lg: 'min-h-[48px] px-4 sm:px-7 text-xs tracking-wider sm:tracking-[0.18em] uppercase',
 };
 
 export function Button({
@@ -44,7 +49,7 @@ export function Button({
     <button
       type={type}
       className={cx(
-        'inline-flex items-center justify-center rounded-none transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60',
+        'inline-flex items-center justify-center rounded-xl font-medium transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 text-center select-none max-w-full',
         variantClasses[variant],
         sizeClasses[size],
         className
@@ -68,7 +73,7 @@ export function LinkButton({
     <Link
       href={to}
       className={cx(
-        'inline-flex items-center justify-center rounded-none transition-all duration-300',
+        'inline-flex items-center justify-center rounded-xl font-medium transition-all duration-300 text-center select-none max-w-full',
         variantClasses[variant],
         sizeClasses[size],
         className

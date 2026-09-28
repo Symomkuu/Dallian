@@ -74,7 +74,7 @@ export default function VerifyEmailPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center px-5 py-14 sm:px-8">
+      <div className="flex items-center justify-center px-4 py-10 sm:px-8 sm:py-14">
         <div className="w-full max-w-sm">
           <h1 className="font-serif text-3xl text-ink">Verify Your Email</h1>
           <p className="mt-2 text-sm text-ink/60">
