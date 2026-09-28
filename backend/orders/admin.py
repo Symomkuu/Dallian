@@ -19,6 +19,7 @@ class OrderItemInline(admin.TabularInline):
     readonly_fields = ("total_price",)
 
 
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (

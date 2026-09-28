@@ -59,7 +59,7 @@ export default function AdminCustomersPage() {
       .catch((err) => {
         if (!isMounted) return;
         console.error('Failed to load customers:', err);
-        pushToast({ title: 'Failed to load customers.', tone: 'critical' });
+        pushToast({ title: 'Failed to load customers.', tone: 'error' });
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -343,12 +343,13 @@ export default function AdminCustomersPage() {
                                 {c.full_name}
                               </span>
                               {c.is_email_verified && (
-                                <ShieldCheckIcon
-                                  width={14}
-                                  height={14}
-                                  className="text-emerald-600"
-                                  title="Verified Email"
-                                />
+                                <span title="Verified Email">
+                                  <ShieldCheckIcon
+                                    width={14}
+                                    height={14}
+                                    className="text-emerald-600"
+                                  />
+                                </span>
                               )}
                             </div>
                             <span className="text-[11px] text-ink/45">
