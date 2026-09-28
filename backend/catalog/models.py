@@ -109,6 +109,9 @@ class Product(SluggedModel):
         help_text="Price before the discount, for display only. Must be higher than the price.",
     )
     stock_quantity = models.PositiveIntegerField(default=0)
+    views_count = models.PositiveIntegerField(
+        default=0, db_index=True, help_text="Total product page views."
+    )
 
     is_active = models.BooleanField(default=True, help_text="Visible on the storefront.")
     is_featured = models.BooleanField(default=False)

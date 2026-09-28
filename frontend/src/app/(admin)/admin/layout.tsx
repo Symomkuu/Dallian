@@ -4,18 +4,17 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { BoxesIcon, ClipboardListIcon, ExternalLinkIcon, KeyRoundIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, XIcon } from 'lucide-react';
+import { BoxesIcon, ClipboardListIcon, ExternalLinkIcon, KeyRoundIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, UsersIcon, XIcon } from 'lucide-react';
 import { brand } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
 import { cx } from '@/utils/format';
 import { ResetPasswordModal } from '@/components/ResetPasswordModal';
 
-// Only "Dashboard" and "Products" exist today — Orders and the rest will be
-// added as their own sections later, without needing to touch this layout again.
 const navItems = [
   { label: 'Dashboard',  href: '/admin/dashboard', icon: LayoutDashboardIcon },
   { label: 'Products',   href: '/admin/products',  icon: BoxesIcon },
   { label: 'Orders',     href: '/admin/orders',    icon: ClipboardListIcon },
+  { label: 'Customers',  href: '/admin/customers', icon: UsersIcon },
 ];
 
 /**

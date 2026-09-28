@@ -949,3 +949,69 @@ export function sendContactEnquiry(payload: ContactPayload) {
   return post<{ message: string }>('/api/contact/', payload);
 }
 
+// ── Admin customer management ──────────────────────────────────────────────────
+
+export interface AdminCustomerItem {
+  id: string;
+  user_id: number | null;
+  full_name: string;
+  email: string;
+  phone: string;
+  delivery_address: string;
+  city: string;
+  customer_type: 'registered' | 'guest';
+  is_registered: boolean;
+  is_email_verified: boolean;
+  orders_count: number;
+  total_spent: number;
+  created_at: string;
+  last_order_at: string | null;
+}
+
+export interface AdminCustomerStats {
+  total_customers: number;
+  total_registered: number;
+  total_guests: number;
+  total_revenue: number;
+  average_spend: number;
+}
+
+export interface AdminCustomerListResponse {
+  stats: AdminCustomerStats;
+  count: number;
+  page: number;
+  page_size: number;
+  results: AdminCustomerItem[];
+}
+
+export interface AdminCustomerListParams {
+  q?: string;
+  type?: 'all' | 'registered' | 'guest';
+  ordering?: string;
+  page?: number;
+  page_size?: number;
+}
+
+/** Admin: list all customers (registered members + guest checkouts) with filtering and stats. */
+export function adminFetchCustomers(params: AdminCustomerListParams = {}) {
+  const query = new URLSearchParams();
+  if (params.q) query.set('q', params.q);
+  if (params.type && params.type !== 'all') query.set('type', params.type);
+  if (params.ordering) query.set('ordering', params.ordering);
+  if (params.page != null) query.set('page', String(params.page));
+  if (params.page_size != null) query.set('page_size', String(params.page_size));
+  const qs = query.toString();
+  return get<AdminCustomerListResponse>(`/api/orders/admin/customers/${qs ? `?${qs}` : ''}`);
+}
+
+/** Returns the URL to download CSV export of customers directly. */
+export function getAdminCustomersExportUrl(params: AdminCustomerListParams = {}) {
+  const query = new URLSearchParams();
+  if (params.q) query.set('q', params.q);
+  if (params.type && params.type !== 'all') query.set('type', params.type);
+  if (params.ordering) query.set('ordering', params.ordering);
+  const qs = query.toString();
+  return `${API_BASE_URL}/api/orders/admin/customers/export/${qs ? `?${qs}` : ''}`;
+}
+
+

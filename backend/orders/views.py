@@ -1,6 +1,8 @@
 """Views for order checkout, customer order tracking, and staff management."""
 
+import csv
 from django.db.models import Q, Sum
+from django.http import HttpResponse
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -14,7 +16,7 @@ from orders.serializers import (
     OrderDetailSerializer,
     OrderListSerializer,
 )
-from orders.services import process_checkout
+from orders.services import get_unified_customers, process_checkout
 from users.authentication import CookieJWTAuthentication, enforce_csrf
 from users.cookies import ACCESS_COOKIE
 from users.models import User
@@ -195,3 +197,94 @@ class AdminOrderStatsView(APIView):
             "total_customers": total_customers,
             "total_products": total_products,
         })
+
+
+class AdminCustomerListView(APIView):
+    """Unified list of registered members and guest checkout customers for staff dashboard."""
+
+    permission_classes = [IsStaffRole]
+
+    def get(self, request):
+        search_query = request.query_params.get("q", "").strip()
+        customer_type = request.query_params.get("type", "all").strip().lower()
+        ordering = request.query_params.get("ordering", "-created_at").strip()
+        page = int(request.query_params.get("page", 1))
+        page_size = int(request.query_params.get("page_size", 25))
+
+        data = get_unified_customers(
+            search_query=search_query,
+            customer_type=customer_type,
+            ordering=ordering,
+        )
+
+        all_customers = data["customers"]
+        total_count = len(all_customers)
+
+        # Pagination
+        start = (page - 1) * page_size
+        end = start + page_size
+        paginated = all_customers[start:end]
+
+        return Response({
+            "stats": data["stats"],
+            "count": total_count,
+            "page": page,
+            "page_size": page_size,
+            "results": paginated,
+        })
+
+
+class AdminCustomerExportView(APIView):
+    """Export unified customer records (members + guests) as a CSV file for Excel / Sheets."""
+
+    permission_classes = [IsStaffRole]
+
+    def get(self, request):
+        search_query = request.query_params.get("q", "").strip()
+        customer_type = request.query_params.get("type", "all").strip().lower()
+        ordering = request.query_params.get("ordering", "-created_at").strip()
+
+        data = get_unified_customers(
+            search_query=search_query,
+            customer_type=customer_type,
+            ordering=ordering,
+        )
+
+        response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+        response["Content-Disposition"] = 'attachment; filename="dallian_luxe_customers.csv"'
+
+        writer = csv.writer(response)
+        # Header Row
+        writer.writerow([
+            "Customer ID",
+            "Customer Type",
+            "Full Name",
+            "Email Address",
+            "Phone Number",
+            "Delivery Address",
+            "City / Town",
+            "Orders Placed",
+            "Total Spend (KSh)",
+            "Account / First Order Date",
+            "Last Order Date",
+            "Email Verified",
+        ])
+
+        for c in data["customers"]:
+            writer.writerow([
+                c["id"],
+                "Registered Member" if c["customer_type"] == "registered" else "Guest Customer",
+                c["full_name"],
+                c["email"],
+                c["phone"],
+                c["delivery_address"],
+                c["city"],
+                c["orders_count"],
+                f"{c['total_spent']:.2f}",
+                c["created_at"][:10] if c["created_at"] else "",
+                c["last_order_at"][:10] if c["last_order_at"] else "N/A",
+                "Yes" if c["is_email_verified"] else "No",
+            ])
+
+        return response
+

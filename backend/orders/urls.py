@@ -3,6 +3,8 @@
 from django.urls import path
 
 from orders.views import (
+    AdminCustomerExportView,
+    AdminCustomerListView,
     AdminOrderDetailView,
     AdminOrderListView,
     AdminOrderStatsView,
@@ -23,4 +25,6 @@ urlpatterns = [
     path("admin/list/", AdminOrderListView.as_view(), name="admin-orders-list"),
     path("admin/stats/", AdminOrderStatsView.as_view(), name="admin-orders-stats"),
     path("admin/<int:id>/", AdminOrderDetailView.as_view(), name="admin-order-detail"),
+    path("admin/customers/", AdminCustomerListView.as_view(), name="admin-customers-list"),
+    path("admin/customers/export/", AdminCustomerExportView.as_view(), name="admin-customers-export"),
 ]

@@ -208,15 +208,16 @@ export default function AdminDashboardPage() {
             />
 
             <StatCard
-              label="Registered Customers"
+              label="Customers Directory"
               value={String(stats?.total_customers ?? 0)}
-              subtitle="Active customer accounts"
+              subtitle="Registered & guest buyers"
               icon={UsersIcon}
               colorScheme={{
                 bg: 'bg-blue-50',
                 text: 'text-blue-700',
                 border: 'border-blue-200',
               }}
+              href="/admin/customers"
             />
           </>
         )}

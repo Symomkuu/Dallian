@@ -13,6 +13,8 @@ from catalog.views_dashboard import (
     ProductViewSet,
 )
 
+from orders.views import AdminCustomerExportView, AdminCustomerListView
+
 router = DefaultRouter()
 router.register("categories", CategoryViewSet, basename="dashboard-category")
 router.register("hairstyles", HairStyleViewSet, basename="dashboard-hairstyle")
@@ -26,5 +28,15 @@ urlpatterns = [
         "media/upload-signature/",
         CloudinaryUploadSignatureView.as_view(),
         name="dashboard-cloudinary-upload-signature",
+    ),
+    path(
+        "customers/",
+        AdminCustomerListView.as_view(),
+        name="dashboard-customers-list",
+    ),
+    path(
+        "customers/export/",
+        AdminCustomerExportView.as_view(),
+        name="dashboard-customers-export",
     ),
 ] + router.urls
