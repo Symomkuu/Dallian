@@ -52,6 +52,89 @@ export const metadata: Metadata = {
   },
 };
 
+const homeSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': ['HairSalon', 'BeautySalon', 'Store'],
+      '@id': 'https://dallian.online/#organization',
+      name: 'Dallian Luxe Hair',
+      url: 'https://dallian.online',
+      logo: 'https://dallian.online/logo.png',
+      image: 'https://dallian.online/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg',
+      description:
+        'Premier boutique for 100% raw virgin human hair wigs, HD lace frontals, Japanese Futura fibre wigs, salon installation, and restorative wig laundry in Nairobi.',
+      telephone: '+254792114292',
+      email: 'dallianltd@gmail.com',
+      priceRange: 'KSh 7,000 - KSh 60,000',
+      paymentAccepted: ['Cash', 'M-Pesa', 'Credit Card'],
+      currenciesAccepted: 'KES',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Mountain Mall, Thika Road',
+        addressLocality: 'Nairobi',
+        addressCountry: 'KE',
+      },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: -1.2285,
+        longitude: 36.8821,
+      },
+      openingHoursSpecification: [
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          opens: '09:00',
+          closes: '19:00',
+        },
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: 'Saturday',
+          opens: '09:00',
+          closes: '18:00',
+        },
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: 'Sunday',
+          opens: '11:00',
+          closes: '16:00',
+        },
+      ],
+      sameAs: [
+        'https://www.instagram.com/dallian.luxe.hair/',
+        'https://www.tiktok.com/@dallian.luxe.hair',
+        'https://www.facebook.com/profile.php?id=61594105355729',
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://dallian.online/#website',
+      url: 'https://dallian.online',
+      name: 'Dallian Luxe Hair',
+      description:
+        'Luxury Wigs, HD Lace Frontals, Weaves & Studio Care Services in Nairobi, Kenya',
+      publisher: {
+        '@id': 'https://dallian.online/#organization',
+      },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://dallian.online/shop?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+  ],
+};
+
 export default function Page() {
-  return <HomePageClient />;
+  return (
+    <>
+      <script type="application/ld+json">
+        {JSON.stringify(homeSchema)}
+      </script>
+      <HomePageClient />
+    </>
+  );
 }

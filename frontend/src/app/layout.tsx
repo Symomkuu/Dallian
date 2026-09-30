@@ -7,7 +7,7 @@ import { FloatingWhatsApp } from '@/components/FloatingWhatsApp';
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://dallianluxe.com'
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://dallian.online'
   ),
   title: {
     default: 'Dallian Luxe Hair | Premium Wigs, Weaves & Studio Services Nairobi',

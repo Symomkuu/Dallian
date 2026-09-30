@@ -188,6 +188,61 @@ export default function ContactPage() {
                   <span>Chat with Us on WhatsApp</span>
                 </a>
               </div>
+
+              {/* Follow Our Socials */}
+              <div className="mt-5 pt-4 border-t border-ink/8 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink/40 mb-3">
+                  Follow Our Socials
+                </p>
+                <div className="flex justify-center items-center gap-3">
+                  {/* Instagram */}
+                  <a
+                    href={brand.socials.instagram}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Instagram"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-ink/10 bg-cream text-ink/70 transition-colors hover:border-[#8B3A2A] hover:bg-white hover:text-[#8B3A2A]"
+                  >
+                    <svg
+                      className="h-4 w-4 fill-none stroke-current"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      viewBox="0 0 24 24"
+                    >
+                      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                    </svg>
+                  </a>
+
+                  {/* TikTok */}
+                  <a
+                    href={brand.socials.tiktok}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="TikTok"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-ink/10 bg-cream text-ink/70 transition-colors hover:border-[#8B3A2A] hover:bg-white hover:text-[#8B3A2A]"
+                  >
+                    <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                      <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.99v7.94c.03 2.1-.64 4.29-2.06 5.86-1.64 1.83-4.14 2.64-6.57 2.21-2.52-.43-4.69-2.22-5.63-4.59-.97-2.43-.65-5.32.85-7.39 1.48-2.05 4.02-3.13 6.54-2.79v4.18c-.89-.25-1.89-.13-2.67.36-.88.54-1.4 1.55-1.37 2.58.02 1.09.68 2.08 1.69 2.5 1.02.43 2.24.27 3.09-.43.68-.56 1.05-1.43 1.04-2.31V.02z" />
+                    </svg>
+                  </a>
+
+                  {/* Facebook */}
+                  <a
+                    href={brand.socials.facebook}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Facebook"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-ink/10 bg-cream text-ink/70 transition-colors hover:border-[#8B3A2A] hover:bg-white hover:text-[#8B3A2A]"
+                  >
+                    <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                      <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
             </div>
 
             {/* Interactive Live Google Map Card */}

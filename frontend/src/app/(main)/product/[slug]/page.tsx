@@ -268,12 +268,14 @@ export default function ProductDetailsPage() {
 
   return (
     <>
-      <div className="mx-auto grid max-w-page gap-10 px-5 py-10 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:py-16">
-        <ProductGallery
-          images={product.images}
-          name={product.name}
-          activeImage={selectedColorObj?.image}
-        />
+      <div className="mx-auto grid max-w-page gap-8 px-4 py-6 sm:gap-10 sm:px-8 sm:py-10 lg:grid-cols-2 lg:gap-14 lg:py-12">
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <ProductGallery
+            images={product.images}
+            name={product.name}
+            activeImage={selectedColorObj?.image}
+          />
+        </div>
 
         <div>
           {product.category && (
