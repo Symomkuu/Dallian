@@ -35,14 +35,14 @@ export function Hero() {
         aria-hidden="true"
       />
 
-      {/* Content Container with Staggered Entrance */}
+      {/* Content Container */}
       <div className="relative mx-auto flex min-h-[62vh] max-w-page flex-col justify-center px-5 py-12 sm:min-h-[66vh] sm:px-12 sm:py-16 lg:min-h-[72vh] lg:px-16 lg:py-20">
         <div className="max-w-xl">
           {/* Accent Gold Rule & Eyebrow */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0.9, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.1, ease: 'easeOut' }}
+            transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
             className="flex items-center gap-3 mb-4 sm:mb-6"
           >
             <span className="h-px w-10 bg-amber-400/80 sm:w-12" />
@@ -54,9 +54,9 @@ export function Hero() {
           {/* Heading with Serif Fluid Entrance */}
           <motion.h1
             id="hero-heading"
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 1, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="font-serif text-3xl leading-[1.1] text-[#FAF8F5] sm:text-5xl sm:leading-[1.08] lg:text-6xl"
           >
             Luxury Hair.
@@ -68,9 +68,9 @@ export function Hero() {
 
           {/* Body Description */}
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 1, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
+            transition={{ duration: 0.7, delay: 0.35, ease: 'easeOut' }}
             className="mt-3 max-w-md text-sm leading-relaxed text-neutral-300 sm:mt-5 sm:text-base"
           >
             Discover 100% virgin human hair and Japanese Futura fibre wigs crafted to elevate your presence with timeless poise.
@@ -78,9 +78,9 @@ export function Hero() {
 
           {/* CTA Buttons */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 1, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.55, ease: 'easeOut' }}
+            transition={{ duration: 0.7, delay: 0.45, ease: 'easeOut' }}
             className="mt-6 flex flex-wrap gap-3 sm:mt-8 sm:gap-4"
           >
             <LinkButton to="/shop" variant="gold" size="lg" className="shadow-lg hover:shadow-amber-400/20">

@@ -226,7 +226,7 @@ export default function CheckoutPage() {
         </p>
         <div className="mt-8">
           <Link
-            href="/"
+            href="/shop"
             className="inline-flex h-12 items-center justify-center bg-black px-8 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-neutral-800"
           >
             Explore Collection

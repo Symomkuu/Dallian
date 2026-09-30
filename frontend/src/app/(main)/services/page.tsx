@@ -13,7 +13,7 @@ import { brand } from '@/data/brand';
 import { servicesData } from '@/data/services';
 
 export const metadata: Metadata = {
-  title: 'Wig Services, Styling, Laundry & Installation | Dallian Luxe Hair Nairobi',
+  title: 'Studio Services, Styling, Laundry & Installation',
   description:
     'Discover salon-grade wig care services at Dallian Luxe Hair Studio, Mountain Mall, Nairobi. Professional wig laundry, styling & curling, custom wig installations, and complete revamping.',
   keywords: [
@@ -72,7 +72,7 @@ export default function ServicesPage() {
     <>
       <ServicesHero />
 
-      <main className="min-h-screen bg-[#FAF7F2] pb-16 pt-8 sm:pb-24 sm:pt-12">
+      <div className="min-h-screen bg-[#FAF7F2] pb-16 pt-8 sm:pb-24 sm:pt-12">
         <div className="mx-auto max-w-page px-4 sm:px-8">
           {/* SERVICES LIST SECTION */}
           <section id="services-list">
@@ -263,7 +263,7 @@ export default function ServicesPage() {
             </div>
           </section>
         </div>
-      </main>
+      </div>
     </>
   );
 }

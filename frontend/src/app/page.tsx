@@ -3,7 +3,9 @@ import type { Metadata } from 'next';
 import { HomePageClient } from '@/components/HomePageClient';
 
 export const metadata: Metadata = {
-  title: 'Dallian Luxe Hair | Premium Virgin Human Hair & Japanese Futura Wigs Nairobi',
+  title: {
+    absolute: 'Dallian Luxe Hair | Premium Virgin Human Hair & Japanese Futura Wigs Nairobi',
+  },
   description:
     'Discover 100% raw virgin human hair wigs, HD lace frontals, and heat-resistant Japanese Futura fibre wigs in Nairobi. Visit our salon studio at Mountain Mall, Thika Road for expert wig installation, laundry, and custom styling.',
   keywords: [

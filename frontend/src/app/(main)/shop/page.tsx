@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
+  AlertCircle as AlertCircleIcon,
   SearchX as SearchXIcon,
   SlidersHorizontal as SlidersHorizontalIcon,
 } from 'lucide-react';
@@ -209,42 +210,46 @@ export default function ShopPage() {
   const [categories, setCategories] = useState<StoreCategory[]>([]);
   const [hairstyles, setHairStyles] = useState<StoreHairStyle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadData = React.useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
 
     Promise.all([
       fetchStoreCategories().catch(() => []),
       fetchStoreHairStyles().catch(() => []),
-      fetchStoreProducts({ page_size: 100 }).catch(() => null),
+      fetchStoreProducts({ page_size: 100 }),
     ])
       .then(([cats, styles, productsRes]) => {
-        if (!isMounted) return;
         if (Array.isArray(cats)) {
           setCategories(cats);
         }
         if (Array.isArray(styles)) {
           setHairStyles(styles);
         }
-        if (productsRes && productsRes.results && productsRes.results.length > 0) {
+        if (productsRes && productsRes.results) {
           setProductList(productsRes.results.map(formatProductFromBackend));
         }
       })
       .catch((err: unknown) => {
-        if (!isMounted) return;
-        const errMsg = err instanceof Error ? err.message : 'Unable to connect to the shop catalogue.';
+        const errMsg =
+          err instanceof Error
+            ? err.message
+            : 'Unable to connect to the shop catalogue.';
+        setLoadError(errMsg);
         toast.error('Could not load shop collection', {
           description: errMsg,
         });
       })
       .finally(() => {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       });
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -276,13 +281,17 @@ export default function ShopPage() {
       if (filters.styles.length) {
         const matchesStyle = filters.styles.some((styleFilter) => {
           const filterLower = styleFilter.trim().toLowerCase();
-          const productStyle = (product.style || '').toLowerCase();
-          const productStyleSlug = (product.hairstyleSlug || '').toLowerCase();
+          const filterSlug = filterLower.replace(/\s+/g, '-');
+          const productStyle = (product.style || '').trim().toLowerCase();
+          const productStyleSlug = (product.hairstyleSlug || '').trim().toLowerCase();
+
+          if (!productStyle && !productStyleSlug) {
+            return false;
+          }
+
           return (
-            productStyle === filterLower ||
-            productStyleSlug === filterLower ||
-            productStyle.includes(filterLower) ||
-            filterLower.includes(productStyle)
+            (productStyle && (productStyle === filterLower || productStyle === filterSlug)) ||
+            (productStyleSlug && (productStyleSlug === filterLower || productStyleSlug === filterSlug))
           );
         });
 
@@ -413,7 +422,25 @@ export default function ShopPage() {
             />
           </div>
 
-          {!loading && results.length === 0 ? (
+          {!loading && loadError && productList.length === 0 ? (
+            <div className="flex flex-col items-center justify-center border border-dashed border-ink/15 bg-white px-6 py-14 text-center sm:px-8 sm:py-16">
+              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600">
+                <AlertCircleIcon width={24} height={24} />
+              </div>
+
+              <h2 className="font-serif text-xl text-ink sm:text-2xl">
+                Could not load collection
+              </h2>
+
+              <p className="mt-2 max-w-sm text-sm leading-relaxed text-ink/60">
+                We encountered an issue connecting to our shop catalogue. Please check your internet connection and try again.
+              </p>
+
+              <Button className="mt-7" onClick={loadData}>
+                Retry Loading
+              </Button>
+            </div>
+          ) : !loading && results.length === 0 ? (
             <div className="flex flex-col items-center justify-center border border-dashed border-ink/15 bg-white px-6 py-14 text-center sm:px-8 sm:py-16">
               <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 text-chestnut">
                 <SearchXIcon width={22} height={22} />

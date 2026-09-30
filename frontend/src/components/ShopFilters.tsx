@@ -244,22 +244,22 @@ export function ShopFilters({
           </div>
         </fieldset>
 
-        {/* Price Range Filter (Starting from 7,000) */}
+        {/* Price Range Filter */}
         <fieldset className="border-b border-ink/10 py-6">
           <legend className="label-luxe mb-4 text-ink/55">Price Range</legend>
           <input
             type="range"
             min={7000}
-            max={35000}
+            max={60000}
             step={1000}
-            value={value.maxPrice > 35000 ? 35000 : value.maxPrice}
+            value={value.maxPrice}
             onChange={(event) => onChange({ ...value, maxPrice: Number(event.target.value) })}
             aria-label="Maximum price"
             className="w-full accent-chestnut"
           />
           <div className="mt-2 flex justify-between text-xs text-ink/60">
             <span>{formatKsh(7000)}</span>
-            <span className="text-ink">Up to {formatKsh(value.maxPrice > 35000 ? 35000 : value.maxPrice)}</span>
+            <span className="text-ink">Up to {formatKsh(value.maxPrice)}</span>
           </div>
         </fieldset>
 

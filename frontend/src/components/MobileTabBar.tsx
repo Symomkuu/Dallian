@@ -13,8 +13,8 @@ export function MobileTabBar() {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const items = [
-    { label: 'Home', to: '/home', icon: HomeIcon },
-    { label: 'Shop', to: '/', icon: StoreIcon },
+    { label: 'Home', to: '/', icon: HomeIcon },
+    { label: 'Shop', to: '/shop', icon: StoreIcon },
     { label: 'Saved', to: '/wishlist', icon: HeartIcon },
   ];
 
@@ -27,9 +27,9 @@ export function MobileTabBar() {
         {items.map((item) => {
           const active =
             item.to === '/'
-              ? pathname === '/' || pathname.startsWith('/product/') || pathname.startsWith('/category/')
-              : item.to === '/home'
-              ? pathname === '/home'
+              ? pathname === '/'
+              : item.to === '/shop'
+              ? pathname === '/shop' || pathname.startsWith('/product/') || pathname.startsWith('/category/')
               : pathname === item.to || pathname.startsWith(`${item.to}/`);
 
           return (

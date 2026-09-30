@@ -32,12 +32,12 @@ export async function generateMetadata({ params }: ServicePageProps): Promise<Me
 
   if (!service) {
     return {
-      title: 'Service Not Found | Dallian Luxe Hair',
+      title: 'Service Not Found',
     };
   }
 
   return {
-    title: `${service.title} | Dallian Luxe Hair Nairobi`,
+    title: service.title,
     description: service.seoDescription,
     keywords: [
       service.shortTitle,
@@ -73,7 +73,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
   const otherServices = servicesData.filter((s) => s.slug !== service.slug);
 
   return (
-    <main className="min-h-screen bg-[#FAF7F2] pb-16 pt-6 sm:pb-24 sm:pt-10">
+    <div className="min-h-screen bg-[#FAF7F2] pb-16 pt-6 sm:pb-24 sm:pt-10">
       <div className="mx-auto max-w-page px-4 sm:px-8">
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-ink/50 sm:mb-8">
@@ -388,6 +388,6 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   );
 }

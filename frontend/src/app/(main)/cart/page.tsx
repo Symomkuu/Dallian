@@ -133,7 +133,7 @@ export function Cart() {
               )}
 
               <Link
-                to="/"
+                to="/shop"
                 className="label-luxe mt-8 inline-flex border-b border-gold pb-1.5 text-ink hover:text-chestnut"
               >
                 Continue Shopping
