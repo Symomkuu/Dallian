@@ -258,7 +258,7 @@ export default function ProductDetailsPage() {
           title="We could not find that piece"
           body="It may have been renamed or removed from the collection. Browse the full collection to find something similar."
           actionLabel="Shop Wigs"
-          actionTo="/"
+          actionTo="/shop"
         />
       </div>
     );

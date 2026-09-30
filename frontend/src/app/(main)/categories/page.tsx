@@ -143,7 +143,7 @@ export default function CategoriesPage() {
       <div className="mx-auto max-w-page px-4 sm:px-8">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-ink/50 sm:mb-8">
-          <Link href="/home" className="hover:text-ink">
+          <Link href="/" className="hover:text-ink">
             Home
           </Link>
           <span>/</span>
@@ -216,7 +216,7 @@ export default function CategoriesPage() {
                 {/* Bottom CTA Button */}
                 <div className="mt-8 border-t border-ink/8 pt-5">
                   <Link
-                    href={`/?category=${encodeURIComponent(cat.slug || cat.name)}`}
+                    href={`/shop?category=${encodeURIComponent(cat.slug || cat.name)}`}
                     className="inline-flex w-full items-center justify-between rounded-xl bg-black px-5 py-3.5 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-neutral-800 sm:px-6"
                   >
                     <span>Shop {cat.name}</span>
@@ -247,7 +247,7 @@ export default function CategoriesPage() {
               {textureList.map((tex) => (
                 <Link
                   key={tex.name}
-                  href={`/?style=${encodeURIComponent(tex.query)}`}
+                  href={`/shop?style=${encodeURIComponent(tex.query)}`}
                   className="group flex flex-col justify-between rounded-xl border border-ink/10 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#C89D34] hover:shadow-sm sm:p-5"
                 >
                   <div>

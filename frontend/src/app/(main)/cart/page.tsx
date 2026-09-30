@@ -37,7 +37,7 @@ export function Cart() {
             title="Your bag is empty"
             body="Browse the signature collection and add the pieces you love. Nothing is reserved until checkout."
             actionLabel="Shop Wigs"
-            actionTo="/" 
+            actionTo="/shop" 
           />
         ) : (
           <div className="grid gap-10 lg:grid-cols-[1.6fr_1fr] lg:gap-14">

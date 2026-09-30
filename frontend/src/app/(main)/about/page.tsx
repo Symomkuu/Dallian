@@ -72,7 +72,7 @@ export default function AboutPage() {
         <LinkButton to="/contact" variant="gold">
           Contact Us
         </LinkButton>
-        <LinkButton to="/" variant="onDark">
+        <LinkButton to="/shop" variant="onDark">
           Shop the Collection
         </LinkButton>
       </div>

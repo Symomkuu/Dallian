@@ -6,9 +6,70 @@ import { SiteChrome } from '@/components/SiteChrome';
 import { FloatingWhatsApp } from '@/components/FloatingWhatsApp';
 
 export const metadata: Metadata = {
-  title: 'Dallian Luxe Hair E-Commerce Platform',
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://dallianluxe.com'
+  ),
+  title: {
+    default: 'Dallian Luxe Hair | Premium Wigs, Weaves & Studio Services Nairobi',
+    template: '%s | Dallian Luxe Hair Nairobi',
+  },
   description:
-    'Premium luxury human hair wigs, weaves, and extensions.',
+    'Shop 100% virgin human hair wigs, HD lace frontals, and Japanese Futura fibre wigs in Nairobi. Visit our salon studio at Mountain Mall, Thika Road for wig installation, styling, and laundry services.',
+  keywords: [
+    'Wigs Nairobi',
+    'Human Hair Wigs Kenya',
+    'Japanese Futura Fibre Wigs',
+    'HD Lace Frontal Nairobi',
+    'Wig Installation Mountain Mall',
+    'Wig Laundry Nairobi',
+    'Wig Revamping Kenya',
+    'Glueless Wigs Nairobi',
+    'Dallian Luxe Hair',
+    'Virgin Hair Kenya',
+  ],
+  authors: [{ name: 'Dallian Luxe Hair Studio' }],
+  creator: 'Dallian Luxe Hair',
+  publisher: 'Dallian Luxe Hair',
+  formatDetection: {
+    email: true,
+    address: true,
+    telephone: true,
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_KE',
+    url: '/',
+    siteName: 'Dallian Luxe Hair',
+    title: 'Dallian Luxe Hair | Premium Wigs, Weaves & Studio Services Nairobi',
+    description:
+      'Nairobi’s premier destination for raw human hair, Futura fibre wigs, HD lace melting, and professional wig care at Mountain Mall.',
+    images: [
+      {
+        url: '/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Dallian Luxe Hair Luxury Wig Collection Nairobi',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Dallian Luxe Hair | Premium Wigs & Studio Services Nairobi',
+    description:
+      'Explore luxury virgin human hair, Japanese Futura fibre wigs, and professional salon care in Nairobi at Mountain Mall.',
+    images: ['/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({

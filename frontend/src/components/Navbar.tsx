@@ -22,8 +22,8 @@ import { SearchOverlay } from './SearchOverlay';
 const emptySubscribe = () => () => {};
 
 const navLinks = [
-  { label: 'Home', to: '/home' },
-  { label: 'Shop', to: '/' },
+  { label: 'Home', to: '/' },
+  { label: 'Shop', to: '/shop' },
   { label: 'Services', to: '/services' },
   { label: 'About Us', to: '/about' },
   { label: 'Contact', to: '/contact' },
@@ -40,10 +40,10 @@ export function Navbar() {
 
   const isLinkActive = (to: string) => {
     if (to === '/') {
-      return pathname === '/' || pathname.startsWith('/product/') || pathname.startsWith('/category/');
+      return pathname === '/';
     }
-    if (to === '/home') {
-      return pathname === '/home';
+    if (to === '/shop') {
+      return pathname === '/shop' || pathname.startsWith('/product/') || pathname.startsWith('/category/');
     }
     return pathname === to || pathname.startsWith(`${to}/`);
   };

@@ -52,7 +52,7 @@ export function Hero() {
 
           {/* CTA Buttons */}
           <div className="mt-6 flex flex-wrap gap-3 sm:mt-8 sm:gap-4">
-            <LinkButton to="/" variant="gold" size="lg">
+            <LinkButton to="/shop" variant="gold" size="lg">
               Shop Wigs
             </LinkButton>
             <LinkButton to="/categories" variant="onDark" size="lg">

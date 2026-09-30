@@ -77,7 +77,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
       <div className="mx-auto max-w-page px-4 sm:px-8">
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-ink/50 sm:mb-8">
-          <Link href="/home" className="hover:text-ink">
+          <Link href="/" className="hover:text-ink">
             Home
           </Link>
           <span>/</span>
