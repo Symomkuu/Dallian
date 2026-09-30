@@ -31,6 +31,7 @@ import { ProductGrid } from '@/components/ProductGrid';
 import { SectionHeading } from '@/components/SectionHeading';
 import { ReviewCard } from '@/components/ReviewCard';
 import { LinkButton } from '@/components/ui/Button';
+import { toast as sonnerToast } from 'sonner';
 
 const trustIcons: Record<string, React.ElementType> = {
   shield: ShieldCheckIcon,
@@ -63,9 +64,12 @@ export default function Home() {
           setFeaturedProducts([]);
         }
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (!isMounted) return;
-        console.error('Failed to load featured products from backend:', err);
+        const errMsg = err instanceof Error ? err.message : 'Unable to connect to the store.';
+        sonnerToast.error('Could not load featured collection', {
+          description: errMsg,
+        });
         setFeaturedProducts([]);
       })
       .finally(() => {

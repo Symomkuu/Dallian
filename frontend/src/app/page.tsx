@@ -26,6 +26,7 @@ import {
 } from '@/components/ShopFilters';
 import { SelectField } from '@/components/ui/SelectField';
 import { Button } from '@/components/ui/Button';
+import { toast } from 'sonner';
 
 const sortOptions = [
   { value: 'featured', label: 'Featured' },
@@ -229,9 +230,12 @@ export default function ShopPage() {
           setProductList(productsRes.results.map(formatProductFromBackend));
         }
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (!isMounted) return;
-        console.error('Failed to load shop data from backend:', err);
+        const errMsg = err instanceof Error ? err.message : 'Unable to connect to the shop catalogue.';
+        toast.error('Could not load shop collection', {
+          description: errMsg,
+        });
       })
       .finally(() => {
         if (isMounted) setLoading(false);
