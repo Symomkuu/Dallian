@@ -52,6 +52,7 @@ export function Footer() {
               width={160}
               height={80}
               className="h-14 w-auto object-contain sm:h-20"
+              style={{ width: 'auto', height: 'auto' }}
               unoptimized
             />
 

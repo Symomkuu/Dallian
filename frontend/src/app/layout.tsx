@@ -5,10 +5,14 @@ import { Providers } from '@/components/Provider';
 import { SiteChrome } from '@/components/SiteChrome';
 import { FloatingWhatsApp } from '@/components/FloatingWhatsApp';
 
+import ClarityProvider from '@/components/providers/ClarityProvider';
+
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL && process.env.NEXT_PUBLIC_SITE_URL.startsWith('http')
     ? process.env.NEXT_PUBLIC_SITE_URL
     : 'https://dallian.online';
+
+const CLARITY_PROJECT_ID = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID || 'yqj8xs3j5e';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -92,6 +96,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col justify-between antialiased">
+        <ClarityProvider projectId={CLARITY_PROJECT_ID} />
         <Providers>
           <Suspense fallback={null}>
             <SiteChrome>{children}</SiteChrome>

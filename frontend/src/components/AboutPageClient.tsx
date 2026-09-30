@@ -45,6 +45,7 @@ export function AboutPageClient() {
               alt="Dallian Luxe Hair Master Stylist handcrafting a virgin human hair wig in Nairobi studio"
               fill
               priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover"
             />
           </div>
@@ -136,6 +137,7 @@ export function AboutPageClient() {
           src={imagery.store}
           alt="Dallian Luxe Hair boutique salon at Mountain Mall Nairobi"
           fill
+          sizes="100vw"
           className="object-cover opacity-35"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/30" aria-hidden="true" />

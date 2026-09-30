@@ -23,6 +23,7 @@ export function Logo({ onDark, compact, className, to = '/' }: LogoProps) {
           width={40}
           height={40}
           className="h-full w-full object-contain p-0.5"
+          style={{ width: 'auto', height: 'auto' }}
           priority
           unoptimized
         />
