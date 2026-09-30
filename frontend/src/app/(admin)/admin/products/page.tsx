@@ -191,8 +191,7 @@ export default function AdminProductsPage() {
 
       {/* Product grid */}
       {!loading && filtered.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {filtered.map((product) => {
+          {filtered.map((product, index) => {
             const primaryImage = product.images.find((img) => img.is_primary) ?? product.images[0];
             const status = stockStatus(product);
             return (
@@ -204,9 +203,11 @@ export default function AdminProductsPage() {
                   {primaryImage ? (
                     <Image
                       fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 300px"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 250px"
                       src={primaryImage.image_url}
                       alt={product.name}
+                      loading={index < 4 ? 'eager' : 'lazy'}
+                      priority={index === 0}
                       className="object-cover"
                       unoptimized
                     />

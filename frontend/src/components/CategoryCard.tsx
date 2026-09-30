@@ -24,6 +24,7 @@ export function CategoryCard({ title, body, cta, to, image, eyebrow }: CategoryC
         src={image}
         alt={title}
         fill
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
         className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
       />
       {/* Dark gradient overlay for text legibility */}

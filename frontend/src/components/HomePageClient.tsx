@@ -250,6 +250,7 @@ export function HomePageClient() {
               src={imagery.care}
               alt="Dallian Luxe Hair studio services and wig care in Mountain Mall Nairobi"
               fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover transition-transform duration-700 group-hover:scale-105"
             />
           </motion.div>
@@ -305,6 +306,7 @@ export function HomePageClient() {
             src={imagery.store}
             alt="Inside the Dallian Luxe Hair store at Mountain Mall Nairobi"
             fill
+            sizes="100vw"
             className="object-cover opacity-30"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-transparent" />
