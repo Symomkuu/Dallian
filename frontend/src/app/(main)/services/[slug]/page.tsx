@@ -250,10 +250,12 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
 
                 <a
                   href={`tel:${brand.phone.replace(/\s+/g, '')}`}
+                  aria-label="Call Studio at 0792 11 42 92"
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-ink/15 bg-white px-5 py-3.5 text-xs font-bold tracking-wider text-ink uppercase transition hover:border-[#8B3A2A] hover:text-[#8B3A2A]"
                 >
                   <Phone width={15} height={15} />
                   <span className="hidden sm:inline">Call Studio</span>
+                  <span className="sr-only sm:hidden">Call Studio</span>
                 </a>
               </div>
             </div>

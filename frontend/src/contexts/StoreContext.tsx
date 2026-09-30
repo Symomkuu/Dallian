@@ -126,7 +126,9 @@ function getStoredCart(): CartItem[] {
         }
       }
     }
-  } catch {}
+  } catch (e) {
+    console.warn('Error reading cart from storage:', e);
+  }
   return [];
 }
 
@@ -144,7 +146,9 @@ function getStoredWishlist(): string[] {
         }
       }
     }
-  } catch {}
+  } catch (e) {
+    console.warn('Error reading wishlist from storage:', e);
+  }
   return [];
 }
 
@@ -183,7 +187,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         // 7-day cookie backup (7 * 86400 seconds)
         document.cookie = `dallian_cart_active=true; path=/; max-age=${7 * 86400}; SameSite=Lax`;
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Error persisting cart to storage:', e);
+    }
   }, [cart]);
 
   // 3. Persist wishlist with a 7-day sliding expiry whenever it changes
@@ -202,7 +208,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         };
         localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(envelope));
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Error persisting wishlist to storage:', e);
+    }
   }, [wishlist]);
 
   // Provide CSRF token to API client

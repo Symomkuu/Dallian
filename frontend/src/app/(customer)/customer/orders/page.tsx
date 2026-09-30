@@ -494,7 +494,7 @@ export default function CustomerOrdersPage() {
             </p>
           </div>
           <Link
-            href="/"
+            href="/shop"
             className="rounded-xl bg-[#8B3A2A] px-6 py-2.5 text-xs font-semibold tracking-widest text-cream uppercase transition hover:opacity-90 shadow-xs"
           >
             Explore the Collection

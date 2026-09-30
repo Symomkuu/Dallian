@@ -58,6 +58,7 @@ export default function AdminCustomersPage() {
       })
       .catch((err: unknown) => {
         if (!isMounted) return;
+        console.error('Failed to load customers:', err);
         const errMsg = err instanceof Error ? err.message : 'Unable to load customer directory. Please check your connection.';
         pushToast({ title: 'Failed to load customers', body: errMsg, tone: 'error' });
       })

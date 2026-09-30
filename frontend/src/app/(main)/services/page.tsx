@@ -337,8 +337,8 @@ export default function ServicesPage() {
                     <span>{brand.phone}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock width={14} height={14} className="text-[#D99B26]" />
-                    <span>Mon – Sat: 9:00 AM – 7:00 PM</span>
+                    <Clock width={14} height={14} className="text-[#D99B26] shrink-0" />
+                    <span>Mon–Fri: 9:00 AM – 7:00 PM | Sat: 9:00 AM – 6:00 PM | Sun: 11:00 AM – 4:00 PM</span>
                   </div>
                 </div>
               </div>

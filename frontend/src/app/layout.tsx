@@ -5,10 +5,13 @@ import { Providers } from '@/components/Provider';
 import { SiteChrome } from '@/components/SiteChrome';
 import { FloatingWhatsApp } from '@/components/FloatingWhatsApp';
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL && process.env.NEXT_PUBLIC_SITE_URL.startsWith('http')
+    ? process.env.NEXT_PUBLIC_SITE_URL
+    : 'https://dallian.online';
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://dallian.online'
-  ),
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'Dallian Luxe Hair | Premium Wigs, Weaves & Studio Services Nairobi',
     template: '%s | Dallian Luxe Hair Nairobi',
@@ -47,7 +50,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_KE',
-    url: '/',
+    url: siteUrl,
     siteName: 'Dallian Luxe Hair',
     title: 'Dallian Luxe Hair | Premium Wigs, Weaves & Studio Services Nairobi',
     description:

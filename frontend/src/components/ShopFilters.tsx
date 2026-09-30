@@ -144,7 +144,7 @@ export function ShopFilters({
     value.categories.length +
     value.styles.length +
     value.availability.length +
-    (value.maxPrice < 35000 ? 1 : 0);
+    (value.maxPrice < emptyFilters.maxPrice ? 1 : 0);
 
   return (
     <div className="flex h-full flex-col">

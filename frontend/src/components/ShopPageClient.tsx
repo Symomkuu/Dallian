@@ -174,35 +174,41 @@ export function ShopPageClient() {
   const categoryParam = searchParams.get('category');
   const styleParam = searchParams.get('style');
 
-  // Interactive filter state
-  const [localFilters, setLocalFilters] = useState<FilterState>(() => ({
-    ...emptyFilters,
-    categories: categoryParam ? [categoryParam] : [],
-    styles: styleParam ? [styleParam] : [],
-  }));
+  // Interactive filter state synchronized with URL parameters
+  const [prevParams, setPrevParams] = useState({ categoryParam, styleParam });
+  const [userFilters, setUserFilters] = useState<FilterState | null>(null);
+
+  // If search params changed externally, reset user override during render (official React pattern)
+  if (prevParams.categoryParam !== categoryParam || prevParams.styleParam !== styleParam) {
+    setPrevParams({ categoryParam, styleParam });
+    setUserFilters(null);
+  }
 
   const filters: FilterState = useMemo(() => {
-    // If local state hasn't been modified by user yet, use URL params
-    const categories =
-      localFilters.categories.length > 0
-        ? localFilters.categories
-        : categoryParam
-        ? [categoryParam]
-        : [];
-
-    const styles =
-      localFilters.styles.length > 0
-        ? localFilters.styles
-        : styleParam
-        ? [styleParam]
-        : [];
-
+    if (userFilters !== null) {
+      return userFilters;
+    }
     return {
-      ...localFilters,
-      categories,
-      styles,
+      ...emptyFilters,
+      categories: categoryParam ? [categoryParam] : [],
+      styles: styleParam ? [styleParam] : [],
     };
-  }, [localFilters, categoryParam, styleParam]);
+  }, [userFilters, categoryParam, styleParam]);
+
+  const setFilters = React.useCallback((next: FilterState | ((prev: FilterState) => FilterState)) => {
+    if (typeof next === 'function') {
+      setUserFilters((current) => {
+        const base = current ?? {
+          ...emptyFilters,
+          categories: categoryParam ? [categoryParam] : [],
+          styles: styleParam ? [styleParam] : [],
+        };
+        return next(base);
+      });
+    } else {
+      setUserFilters(next);
+    }
+  }, [categoryParam, styleParam]);
 
   const [sort, setSort] = useState(searchParams.get('sort') ?? 'featured');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -425,7 +431,7 @@ export function ShopPageClient() {
           <div className="sticky top-28">
             <ShopFilters
               value={filters}
-              onChange={setLocalFilters}
+              onChange={setFilters}
               resultCount={results.length}
               availableCategories={categories}
               availableHairStyles={hairstyles}
@@ -495,9 +501,8 @@ export function ShopPageClient() {
               <Button
                 className="mt-7"
                 onClick={() => {
-                  setLocalFilters(emptyFilters);
+                  setFilters(emptyFilters);
                   window.history.replaceState(null, '', '/shop');
-                  window.dispatchEvent(new PopStateEvent('popstate'));
                 }}
               >
                 Clear Filters
@@ -521,7 +526,7 @@ export function ShopPageClient() {
           <div className="absolute bottom-0 left-0 right-0 max-h-[88vh] overflow-y-auto bg-cream px-4 pb-6 pt-5 shadow-panel sm:px-5">
             <ShopFilters
               value={filters}
-              onChange={setLocalFilters}
+              onChange={setFilters}
               onClose={() => setDrawerOpen(false)}
               resultCount={results.length}
               availableCategories={categories}
