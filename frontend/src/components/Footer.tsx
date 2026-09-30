@@ -24,7 +24,7 @@ const columns = [
       { label: 'FAQ', to: '/faq' },
       { label: 'Delivery', to: '/delivery' },
       { label: 'Returns', to: '/returns' },
-      { label: 'Wig Care', to: '/wig-care' },
+      { label: 'Studio Services', to: '/services' },
     ],
   },
   {

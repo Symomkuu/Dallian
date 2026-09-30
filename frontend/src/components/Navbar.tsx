@@ -24,7 +24,7 @@ const emptySubscribe = () => () => {};
 const navLinks = [
   { label: 'Home', to: '/home' },
   { label: 'Shop', to: '/' },
-  { label: 'Wig Care', to: '/wig-care' },
+  { label: 'Services', to: '/services' },
   { label: 'About Us', to: '/about' },
   { label: 'Contact', to: '/contact' },
 ];

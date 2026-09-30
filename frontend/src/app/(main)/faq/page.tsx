@@ -109,7 +109,7 @@ export default function FAQ() {
             </LinkButton>
             <ul className="mt-7 space-y-3 border-t border-ink/10 pt-6 text-sm">
               {[
-                { label: 'Wig Care Guide', to: '/wig-care' },
+                { label: 'Studio Services & Care', to: '/services' },
                 { label: 'Delivery Information', to: '/delivery' },
                 { label: 'Returns Policy', to: '/returns' },
                 { label: 'Track Your Order', to: '/track' },

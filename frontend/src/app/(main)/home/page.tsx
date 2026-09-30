@@ -19,7 +19,7 @@ import {
 import { brand, imagery } from '@/data/brand';
 import { categoryMeta } from '@/data/products';
 import type { Product } from '@/types';
-import { careGuide, reviews, trustPoints } from '@/data/content';
+import { reviews, trustPoints } from '@/data/content';
 import {
   fetchStoreFeaturedProducts,
   formatProductFromBackend,
@@ -291,16 +291,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CARE GUIDE SECTION */}
+      {/* STUDIO SERVICES SECTION */}
       <section
-        aria-labelledby="care-heading"
+        aria-labelledby="services-heading"
         className="bg-cream"
       >
         <div className="mx-auto grid max-w-page items-center gap-6 px-4 py-10 sm:gap-10 sm:px-8 sm:py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
-          <div className="relative aspect-[16/10] overflow-hidden sm:aspect-[3/2]">
+          <div className="relative aspect-[16/10] overflow-hidden rounded-2xl sm:aspect-[3/2]">
             <Image
               src={imagery.care}
-              alt="Wig care essentials arranged on a marble surface"
+              alt="Dallian Luxe Hair studio services and wig care"
               fill
               className="object-cover"
             />
@@ -308,27 +308,35 @@ export default function Home() {
 
           <div>
             <SectionHeading
-              eyebrow="Wig Care"
-              title="Keep your piece looking new"
-              body="Washing, storage, detangling and curl maintenance — the routines that protect your investment, written for both human hair and Futura fibre."
+              eyebrow="Studio Services"
+              title="Salon-Grade Care, Styling & Revamping"
+              body="Extend the life of your luxury wigs with professional studio care at Mountain Mall, Nairobi. From clarifying laundry and thermal styling to custom installations and complete revamps."
             />
 
             <ul className="mt-6 divide-y divide-ink/10 border-y border-ink/10 sm:mt-8">
-              {careGuide.slice(0, 4).map((topic) => (
-                <li
-                  key={topic.title}
-                  className="py-3 text-sm text-ink/70 sm:py-3.5"
-                >
-                  {topic.title}
-                </li>
-              ))}
+              <li className="flex items-center justify-between py-3 text-sm text-ink/80 sm:py-3.5">
+                <span className="font-medium">1. Wig Laundry & Deep Cleansing</span>
+                <span className="text-xs text-[#8B3A2A] font-semibold">From KSh 1,500</span>
+              </li>
+              <li className="flex items-center justify-between py-3 text-sm text-ink/80 sm:py-3.5">
+                <span className="font-medium">2. Styling, Curling & Silk Press</span>
+                <span className="text-xs text-[#8B3A2A] font-semibold">From KSh 1,800</span>
+              </li>
+              <li className="flex items-center justify-between py-3 text-sm text-ink/80 sm:py-3.5">
+                <span className="font-medium">3. In-Studio Wig Installation & Melt</span>
+                <span className="text-xs text-[#8B3A2A] font-semibold">From KSh 2,500</span>
+              </li>
+              <li className="flex items-center justify-between py-3 text-sm text-ink/80 sm:py-3.5">
+                <span className="font-medium">4. Wig Revamping & Reconstruction</span>
+                <span className="text-xs text-[#8B3A2A] font-semibold">From KSh 2,800</span>
+              </li>
             </ul>
 
             <LinkButton
-              to="/wig-care"
+              to="/services"
               className="mt-6 sm:mt-8"
             >
-              Read the Care Guide
+              Explore All Services
             </LinkButton>
           </div>
         </div>

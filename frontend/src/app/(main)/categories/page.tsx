@@ -288,11 +288,11 @@ export default function CategoriesPage() {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end lg:flex-col lg:items-stretch">
               <Link
-                href="/wig-care"
+                href="/services"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#D99B26] px-6 py-3 text-xs font-semibold uppercase tracking-widest text-black transition hover:bg-amber-400"
               >
                 <HelpCircle width={15} height={15} />
-                <span>Read Wig Care Guide</span>
+                <span>Explore Studio Services</span>
               </Link>
               <Link
                 href="/contact"
