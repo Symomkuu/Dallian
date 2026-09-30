@@ -120,20 +120,20 @@ export default function Home() {
           <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6">
             <CategoryCard
               eyebrow="Range 01"
-              title={categoryMeta['human-hair'].label}
-              body={categoryMeta['human-hair'].blurb}
-              cta={categoryMeta['human-hair'].cta}
-              to="/?category=human-hair"
-              image={categoryMeta['human-hair'].image}
-            />
-
-            <CategoryCard
-              eyebrow="Range 02"
               title={categoryMeta.futura.label}
               body={categoryMeta.futura.blurb}
               cta={categoryMeta.futura.cta}
               to="/?category=futura"
               image={categoryMeta.futura.image}
+            />
+
+            <CategoryCard
+              eyebrow="Range 02"
+              title="Premium Human Hair"
+              body={categoryMeta['human-hair'].blurb}
+              cta={categoryMeta['human-hair'].cta}
+              to="/?category=human-hair"
+              image={categoryMeta['human-hair'].image}
             />
           </div>
         </div>
