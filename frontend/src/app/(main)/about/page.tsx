@@ -1,126 +1,135 @@
-'use client';
+import React from 'react';
+import type { Metadata } from 'next';
+import { AboutPageClient } from '@/components/AboutPageClient';
+import { brand } from '@/data/brand';
 
-import React, { useState } from 'react';
-import { MapPinIcon } from 'lucide-react';
-import Image from 'next/image';
-import { brand, imagery } from '@/data/brand';
-import { SectionHeading } from '@/components/SectionHeading';
-import { LinkButton } from '@/components/ui/Button';
+export const metadata: Metadata = {
+  title: 'About Us | Dallian Luxe Hair Nairobi - Luxury Human Hair Wigs & Craftsmanship',
+  description:
+    'Learn about Dallian Luxe Hair in Nairobi, Kenya. Our mission is delivering 100% virgin human hair wigs, HD lace frontals, bespoke salon services, and effortless elegance.',
+  keywords: [
+    'about dallian luxe hair',
+    'luxury wig store nairobi',
+    'human hair wig maker kenya',
+    'best wig shop in nairobi',
+    'wig salon mountain mall thika road',
+    'virgin human hair suppliers nairobi',
+    'hd lace wigs kenya',
+  ],
+  alternates: {
+    canonical: 'https://dallian.online/about',
+  },
+  openGraph: {
+    title: 'About Us | Dallian Luxe Hair Nairobi - Luxury Human Hair Wigs & Craftsmanship',
+    description:
+      'Learn about Dallian Luxe Hair in Nairobi, Kenya. Our mission is delivering 100% virgin human hair wigs, HD lace frontals, bespoke salon services, and effortless elegance.',
+    url: 'https://dallian.online/about',
+    siteName: brand.name,
+    images: [
+      {
+        url: 'https://dallian.online/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'About Dallian Luxe Hair Nairobi',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Us | Dallian Luxe Hair Nairobi',
+    description:
+      'Discover the story, craftsmanship, and luxury human hair standards at Dallian Luxe Hair Nairobi.',
+    images: ['https://dallian.online/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg'],
+  },
+};
 
 export default function AboutPage() {
-  const [email, setEmail] = useState('');
+  const aboutPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'About Dallian Luxe Hair',
+    url: 'https://dallian.online/about',
+    description:
+      'Dallian Luxe Hair is a premier luxury wig brand and studio boutique in Nairobi, Kenya, specializing in 100% virgin human hair, Japanese Futura, HD lace frontals, and custom styling.',
+    mainEntity: {
+      '@type': 'HairSalon',
+      name: 'Dallian Luxe Hair',
+      image: 'https://dallian.online/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg',
+      logo: 'https://dallian.online/logo.png',
+      url: 'https://dallian.online',
+      telephone: '+254792114292',
+      email: 'dallianltd@gmail.com',
+      priceRange: 'KES 5,000 - 65,000',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Mountain Mall, Thika Road',
+        addressLocality: 'Nairobi',
+        addressRegion: 'Nairobi County',
+        postalCode: '00100',
+        addressCountry: 'KE',
+      },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: -1.2291,
+        longitude: 36.8833,
+      },
+      openingHoursSpecification: [
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          opens: '09:00',
+          closes: '19:00',
+        },
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Saturday'],
+          opens: '09:00',
+          closes: '18:00',
+        },
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Sunday'],
+          opens: '11:00',
+          closes: '16:00',
+        },
+      ],
+      sameAs: [
+        'https://www.facebook.com/profile.php?id=61594105355729',
+        'https://www.tiktok.com/@dallian.luxe.hair',
+        'https://www.instagram.com/dallian.luxe.hair/',
+      ],
+    },
+  };
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-    // TODO: wire up to your subscribe endpoint
-    setEmail('');
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://dallian.online',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'About Us',
+        item: 'https://dallian.online/about',
+      },
+    ],
   };
 
   return (
     <>
+      <script type="application/ld+json" key="about-schema-jsonld">
+        {JSON.stringify(aboutPageSchema)}
+      </script>
+      <script type="application/ld+json" key="about-breadcrumbs-jsonld">
+        {JSON.stringify(breadcrumbSchema)}
+      </script>
 
-      <section aria-labelledby="story-heading" className="mx-auto max-w-page px-4 py-10 sm:px-8 sm:py-14 lg:py-20">
-        <div className="grid items-center gap-6 sm:gap-10 lg:grid-cols-2 lg:gap-16">
-          <div className="relative aspect-[16/11] overflow-hidden sm:aspect-[4/3]">
-            <Image
-              src={imagery.aboutStory}
-              alt="A stylist preparing a premium wig in the Dallian Luxe Hair store"
-              fill
-              className="object-cover"
-            />
-          </div>
-
-          <div>
-            <SectionHeading
-              eyebrow="Our Story"
-              title="Built on careful selection, not volume"
-              body="We started Dallian Luxe Hair because finding a genuinely good wig should not be a gamble. Every piece in the collection is chosen by our team, and every customer is guided on length, texture and fit rather than left to guess."
-            />
-
-            <p className="mt-4 text-sm leading-relaxed text-ink/65 sm:mt-5">
-              Our tagline — {brand.tagline} — is how we work. We would rather help you choose one piece you love and wear often than sell you something that sits in a box.
-            </p>
-          </div>
-        </div>
-      </section>
-
-
-      <section aria-labelledby="visit-heading" className="relative overflow-hidden bg-ink">
-  <Image
-    src={imagery.store}
-    alt=""
-    fill
-    className="object-cover"
-  />
-  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20" aria-hidden="true" />
-
-  <div className="relative mx-auto max-w-page px-4 py-14 sm:px-8 sm:py-20 lg:py-28">
-    <div className="max-w-xl">
-      <p className="label-luxe text-white">Find Us</p>
-      <h2 id="visit-heading" className="mt-3 font-serif text-2xl leading-tight text-white sm:mt-4 sm:text-3xl lg:text-4xl">
-        Our store in Nairobi
-      </h2>
-      <p className="mt-4 flex items-start gap-3 text-sm leading-relaxed text-white sm:mt-5">
-        <MapPinIcon width={16} height={16} className="mt-0.5 shrink-0 text-gold" />
-        {brand.addressLine1}, {brand.addressLine2}
-      </p>
-      <p className="mt-3 text-sm leading-relaxed text-white sm:mt-4">
-        Come in to compare textures and lengths in person, or talk to us before you order online — we are happy to advise.
-      </p>
-      <div className="mt-6 flex flex-wrap gap-3 sm:mt-9">
-        <LinkButton to="/contact" variant="gold">
-          Contact Us
-        </LinkButton>
-        <LinkButton to="/" variant="onDark">
-          Shop the Collection
-        </LinkButton>
-      </div>
-    </div>
-  </div>
-</section>
-      {/* DALLIAN CIRCLE / NEWSLETTER SECTION — matches the homepage */}
-      <section
-        aria-labelledby="newsletter-heading"
-        className="bg-[#50291f] px-5 py-12 text-center text-white sm:px-8 sm:py-24"
-      >
-        <div className="mx-auto max-w-2xl">
-          <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#D8A738] sm:text-[11px]">
-            DALLIAN CIRCLE
-          </p>
-
-          <h2
-            id="newsletter-heading"
-            className="mt-3 font-serif text-2xl font-normal sm:mt-4 sm:text-4xl lg:text-5xl"
-          >
-            New arrivals, first look
-          </h2>
-
-          <p className="mt-3 text-sm leading-relaxed text-white/80 sm:mt-4 sm:text-base">
-            Join our list for new collection drops and care tips. We only send what is worth opening.
-          </p>
-
-          <form
-            onSubmit={handleSubscribe}
-            className="mt-6 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row"
-          >
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Your email address"
-              required
-              className="w-full max-w-md border border-white/20 bg-black/20 px-4 py-3 text-sm text-white placeholder-white/50 transition-colors focus:border-[#D8A738] focus:outline-none sm:py-3.5"
-            />
-            <button
-              type="submit"
-              className="w-full sm:w-auto bg-[#D8A738] px-8 py-3 text-[11px] font-bold tracking-[0.2em] uppercase text-black transition-colors duration-200 hover:bg-[#c0932f] sm:py-3.5"
-            >
-              SUBSCRIBE
-            </button>
-          </form>
-        </div>
-      </section>
+      <AboutPageClient />
     </>
   );
 }

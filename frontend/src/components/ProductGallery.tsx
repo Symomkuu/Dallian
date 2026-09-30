@@ -69,23 +69,35 @@ export function ProductGallery({ images, name, activeImage }: ProductGalleryProp
         </p>
       </div>
 
-      <div className="mt-3 flex gap-3">
-        {images.map((image, index) =>
-        <button
-          key={image}
-          type="button"
-          onClick={() => setActive(index)}
-          aria-label={`Show image ${index + 1}`}
-          aria-current={active === index}
-          className={cx(
-            'w-1/4 max-w-24 overflow-hidden border transition-colors duration-200',
-            active === index ? 'border-gold' : 'border-ink/12 hover:border-ink/40'
-          )}>
-          
-            <Image src={image} alt="" width={100} height={125} className="aspect-[4/5] w-full object-cover" unoptimized />
-          </button>
-        )}
-      </div>
+      {/* Thumbnail Strip: Only render when there are 2 or more images */}
+      {images.length > 1 && (
+        <div className="mt-2.5 flex flex-wrap items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          {images.map((image, index) => (
+            <button
+              key={image}
+              type="button"
+              onClick={() => setActive(index)}
+              aria-label={`Show image ${index + 1}`}
+              aria-current={active === index}
+              className={cx(
+                'relative h-14 w-11 sm:h-16 sm:w-13 shrink-0 overflow-hidden rounded-md border transition-all duration-200',
+                active === index
+                  ? 'border-gold ring-1.5 ring-gold/50 shadow-xs'
+                  : 'border-ink/15 opacity-70 hover:opacity-100 hover:border-ink/40'
+              )}
+            >
+              <Image
+                src={image}
+                alt=""
+                fill
+                sizes="64px"
+                className="object-cover"
+                unoptimized
+              />
+            </button>
+          ))}
+        </div>
+      )}
 
       {fullscreen &&
       <div className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/95 p-4">

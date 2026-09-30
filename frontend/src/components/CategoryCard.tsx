@@ -46,9 +46,9 @@ export function CategoryCard({ title, body, cta, to, image, eyebrow }: CategoryC
         </p>
 
         <span className="mt-3 inline-flex items-center gap-1.5 border-b border-[#D99B26] pb-1 text-[10px] font-semibold tracking-[0.15em] uppercase text-[#D99B26] transition-colors duration-200 group-hover:text-amber-300 sm:mt-6 sm:gap-2 sm:text-xs sm:tracking-[0.2em]">
-          {cta}
-          <ArrowRightIcon width={12} height={12} className="sm:hidden" />
-          <ArrowRightIcon width={14} height={14} className="hidden sm:block" />
+          <span>{cta}</span>
+          <ArrowRightIcon width={12} height={12} className="transition-transform duration-300 group-hover:translate-x-1 sm:hidden" />
+          <ArrowRightIcon width={14} height={14} className="hidden transition-transform duration-300 group-hover:translate-x-1.5 sm:block" />
         </span>
       </div>
     </Link>

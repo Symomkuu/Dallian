@@ -1,0 +1,43 @@
+version = 1
+
+test_patterns = [
+    "backend/**/tests.py",
+    "frontend/**/*.test.js",
+    "frontend/**/*.test.jsx",
+    "frontend/**/*.test.ts",
+    "frontend/**/*.test.tsx",
+]
+
+exclude_patterns = [
+    "backend/**/migrations/**",
+    "backend/**/__pycache__/**",
+    "backend/venv/**",
+    "backend/static/**",
+    "backend/static_root/**",
+    "frontend/node_modules/**",
+    "frontend/.next/**",
+    "frontend/out/**",
+    "frontend/build/**",
+    "frontend/coverage/**",
+]
+
+[[analyzers]]
+name = "python"
+enabled = true
+
+  [analyzers.meta]
+  runtime_version = "3.x.x"
+
+[[analyzers]]
+name = "javascript"
+enabled = true
+
+  [analyzers.meta]
+  dialect = "typescript"
+  plugins = ["react"]
+  environment = ["browser", "nodejs"]
+  module_system = "es-modules"
+
+[[analyzers]]
+name = "secrets"
+enabled = true

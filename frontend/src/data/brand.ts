@@ -7,7 +7,13 @@ export const brand = {
   email: 'dallianltd@gmail.com',
   addressLine1: 'Mountain Mall, Thika Road',
   addressLine2: 'Nairobi, Kenya',
-  logo: "/dallian_luxe_hair.jpg",
+  website: 'https://dallian.online',
+  logo: "/logo.png",
+  socials: {
+    facebook: 'https://www.facebook.com/profile.php?id=61594105355729',
+    tiktok: 'https://www.tiktok.com/@dallian.luxe.hair',
+    instagram: 'https://www.instagram.com/dallian.luxe.hair/',
+  },
   hours: [
   { day: 'Monday – Friday', time: '9:00 — 19:00' },
   { day: 'Saturday', time: '9:00 — 18:00' },

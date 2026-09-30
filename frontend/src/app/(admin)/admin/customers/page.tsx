@@ -56,10 +56,11 @@ export default function AdminCustomersPage() {
           setStats(res.stats);
         }
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (!isMounted) return;
         console.error('Failed to load customers:', err);
-        pushToast({ title: 'Failed to load customers.', tone: 'error' });
+        const errMsg = err instanceof Error ? err.message : 'Unable to load customer directory. Please check your connection.';
+        pushToast({ title: 'Failed to load customers', body: errMsg, tone: 'error' });
       })
       .finally(() => {
         if (isMounted) setLoading(false);

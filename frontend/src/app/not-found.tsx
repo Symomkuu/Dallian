@@ -1,6 +1,11 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ShoppingBagIcon } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Page Not Found',
+};
 
 export default function NotFound() {
   return (
@@ -32,7 +37,7 @@ export default function NotFound() {
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
           <Link
-            href="/"
+            href="/shop"
             className="flex items-center gap-2 rounded-xl bg-[#8B3A2A] px-6 py-3 text-xs font-semibold uppercase tracking-wider text-cream shadow-sm transition hover:opacity-90 active:scale-98"
           >
             <ShoppingBagIcon width={15} height={15} />
@@ -53,7 +58,7 @@ export default function NotFound() {
             Popular Destinations
           </p>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs font-medium text-ink/70">
-            <Link href="/" className="hover:text-[#8B3A2A] transition-colors">
+            <Link href="/shop" className="hover:text-[#8B3A2A] transition-colors">
               Wigs Catalogue
             </Link>
             <span className="text-ink/25">•</span>

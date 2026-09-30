@@ -103,7 +103,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
 
       <div className="border-t border-white/10 px-3 py-4">
         <Link
-          href="/"
+          href="/shop"
           className="mb-1 flex items-center gap-3 rounded-sm px-2.5 py-2.5 text-sm text-white/60 transition-colors duration-200 hover:bg-white/5 hover:text-white"
         >
           Continue Shopping

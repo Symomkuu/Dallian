@@ -127,7 +127,7 @@ function getStoredCart(): CartItem[] {
       }
     }
   } catch (e) {
-    console.warn('Error reading cart from storage', e);
+    console.warn('Error reading cart from storage:', e);
   }
   return [];
 }
@@ -147,7 +147,7 @@ function getStoredWishlist(): string[] {
       }
     }
   } catch (e) {
-    console.warn('Error reading wishlist from storage', e);
+    console.warn('Error reading wishlist from storage:', e);
   }
   return [];
 }
@@ -188,7 +188,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         document.cookie = `dallian_cart_active=true; path=/; max-age=${7 * 86400}; SameSite=Lax`;
       }
     } catch (e) {
-      console.warn('Error saving cart to storage', e);
+      console.warn('Error persisting cart to storage:', e);
     }
   }, [cart]);
 
@@ -209,7 +209,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(envelope));
       }
     } catch (e) {
-      console.warn('Error saving wishlist to storage', e);
+      console.warn('Error persisting wishlist to storage:', e);
     }
   }, [wishlist]);
 

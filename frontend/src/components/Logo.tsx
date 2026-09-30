@@ -16,13 +16,13 @@ interface LogoProps {
 export function Logo({ onDark, compact, className, to = '/' }: LogoProps) {
   return (
     <Link to={to} className={cx('group flex items-center gap-2 sm:gap-3 shrink min-w-0', className)} aria-label={`${brand.name} — home`}>
-      <span className="relative block h-8 w-8 sm:h-10 sm:w-10 shrink-0 overflow-hidden rounded-sm border border-gold/50">
+      <span className="relative block h-8 w-8 sm:h-10 sm:w-10 shrink-0 overflow-hidden rounded-sm border border-gold/50 bg-black">
         <Image
           src={brand.logo}
-          alt=""
+          alt={brand.name}
           width={40}
           height={40}
-          className="h-full w-full scale-[1.55] object-cover object-[50%_22%]"
+          className="h-full w-full object-contain p-0.5"
           priority
           unoptimized
         />

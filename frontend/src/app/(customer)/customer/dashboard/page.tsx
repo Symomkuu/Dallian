@@ -203,7 +203,7 @@ export default function CustomerDashboardPage() {
           <div className="flex flex-col items-center gap-3 px-5 py-12 text-center sm:px-6">
             <p className="text-sm text-ink/55">You haven&apos;t placed an order yet.</p>
             <Link
-              href="/"
+              href="/shop"
               className="bg-black px-5 py-2.5 text-xs tracking-widest text-white uppercase transition-colors duration-200 hover:bg-neutral-800"
             >
               Start Shopping

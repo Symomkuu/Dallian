@@ -166,7 +166,7 @@ export default function WishlistPage() {
               title="Your Wishlist is Empty"
               body="Save your favourite HD lace wigs and bundles to revisit them anytime, compare textures, and keep track of availability."
               actionLabel="Explore Collection"
-              actionTo="/"
+              actionTo="/shop"
             />
           </div>
         ) : (

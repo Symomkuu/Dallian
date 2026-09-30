@@ -22,9 +22,9 @@ import { SearchOverlay } from './SearchOverlay';
 const emptySubscribe = () => () => {};
 
 const navLinks = [
-  { label: 'Home', to: '/home' },
-  { label: 'Shop', to: '/' },
-  { label: 'Wig Care', to: '/wig-care' },
+  { label: 'Home', to: '/' },
+  { label: 'Shop', to: '/shop' },
+  { label: 'Services', to: '/services' },
   { label: 'About Us', to: '/about' },
   { label: 'Contact', to: '/contact' },
 ];
@@ -40,10 +40,10 @@ export function Navbar() {
 
   const isLinkActive = (to: string) => {
     if (to === '/') {
-      return pathname === '/' || pathname.startsWith('/product/') || pathname.startsWith('/category/');
+      return pathname === '/';
     }
-    if (to === '/home') {
-      return pathname === '/home';
+    if (to === '/shop') {
+      return pathname === '/shop' || pathname.startsWith('/product/') || pathname.startsWith('/category/');
     }
     return pathname === to || pathname.startsWith(`${to}/`);
   };
@@ -57,11 +57,19 @@ export function Navbar() {
 
   return (
     <>
-      {/* Top Announcement Bar - Explicitly styled black with high-contrast text */}
-      <div className="bg-black text-white">
-        <p className="mx-auto max-w-page px-5 py-2.5 text-center text-[10px] tracking-widest uppercase text-white/90 sm:px-8 sm:text-[11px]">
-          {brand.announcement}
-        </p>
+      {/* Top Announcement Bar - Continuous Looping Marquee Moving Left to Right */}
+      <div className="relative overflow-hidden bg-black py-2.5 text-white select-none border-b border-white/5">
+        <div className="animate-marquee-right">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center gap-3 px-6 text-[10px] tracking-[0.25em] uppercase text-white/90 sm:text-[11px]"
+            >
+              <span>{brand.announcement}</span>
+              <span className="inline-block h-1 w-1 rounded-full bg-amber-400" aria-hidden="true" />
+            </span>
+          ))}
+        </div>
       </div>
 
       <header

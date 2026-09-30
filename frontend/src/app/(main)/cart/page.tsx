@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import { Link } from '@/components/RouterCompat';
 import Image from 'next/image';
 import { MinusIcon, PlusIcon, ShoppingBagIcon } from 'lucide-react';
@@ -9,7 +9,10 @@ import { formatKsh } from '@/utils/format';
 import { Button, LinkButton } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 
+const emptySubscribe = () => () => {};
+
 export function Cart() {
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const {
     activeCart,
     savedItems,
@@ -23,9 +26,20 @@ export function Cart() {
   } = useStore();
   const [code, setCode] = useState('');
 
-  const deliveryFee = subtotal > 0 ? 500 : 0;
+  const deliveryFee = subtotal > 0 ? 200 : 0;
   const discountAmount = discount ? Math.round(subtotal * discount.amount) : 0;
   const total = subtotal + deliveryFee - discountAmount;
+
+  if (!mounted) {
+    return (
+      <div className="mx-auto max-w-page px-4 py-8 sm:px-8 lg:py-14">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 w-1/3 rounded bg-ink/10" />
+          <div className="h-64 w-full rounded-lg bg-ink/5" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -37,7 +51,7 @@ export function Cart() {
             title="Your bag is empty"
             body="Browse the signature collection and add the pieces you love. Nothing is reserved until checkout."
             actionLabel="Shop Wigs"
-            actionTo="/" 
+            actionTo="/shop" 
           />
         ) : (
           <div className="grid gap-10 lg:grid-cols-[1.6fr_1fr] lg:gap-14">
@@ -133,7 +147,7 @@ export function Cart() {
               )}
 
               <Link
-                to="/"
+                to="/shop"
                 className="label-luxe mt-8 inline-flex border-b border-gold pb-1.5 text-ink hover:text-chestnut"
               >
                 Continue Shopping

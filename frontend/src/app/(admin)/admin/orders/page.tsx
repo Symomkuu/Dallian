@@ -147,7 +147,6 @@ function OrderModal({
         onSaved?.();
       } catch {}
     } catch (err: unknown) {
-      console.error('Failed to save order:', err);
       const errMsg = err instanceof Error ? err.message : 'Failed to save order. Please check your connection and try again.';
       setSaveErr(errMsg);
       toast.error('Failed to update order', {

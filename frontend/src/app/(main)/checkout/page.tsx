@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useNavigate } from '@/components/RouterCompat';
@@ -9,6 +9,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CreditCardIcon,
+  GlobeIcon,
   InfoIcon,
   LockIcon,
   ShieldCheckIcon,
@@ -22,7 +23,10 @@ import { useStore } from '@/contexts/StoreContext';
 import { cx, formatKsh } from '@/utils/format';
 import { createOrder } from '@/utils/api';
 import { TextField } from '@/components/ui/TextField';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 import { Button } from '@/components/ui/Button';
+
+const emptySubscribe = () => () => {};
 
 const STEPS = [
   { id: 'customer', title: 'Details', fullTitle: 'Customer Information' },
@@ -35,25 +39,33 @@ const deliveryOptions = [
     id: 'collection',
     label: 'Store Collection',
     detail: 'Mountain Mall, Thika Road, Nairobi',
-    badge: 'Pick up in store',
+    badge: 'Free in Store',
     fee: 0,
     icon: StoreIcon,
   },
   {
     id: 'nairobi',
     label: 'Nairobi Delivery',
-    detail: 'Doorstep dispatch within Nairobi',
+    detail: 'Doorstep rider dispatch within Nairobi',
     badge: 'Same / Next Day',
-    fee: 500,
+    fee: 200,
     icon: TruckIcon,
   },
   {
     id: 'countrywide',
-    label: 'Countrywide Courier',
-    detail: 'SpeedAF, Fargo Courier, or Easy Coach to your town',
-    badge: '1 - 3 Days',
-    fee: 700,
+    label: 'Countrywide Courier (Rest of Kenya)',
+    detail: 'G4S, Fargo Courier, or Speedaf to your town',
+    badge: '24 - 48 Hours',
+    fee: 400,
     icon: TruckIcon,
+  },
+  {
+    id: 'international',
+    label: 'International Shipping (Worldwide)',
+    detail: 'DHL Express / Aramex air courier to your country',
+    badge: '3 - 7 Days',
+    fee: 3500,
+    icon: GlobeIcon,
   },
 ];
 
@@ -75,6 +87,7 @@ const paymentOptions = [
 export default function CheckoutPage() {
   const { activeCart, subtotal, discount, placeOrder, user } = useStore();
   const navigate = useNavigate();
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -105,9 +118,9 @@ export default function CheckoutPage() {
     const next: Record<string, string> = {};
     if (targetStep === 0) {
       if (!form.name.trim()) next.name = 'Please enter your full name.';
-      const cleanPhone = form.phone.replace(/[\s\-\+]/g, '');
-      if (!cleanPhone || cleanPhone.length < 9) {
-        next.phone = 'Please enter a valid phone number (e.g. 0712345678).';
+      const cleanDigits = form.phone.replace(/[^\d]/g, '');
+      if (!form.phone || cleanDigits.length < 7) {
+        next.phone = 'Please enter a valid phone number with country code.';
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
         next.email = 'Please enter a valid email address.';
@@ -213,6 +226,18 @@ export default function CheckoutPage() {
     }
   };
 
+  // Prevent hydration mismatch between server-rendered empty state and client localStorage state
+  if (!mounted) {
+    return (
+      <div className="mx-auto max-w-page px-5 py-20 sm:px-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 w-1/3 rounded bg-ink/10" />
+          <div className="h-64 w-full rounded-lg bg-ink/5" />
+        </div>
+      </div>
+    );
+  }
+
   // If bag is empty
   if (activeCart.length === 0) {
     return (
@@ -226,7 +251,7 @@ export default function CheckoutPage() {
         </p>
         <div className="mt-8">
           <Link
-            href="/"
+            href="/shop"
             className="inline-flex h-12 items-center justify-center bg-black px-8 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-neutral-800"
           >
             Explore Collection
@@ -437,14 +462,14 @@ export default function CheckoutPage() {
                     className="sm:col-span-2"
                     autoComplete="name"
                   />
-                  <TextField
-                    label="Phone Number (SMS Updates) *"
-                    placeholder="e.g. 0712 345 678"
+                  <PhoneInput
+                    label="Phone Number (SMS & Dispatch) *"
+                    placeholder="712 345 678"
                     value={form.phone}
                     error={errors.phone}
-                    hint="For M-Pesa prompts and rider updates"
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    inputMode="tel"
+                    hint="Select country code and enter mobile number"
+                    onChange={(fullPhone) => setForm({ ...form, phone: fullPhone })}
+                    required
                     autoComplete="tel"
                   />
                   <TextField

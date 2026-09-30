@@ -41,7 +41,7 @@ export default function OrderConfirmedPage() {
         </p>
         <div className="mt-6">
           <Link
-            href="/"
+            href="/shop"
             className="inline-block bg-black px-6 py-3 text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-neutral-800"
           >
             Explore Collection
@@ -222,7 +222,7 @@ export default function OrderConfirmedPage() {
               {user ? '← Customer Dashboard' : '← Track Status with Order Number'}
             </Link>
             <Link
-              href="/"
+              href="/shop"
               className="inline-flex h-11 items-center justify-center gap-2 bg-black px-6 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-neutral-800 rounded-lg shadow-xs"
             >
               <span>Continue Shopping</span>
