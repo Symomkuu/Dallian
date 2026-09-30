@@ -43,20 +43,35 @@ export async function generateMetadata({ params }: ServicePageProps): Promise<Me
       service.shortTitle,
       `${service.shortTitle} Nairobi`,
       `${service.shortTitle} Mountain Mall`,
+      `${service.shortTitle} Kenya`,
+      'Wig Care Nairobi',
       'Dallian Luxe Hair Services',
-      'Wig Care Kenya',
+      'Wig Salon Nairobi',
     ],
+    alternates: {
+      canonical: `/services/${slug}`,
+    },
     openGraph: {
-      title: service.seoTitle,
+      title: `${service.title} | Dallian Luxe Hair Nairobi`,
       description: service.seoDescription,
+      url: `/services/${slug}`,
+      siteName: 'Dallian Luxe Hair',
+      locale: 'en_KE',
+      type: 'website',
       images: [
         {
           url: service.image,
           width: 1200,
           height: 630,
-          alt: service.title,
+          alt: `${service.title} at Dallian Luxe Hair Nairobi`,
         },
       ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${service.title} | Dallian Luxe Hair Nairobi`,
+      description: service.seoDescription,
+      images: [service.image],
     },
   };
 }
@@ -72,8 +87,84 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
   const whatsappNumber = brand.phoneIntl.replace(/\D/g, '');
   const otherServices = servicesData.filter((s) => s.slug !== service.slug);
 
+  const serviceSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Service',
+        '@id': `https://dallian.online/services/${service.slug}#service`,
+        name: service.title,
+        description: service.fullDescription,
+        url: `https://dallian.online/services/${service.slug}`,
+        image: `https://dallian.online${service.image}`,
+        provider: {
+          '@type': 'HairSalon',
+          name: 'Dallian Luxe Hair',
+          url: 'https://dallian.online',
+          telephone: '+254792114292',
+          email: 'dallianltd@gmail.com',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Mountain Mall, Thika Road',
+            addressLocality: 'Nairobi',
+            addressCountry: 'KE',
+          },
+        },
+        offers: {
+          '@type': 'Offer',
+          price: service.pricing.replace(/\D/g, '') || '1500',
+          priceCurrency: 'KES',
+          availability: 'https://schema.org/InStock',
+          url: `https://dallian.online/services/${service.slug}`,
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: 'https://dallian.online',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: 'https://dallian.online/services',
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: service.shortTitle,
+            item: `https://dallian.online/services/${service.slug}`,
+          },
+        ],
+      },
+      ...(service.faqs && service.faqs.length > 0
+        ? [
+            {
+              '@type': 'FAQPage',
+              mainEntity: service.faqs.map((faq) => ({
+                '@type': 'Question',
+                name: faq.question,
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: faq.answer,
+                },
+              })),
+            },
+          ]
+        : []),
+    ],
+  };
+
   return (
-    <div className="min-h-screen bg-[#FAF7F2] pb-16 pt-6 sm:pb-24 sm:pt-10">
+    <>
+      <script type="application/ld+json">
+        {JSON.stringify(serviceSchema)}
+      </script>
+      <div className="min-h-screen bg-[#FAF7F2] pb-16 pt-6 sm:pb-24 sm:pt-10">
       <div className="mx-auto max-w-page px-4 sm:px-8">
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-ink/50 sm:mb-8">
@@ -389,5 +480,6 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
         </section>
       </div>
     </div>
+    </>
   );
 }

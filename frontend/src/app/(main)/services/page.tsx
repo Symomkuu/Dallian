@@ -13,16 +13,114 @@ import { brand } from '@/data/brand';
 import { servicesData } from '@/data/services';
 
 export const metadata: Metadata = {
-  title: 'Studio Services, Styling, Laundry & Installation',
+  title: 'Wig Revamping, Installation, Washing & Styling Services in Nairobi',
   description:
-    'Discover salon-grade wig care services at Dallian Luxe Hair Studio, Mountain Mall, Nairobi. Professional wig laundry, styling & curling, custom wig installations, and complete revamping.',
+    'Professional wig revamping, deep washing & conditioning treatment, glueless HD lace installation, lace replacement, and custom wig making at Mountain Mall, Thika Road, Nairobi.',
   keywords: [
-    'Wig Laundry Nairobi',
-    'Wig Installation Nairobi',
-    'Wig Styling Mountain Mall',
-    'Wig Revamping Thika Road',
-    'HD Lace Melting Kenya',
-    'Dallian Luxe Hair Services',
+    'wig revamping in nairobi',
+    'wig revamping price kenya',
+    'wig washing and treatment nairobi',
+    'wig installation in nairobi',
+    'glueless wig installation kenya',
+    'lace replacement nairobi',
+    'wig styling mountain mall',
+    'bleaching knots and hairline plucking',
+    'custom wig making nairobi',
+    'wig maintenance services kenya',
+    'hair salon mountain mall thika road',
+  ],
+  alternates: {
+    canonical: '/services',
+  },
+  openGraph: {
+    title: 'Salon-Grade Wig Care, Styling & Installation | Dallian Luxe Hair',
+    description:
+      'Professional wig laundry, thermal styling, custom lace melting, and revamping at Mountain Mall, Nairobi.',
+    url: '/services',
+    siteName: 'Dallian Luxe Hair',
+    locale: 'en_KE',
+    type: 'website',
+    images: [
+      {
+        url: '/8a3f926d-4483-4271-8809-31d419bde337.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Dallian Luxe Hair Studio Services Nairobi',
+      },
+    ],
+  },
+};
+
+const servicesPageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': 'https://dallian.online/services#webpage',
+      url: 'https://dallian.online/services',
+      name: 'Studio Services, Styling, Laundry & Installation | Dallian Luxe Hair',
+      description:
+        'Discover salon-grade wig care services at Dallian Luxe Hair Studio, Mountain Mall, Nairobi. Professional wig laundry, styling & curling, custom installations, and complete revamping.',
+      isPartOf: {
+        '@type': 'WebSite',
+        '@id': 'https://dallian.online/#website',
+        url: 'https://dallian.online',
+        name: 'Dallian Luxe Hair',
+      },
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: 'https://dallian.online',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: 'https://dallian.online/services',
+          },
+        ],
+      },
+    },
+    {
+      '@type': 'ItemList',
+      '@id': 'https://dallian.online/services#services-list',
+      name: 'Dallian Luxe Hair Studio Services',
+      description: 'Professional wig care, installation, and styling services in Nairobi.',
+      itemListElement: servicesData.map((service, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'Service',
+          '@id': `https://dallian.online/services/${service.slug}#service`,
+          name: service.title,
+          description: service.shortDescription,
+          url: `https://dallian.online/services/${service.slug}`,
+          image: `https://dallian.online${service.image}`,
+          provider: {
+            '@type': 'HairSalon',
+            name: 'Dallian Luxe Hair',
+            url: 'https://dallian.online',
+            telephone: '+254792114292',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: 'Mountain Mall, Thika Road',
+              addressLocality: 'Nairobi',
+              addressCountry: 'KE',
+            },
+          },
+          offers: {
+            '@type': 'Offer',
+            price: service.pricing.replace(/\D/g, '') || '1500',
+            priceCurrency: 'KES',
+            url: `https://dallian.online/services/${service.slug}`,
+          },
+        },
+      })),
+    },
   ],
 };
 
@@ -70,6 +168,9 @@ export default function ServicesPage() {
 
   return (
     <>
+      <script type="application/ld+json">
+        {JSON.stringify(servicesPageSchema)}
+      </script>
       <ServicesHero />
 
       <div className="min-h-screen bg-[#FAF7F2] pb-16 pt-8 sm:pb-24 sm:pt-12">

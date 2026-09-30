@@ -248,8 +248,45 @@ export function ShopPageClient() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let active = true;
+
+    Promise.all([
+      fetchStoreCategories().catch(() => []),
+      fetchStoreHairStyles().catch(() => []),
+      fetchStoreProducts({ page_size: 100 }),
+    ])
+      .then(([cats, styles, productsRes]) => {
+        if (!active) return;
+        if (Array.isArray(cats)) {
+          setCategories(cats);
+        }
+        if (Array.isArray(styles)) {
+          setHairStyles(styles);
+        }
+        if (productsRes && productsRes.results) {
+          setProductList(productsRes.results.map(formatProductFromBackend));
+        }
+      })
+      .catch((err: unknown) => {
+        if (!active) return;
+        const errMsg =
+          err instanceof Error
+            ? err.message
+            : 'Unable to connect to the shop catalogue.';
+        setLoadError(errMsg);
+        toast.error('Could not load shop collection', {
+          description: errMsg,
+        });
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();

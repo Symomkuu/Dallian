@@ -3,21 +3,23 @@ import type { Metadata } from 'next';
 import { ShopPageClient } from '@/components/ShopPageClient';
 
 export const metadata: Metadata = {
-  title: 'Shop Premium Wigs, Human Hair & HD Lace Frontals Nairobi',
+  title: 'Shop Human Hair Wigs, Glueless Units & HD Lace Frontals Nairobi',
   description:
-    'Browse 100% raw virgin human hair wigs, HD lace frontals, and heat-resistant Japanese Futura fibre wigs in Nairobi. Order online with doorstep delivery across Kenya or pick up at Mountain Mall.',
+    'Shop 100% virgin human hair wigs, bone straight units, glueless HD lace frontals, and Japanese Futura fibre wigs in Nairobi. Same-day delivery across Nairobi and nationwide courier in Kenya.',
   keywords: [
-    'Buy Wigs Nairobi',
-    'Human Hair Wigs Kenya',
-    'HD Lace Frontal Nairobi',
-    'Japanese Futura Fibre Wigs',
-    'Glueless Wigs Kenya',
-    'Wig Shop Mountain Mall',
-    'Virgin Hair Nairobi',
-    'Dallian Luxe Shop',
-    'Wigs Catalogue Kenya',
-    'Lace Frontal Nairobi',
-    'Custom Wigs Kenya',
+    'human hair wigs in nairobi',
+    'buy wigs online kenya',
+    'glueless human hair wigs nairobi',
+    'bone straight wigs kenya',
+    'hd lace frontal wigs nairobi',
+    'wigs price in kenya',
+    '100% virgin human hair wigs',
+    'bob wigs nairobi',
+    'double drawn wigs kenya',
+    'japanese futura fibre wigs',
+    'wig shop mountain mall thika road',
+    'same day wig delivery nairobi',
+    'dallian luxe hair',
   ],
   alternates: {
     canonical: '/shop',

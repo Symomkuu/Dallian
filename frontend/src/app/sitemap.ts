@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { servicesData } from '@/data/services';
+import { API_BASE_URL } from '@/utils/api';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dallian.online';
@@ -16,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/shop`,
       lastModified,
       changeFrequency: 'daily',
-      priority: 0.9,
+      priority: 0.95,
     },
     {
       url: `${baseUrl}/services`,
@@ -28,16 +29,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/categories`,
       lastModified,
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/about`,
       lastModified,
       changeFrequency: 'monthly',
-      priority: 0.6,
+      priority: 0.7,
     },
     {
       url: `${baseUrl}/contact`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/delivery`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/returns`,
       lastModified,
       changeFrequency: 'monthly',
       priority: 0.7,
@@ -46,13 +59,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/faq`,
       lastModified,
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.6,
     },
     {
       url: `${baseUrl}/track`,
       lastModified,
       changeFrequency: 'monthly',
       priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified,
+      changeFrequency: 'yearly',
+      priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified,
+      changeFrequency: 'yearly',
+      priority: 0.4,
     },
   ];
 
@@ -64,5 +89,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
-  return [...staticRoutes, ...serviceRoutes];
+  // Dynamic Product Pages
+  let productRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/store/products/?page_size=100`, {
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.results)) {
+        productRoutes = data.results.map((product: { slug: string; updated_at?: string }) => ({
+          url: `${baseUrl}/product/${product.slug}`,
+          lastModified: product.updated_at ? new Date(product.updated_at) : lastModified,
+          changeFrequency: 'daily',
+          priority: 0.8,
+        }));
+      }
+    }
+  } catch {
+    // Backend offline during build fallback
+  }
+
+  return [...staticRoutes, ...serviceRoutes, ...productRoutes];
 }
