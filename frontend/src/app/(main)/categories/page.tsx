@@ -48,10 +48,10 @@ export default function CategoriesPage() {
       if (!isMounted) return;
 
       if (Array.isArray(cats) && cats.length > 0) {
-        setCategories(cats);
+        setCategories([...cats].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })));
       }
       if (Array.isArray(styles) && styles.length > 0) {
-        setHairStyles(styles);
+        setHairStyles([...styles].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })));
       }
 
       if (productsRes && productsRes.results) {

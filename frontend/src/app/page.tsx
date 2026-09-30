@@ -12,8 +12,10 @@ import type { Product } from '@/types';
 import {
   fetchStoreProducts,
   fetchStoreCategories,
+  fetchStoreHairStyles,
   formatProductFromBackend,
   type StoreCategory,
+  type StoreHairStyle,
 } from '@/utils/api';
 import { categoryMeta } from '@/data/products';
 import { ProductGrid } from '@/components/ProductGrid';
@@ -204,33 +206,32 @@ export default function ShopPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [productList, setProductList] = useState<Product[]>([]);
   const [categories, setCategories] = useState<StoreCategory[]>([]);
+  const [hairstyles, setHairStyles] = useState<StoreHairStyle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
-    fetchStoreCategories()
-      .then((cats) => {
+    Promise.all([
+      fetchStoreCategories().catch(() => []),
+      fetchStoreHairStyles().catch(() => []),
+      fetchStoreProducts({ page_size: 100 }).catch(() => null),
+    ])
+      .then(([cats, styles, productsRes]) => {
         if (!isMounted) return;
         if (Array.isArray(cats)) {
           setCategories(cats);
         }
-      })
-      .catch((err) => {
-        if (!isMounted) return;
-        console.error('Failed to load categories from backend:', err);
-      });
-
-    fetchStoreProducts({ page_size: 100 })
-      .then((res) => {
-        if (!isMounted) return;
-        if (res.results && res.results.length > 0) {
-          setProductList(res.results.map(formatProductFromBackend));
+        if (Array.isArray(styles)) {
+          setHairStyles(styles);
+        }
+        if (productsRes && productsRes.results && productsRes.results.length > 0) {
+          setProductList(productsRes.results.map(formatProductFromBackend));
         }
       })
       .catch((err) => {
         if (!isMounted) return;
-        console.error('Failed to load products from backend:', err);
+        console.error('Failed to load shop data from backend:', err);
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -268,11 +269,22 @@ export default function ShopPage() {
         }
       }
 
-      if (
-        filters.styles.length &&
-        !filters.styles.includes(product.style)
-      ) {
-        return false;
+      if (filters.styles.length) {
+        const matchesStyle = filters.styles.some((styleFilter) => {
+          const filterLower = styleFilter.trim().toLowerCase();
+          const productStyle = (product.style || '').toLowerCase();
+          const productStyleSlug = (product.hairstyleSlug || '').toLowerCase();
+          return (
+            productStyle === filterLower ||
+            productStyleSlug === filterLower ||
+            productStyle.includes(filterLower) ||
+            filterLower.includes(productStyle)
+          );
+        });
+
+        if (!matchesStyle) {
+          return false;
+        }
       }
 
       if (
@@ -366,6 +378,7 @@ export default function ShopPage() {
               onChange={setLocalFilters}
               resultCount={results.length}
               availableCategories={categories}
+              availableHairStyles={hairstyles}
             />
           </div>
         </aside>
@@ -444,6 +457,7 @@ export default function ShopPage() {
               onClose={() => setDrawerOpen(false)}
               resultCount={results.length}
               availableCategories={categories}
+              availableHairStyles={hairstyles}
             />
 
             <Button
