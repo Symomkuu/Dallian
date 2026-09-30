@@ -191,6 +191,7 @@ export default function AdminProductsPage() {
 
       {/* Product grid */}
       {!loading && filtered.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtered.map((product, index) => {
             const primaryImage = product.images.find((img) => img.is_primary) ?? product.images[0];
             const status = stockStatus(product);
