@@ -3,12 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import {
   ArrowRight as ArrowRightIcon,
   Clock as ClockIcon,
-  Info as InfoIcon,
   MapPin as MapPinIcon,
-  X as XIcon,
 } from 'lucide-react';
 
 import { brand, imagery } from '@/data/brand';
@@ -26,15 +25,9 @@ import { ProductGrid } from '@/components/ProductGrid';
 import { SectionHeading } from '@/components/SectionHeading';
 import { ReviewCard } from '@/components/ReviewCard';
 import { LinkButton } from '@/components/ui/Button';
-import { toast as sonnerToast } from 'sonner';
-
-interface ToastState {
-  title: string;
-  action: 'added' | 'removed';
-}
+import { toast } from 'sonner';
 
 export function HomePageClient() {
-  const [toast, setToast] = useState<ToastState | null>(null);
   const [email, setEmail] = useState('');
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
@@ -54,7 +47,7 @@ export function HomePageClient() {
       .catch((err: unknown) => {
         if (!isMounted) return;
         const errMsg = err instanceof Error ? err.message : 'Unable to connect to the store.';
-        sonnerToast.error('Could not load featured collection', {
+        toast.error('Could not load featured collection', {
           description: errMsg,
         });
         setFeaturedProducts([]);
@@ -75,7 +68,9 @@ export function HomePageClient() {
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    setToast({ title: 'Thank you for subscribing!', action: 'added' });
+    toast.success('Thank you for subscribing to Dallian Circle!', {
+      description: 'You will receive our latest lookbooks, collection drops, and care guides.',
+    });
     setEmail('');
   };
 
@@ -86,10 +81,16 @@ export function HomePageClient() {
       {/* SHOP BY CATEGORY SECTION */}
       <section
         aria-labelledby="categories-heading"
-        className="w-full bg-[#FAF7F2] py-10 sm:py-16 lg:py-16"
+        className="w-full bg-[#FAF7F2] py-10 sm:py-16 lg:py-20"
       >
         <div className="mx-auto max-w-page px-4 sm:px-8">
-          <div className="max-w-2xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="max-w-2xl"
+          >
             <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
               Shop by Category
             </p>
@@ -102,26 +103,40 @@ export function HomePageClient() {
             <p className="mt-3 text-sm leading-relaxed text-ink/70 sm:mt-4 sm:text-base">
               Choose the range that suits how you wear your hair — real human hair you can style freely, or Japanese Futura fibre that holds its shape with almost no effort.
             </p>
-          </div>
+          </motion.div>
 
           <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6">
-            <CategoryCard
-              eyebrow="Range 01"
-              title={categoryMeta.futura.label}
-              body={categoryMeta.futura.blurb}
-              cta={categoryMeta.futura.cta}
-              to="/shop?category=futura"
-              image={categoryMeta.futura.image}
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+            >
+              <CategoryCard
+                eyebrow="Range 01"
+                title={categoryMeta.futura.label}
+                body={categoryMeta.futura.blurb}
+                cta={categoryMeta.futura.cta}
+                to="/shop?category=futura"
+                image={categoryMeta.futura.image}
+              />
+            </motion.div>
 
-            <CategoryCard
-              eyebrow="Range 02"
-              title="Premium Human Hair"
-              body={categoryMeta['human-hair'].blurb}
-              cta={categoryMeta['human-hair'].cta}
-              to="/shop?category=human-hair"
-              image={categoryMeta['human-hair'].image}
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
+            >
+              <CategoryCard
+                eyebrow="Range 02"
+                title="Premium Human Hair"
+                body={categoryMeta['human-hair'].blurb}
+                cta={categoryMeta['human-hair'].cta}
+                to="/shop?category=human-hair"
+                image={categoryMeta['human-hair'].image}
+              />
+            </motion.div>
           </div>
         </div>
       </section>
@@ -132,7 +147,13 @@ export function HomePageClient() {
         className="border-y border-ink/10 bg-white"
       >
         <div className="mx-auto max-w-page px-4 py-10 sm:px-8 sm:py-16 lg:py-24">
-          <div className="flex flex-wrap items-end justify-between gap-4 sm:gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="flex flex-wrap items-end justify-between gap-4 sm:gap-6"
+          >
             <div>
               <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
                 SIGNATURE
@@ -147,12 +168,12 @@ export function HomePageClient() {
 
             <Link
               href="/shop"
-              className="inline-flex items-center gap-2 border-b border-[#C89D34] pb-1 text-[11px] font-semibold tracking-[0.2em] uppercase text-ink transition-colors duration-200 hover:text-chestnut"
+              className="group inline-flex items-center gap-2 border-b border-[#C89D34] pb-1 text-[11px] font-semibold tracking-[0.2em] uppercase text-ink transition-colors duration-200 hover:text-chestnut"
             >
-              View all pieces
-              <ArrowRightIcon width={14} height={14} />
+              <span>View all pieces</span>
+              <ArrowRightIcon width={14} height={14} className="transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
-          </div>
+          </motion.div>
 
           <div className="mt-6 sm:mt-10">
             {featuredProducts.length > 0 || loadingFeatured ? (
@@ -178,8 +199,13 @@ export function HomePageClient() {
         className="bg-[#0B0B0B] py-10 sm:py-16 lg:py-24"
       >
         <div className="mx-auto max-w-page px-4 sm:px-8">
-          {/* Yellow Section Label & Title */}
-          <div className="mb-6 sm:mb-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="mb-6 sm:mb-10"
+          >
             <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
               CUSTOMER REVIEWS
             </p>
@@ -189,16 +215,19 @@ export function HomePageClient() {
             >
               In their words
             </h2>
-          </div>
+          </motion.div>
 
-          {/* Cards Grid */}
           <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
-            {published.map((review) => (
-              <ReviewCard
+            {published.map((review, idx) => (
+              <motion.div
                 key={review.id}
-                review={review}
-                onDark
-              />
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.5, delay: idx * 0.12, ease: 'easeOut' }}
+              >
+                <ReviewCard review={review} onDark />
+              </motion.div>
             ))}
           </div>
         </div>
@@ -207,19 +236,30 @@ export function HomePageClient() {
       {/* STUDIO SERVICES SECTION */}
       <section
         aria-labelledby="services-heading"
-        className="bg-cream"
+        className="bg-cream overflow-hidden"
       >
         <div className="mx-auto grid max-w-page items-center gap-6 px-4 py-10 sm:gap-10 sm:px-8 sm:py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
-          <div className="relative aspect-[16/10] overflow-hidden rounded-2xl sm:aspect-[3/2]">
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="relative aspect-[16/10] overflow-hidden rounded-2xl sm:aspect-[3/2] shadow-sm group"
+          >
             <Image
               src={imagery.care}
               alt="Dallian Luxe Hair studio services and wig care in Mountain Mall Nairobi"
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
             />
-          </div>
+          </motion.div>
 
-          <div>
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+          >
             <SectionHeading
               eyebrow="Studio Services"
               title="Salon-Grade Care, Styling & Revamping"
@@ -245,13 +285,12 @@ export function HomePageClient() {
               </li>
             </ul>
 
-            <LinkButton
-              to="/services"
-              className="mt-6 sm:mt-8"
-            >
-              Explore All Services
-            </LinkButton>
-          </div>
+            <div className="mt-6 sm:mt-8">
+              <LinkButton to="/services">
+                Explore All Services
+              </LinkButton>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -268,11 +307,17 @@ export function HomePageClient() {
             fill
             className="object-cover opacity-30"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-transparent" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-page px-5 py-12 sm:px-12 sm:py-20 lg:py-28">
-          <div className="max-w-xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="max-w-xl"
+          >
             {/* Label */}
             <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
               VISIT OUR STORE
@@ -328,7 +373,7 @@ export function HomePageClient() {
                 WHATSAPP 0792 11 42 92
               </a>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -337,7 +382,13 @@ export function HomePageClient() {
         aria-labelledby="newsletter-heading"
         className="bg-[#50291f] px-5 py-12 text-center text-white sm:px-8 sm:py-24"
       >
-        <div className="mx-auto max-w-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="mx-auto max-w-2xl"
+        >
           <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#D8A738] sm:text-[11px]">
             DALLIAN CIRCLE
           </p>
@@ -372,35 +423,8 @@ export function HomePageClient() {
               SUBSCRIBE
             </button>
           </form>
-        </div>
+        </motion.div>
       </section>
-
-      {/* BOTTOM POPUP TOAST MODAL */}
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
-          <div className="flex items-start justify-between bg-[#0E0D0A] p-4 text-white shadow-2xl border border-[#C89D34]/20">
-            <div className="flex items-start gap-3">
-              <InfoIcon className="h-5 w-5 text-[#C89D34] shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-white leading-none">
-                  {toast.action === 'added'
-                    ? 'Added to wishlist.'
-                    : 'Removed from wishlist.'}
-                </p>
-                <p className="mt-1.5 text-xs text-gray-400">{toast.title}</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setToast(null)}
-              className="text-gray-400 hover:text-white transition-colors"
-              aria-label="Close"
-            >
-              <XIcon className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }
