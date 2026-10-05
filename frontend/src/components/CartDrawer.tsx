@@ -2,11 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { MinusIcon, PlusIcon, ShoppingBagIcon, XIcon } from 'lucide-react';
 import { useStore } from '../contexts/StoreContext';
 import { formatKsh } from '../utils/format';
-import { Button, LinkButton } from './ui/Button';
+import { LinkButton } from './ui/Button';
 
 export function CartDrawer() {
   const { cartOpen, setCartOpen, activeCart, subtotal, updateQuantity, removeItem } = useStore();
@@ -67,11 +68,13 @@ export function CartDrawer() {
                 <ul className="flex-1 divide-y divide-stone-200/60 overflow-y-auto px-8">
                   {activeCart.map((item) => (
                     <li key={item.key} className="flex gap-5 py-6">
-                      <img
+                      <Image
                         src={item.image}
                         alt={item.name}
+                        width={96}
+                        height={112}
                         className="h-28 w-24 shrink-0 bg-stone-100 object-cover"
-                        loading="lazy"
+                        unoptimized
                       />
                       <div className="flex flex-1 flex-col justify-between">
                         <div>
@@ -84,7 +87,11 @@ export function CartDrawer() {
                             </span>
                           </div>
                           <p className="mt-1 text-xs text-stone-500">
-                            {item.length}" · {item.color} · {item.capType}
+                            {[
+                              item.size ? `Size: ${item.size}` : item.length ? `${item.length}"` : null,
+                              item.color ? `Colour: ${item.color}` : null,
+                              item.capType || null,
+                            ].filter(Boolean).join(' · ')}
                           </p>
                         </div>
 

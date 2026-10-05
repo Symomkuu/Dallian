@@ -71,18 +71,13 @@ export const trustPoints = [
 },
 {
   title: 'Quality Wig Collection',
-  body: 'Every piece in the collection is selected by our team across human hair and Japanese Futura fibre.',
+  body: 'Every piece in the collection is selected by our team across human hair and Japanese Futura.',
   icon: 'sparkles'
 },
 {
   title: 'Customer Support',
   body: 'Talk to us on WhatsApp or by phone during store hours for sizing, colour and install questions.',
   icon: 'headset'
-},
-{
-  title: 'Easy Order Tracking',
-  body: 'Follow your order from confirmation to delivery with your order number and phone or email.',
-  icon: 'truck'
 },
 {
   title: 'Physical Store Location',
@@ -95,10 +90,10 @@ export const faqs: {question: string;answer: string;}[] = [
 {
   question: 'What types of wigs do you sell?',
   answer:
-  'Dallian Luxe Hair specialises in two ranges: Premium Human Hair wigs and Japanese Futura Fibre wigs. Each product page lists the range, available lengths, colours and cap options as configured by the store.'
+  'Dallian Luxe Hair specialises in two ranges: Premium Human Hair wigs and Japanese Futura wigs. Each product page lists the range, available lengths, colours and cap options as configured by the store.'
 },
 {
-  question: 'What is Japanese Futura fibre?',
+  question: 'What is Japanese Futura?',
   answer:
   'Futura is a high-grade synthetic fibre used in premium wig making. It holds style well and is heat-friendly within the limits published by the store on each product page.'
 },

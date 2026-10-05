@@ -1,0 +1,32 @@
+"""URL configuration for the orders app."""
+
+from django.urls import path
+
+from orders.views import (
+    AdminCustomerExportView,
+    AdminCustomerListView,
+    AdminOrderDetailView,
+    AdminOrderListView,
+    AdminOrderStatsView,
+    AdminTopProductsAnalyticsView,
+    CheckoutView,
+    CustomerOrdersView,
+    GuestOrderTrackView,
+    OrderDetailView,
+)
+
+urlpatterns = [
+    # Storefront & Customer endpoints
+    path("checkout/", CheckoutView.as_view(), name="order-checkout"),
+    path("my-orders/", CustomerOrdersView.as_view(), name="order-my-orders"),
+    path("track/", GuestOrderTrackView.as_view(), name="order-track"),
+    path("<str:order_number>/", OrderDetailView.as_view(), name="order-detail"),
+
+    # Staff / Admin Dashboard endpoints
+    path("admin/list/", AdminOrderListView.as_view(), name="admin-orders-list"),
+    path("admin/stats/", AdminOrderStatsView.as_view(), name="admin-orders-stats"),
+    path("admin/top-products/", AdminTopProductsAnalyticsView.as_view(), name="admin-top-products-stats"),
+    path("admin/<int:id>/", AdminOrderDetailView.as_view(), name="admin-order-detail"),
+    path("admin/customers/", AdminCustomerListView.as_view(), name="admin-customers-list"),
+    path("admin/customers/export/", AdminCustomerExportView.as_view(), name="admin-customers-export"),
+]

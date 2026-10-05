@@ -19,7 +19,7 @@ export function ProductGrid({ products, columns = 4, loading }: ProductGridProps
     return (
       <div
         className={cx(
-          'grid gap-5 sm:grid-cols-2',
+          'grid grid-cols-2 gap-3 sm:gap-5',
           columns === 4 ? 'lg:grid-cols-3 xl:grid-cols-4' : 'lg:grid-cols-3'
         )}>
         
@@ -42,7 +42,7 @@ export function ProductGrid({ products, columns = 4, loading }: ProductGridProps
     <>
       <div
         className={cx(
-          'grid gap-5 sm:grid-cols-2',
+          'grid grid-cols-2 gap-3 sm:gap-5',
           columns === 4 ? 'lg:grid-cols-3 xl:grid-cols-4' : 'lg:grid-cols-3'
         )}>
         

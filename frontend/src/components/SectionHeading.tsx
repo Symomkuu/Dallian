@@ -28,17 +28,17 @@ export function SectionHeading({
         className
       )}>
       
-      {eyebrow && <p className="label-luxe mb-3 text-gold">{eyebrow}</p>}
+      {eyebrow && <p className="label-luxe mb-2.5 text-gold sm:mb-3">{eyebrow}</p>}
       <Tag
         className={cx(
-          'font-serif text-3xl leading-[1.12] sm:text-4xl',
+          'font-serif text-2xl leading-[1.15] sm:text-3xl lg:text-4xl',
           onDark ? 'text-cream' : 'text-ink'
         )}>
         
         {title}
       </Tag>
       {body &&
-      <p className={cx('mt-4 text-sm leading-relaxed sm:text-base', onDark ? 'text-cream/65' : 'text-ink/65')}>
+      <p className={cx('mt-3 text-sm leading-relaxed sm:mt-4 sm:text-base', onDark ? 'text-cream/65' : 'text-ink/65')}>
           {body}
         </p>
       }

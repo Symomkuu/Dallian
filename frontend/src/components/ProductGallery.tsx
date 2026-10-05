@@ -1,14 +1,28 @@
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { ChevronLeftIcon, ChevronRightIcon, ExpandIcon, XIcon } from 'lucide-react';
 import { cx } from '../utils/format';
 
 interface ProductGalleryProps {
   images: string[];
   name: string;
+  activeImage?: string;
 }
 
-export function ProductGallery({ images, name }: ProductGalleryProps) {
+export function ProductGallery({ images, name, activeImage }: ProductGalleryProps) {
   const [active, setActive] = useState(0);
+  const [prevActiveImage, setPrevActiveImage] = useState(activeImage);
+  if (prevActiveImage !== activeImage) {
+    setPrevActiveImage(activeImage);
+    if (activeImage) {
+      const clean = (u: string) => u.split('?')[0].replace(/^https?:\/\/[^/]+/, '');
+      const target = clean(activeImage);
+      const idx = images.findIndex((img) => img === activeImage || clean(img) === target);
+      if (idx !== -1) {
+        setActive(idx);
+      }
+    }
+  }
   const [zoom, setZoom] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -22,18 +36,25 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [fullscreen, images.length]);
 
+  const currentDisplayImage = images[active] || activeImage || '/ee976c31-e0c9-4d59-a85f-bc2c81c58448.jpg';
+
   return (
     <div key={name}>
       <div className="relative overflow-hidden bg-cream-deep">
-        <img
-          src={images[active]}
+        <Image
+          src={currentDisplayImage}
           alt={`${name} — view ${active + 1} of ${images.length}`}
+          width={600}
+          height={750}
+          priority
           onMouseEnter={() => setZoom(true)}
           onMouseLeave={() => setZoom(false)}
           className={cx(
             'aspect-[4/5] w-full object-cover transition-transform duration-500 ease-[var(--ease-luxe)]',
             zoom && 'scale-[1.35]'
-          )} />
+          )}
+          unoptimized
+        />
         
         <button
           type="button"
@@ -48,23 +69,35 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
         </p>
       </div>
 
-      <div className="mt-3 flex gap-3">
-        {images.map((image, index) =>
-        <button
-          key={image}
-          type="button"
-          onClick={() => setActive(index)}
-          aria-label={`Show image ${index + 1}`}
-          aria-current={active === index}
-          className={cx(
-            'w-1/4 max-w-24 overflow-hidden border transition-colors duration-200',
-            active === index ? 'border-gold' : 'border-ink/12 hover:border-ink/40'
-          )}>
-          
-            <img src={image} alt="" className="aspect-[4/5] w-full object-cover" loading="lazy" />
-          </button>
-        )}
-      </div>
+      {/* Thumbnail Strip: Only render when there are 2 or more images */}
+      {images.length > 1 && (
+        <div className="mt-2.5 flex flex-wrap items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          {images.map((image, index) => (
+            <button
+              key={image}
+              type="button"
+              onClick={() => setActive(index)}
+              aria-label={`Show image ${index + 1}`}
+              aria-current={active === index}
+              className={cx(
+                'relative h-14 w-11 sm:h-16 sm:w-13 shrink-0 overflow-hidden rounded-md border transition-all duration-200',
+                active === index
+                  ? 'border-gold ring-1.5 ring-gold/50 shadow-xs'
+                  : 'border-ink/15 opacity-70 hover:opacity-100 hover:border-ink/40'
+              )}
+            >
+              <Image
+                src={image}
+                alt=""
+                fill
+                sizes="64px"
+                className="object-cover"
+                unoptimized
+              />
+            </button>
+          ))}
+        </div>
+      )}
 
       {fullscreen &&
       <div className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/95 p-4">
@@ -84,10 +117,14 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
           
             <ChevronLeftIcon width={28} height={28} />
           </button>
-          <img
-          src={images[active]}
-          alt={`${name} — view ${active + 1}`}
-          className="max-h-[88vh] w-auto object-contain" />
+          <Image
+            src={currentDisplayImage}
+            alt={`${name} — view ${active + 1}`}
+            width={1200}
+            height={1500}
+            className="max-h-[88vh] w-auto object-contain"
+            unoptimized
+          />
         
           <button
           type="button"

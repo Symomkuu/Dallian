@@ -1,12 +1,25 @@
-export type Category = 'human-hair' | 'futura';
+export type Category = 'human-hair' | 'futura' | (string & {});
 
-export type HairStyle = 'Straight' | 'Body Wave' | 'Deep Wave' | 'Curly' | 'Bob';
+export type HairStyle = 'Straight' | 'Body Wave' | 'Deep Wave' | 'Curly' | 'Bob' | (string & {});
 
 export type Availability = 'in-stock' | 'low-stock' | 'out-of-stock';
 
+export type Badge = 'new' | 'featured' | 'bestseller' | (string & {});
+
 export interface ColorOption {
+  id?: number | string;
   name: string;
   hex: string;
+  image?: string;
+  stock?: number;
+  price?: number;
+}
+
+export interface SizeOption {
+  id?: number | string;
+  name: string;
+  price?: number;
+  stock?: number;
 }
 
 export interface Product {
@@ -14,8 +27,11 @@ export interface Product {
   slug: string;
   name: string;
   category: Category;
+  categorySlug?: string;
   style: HairStyle;
+  hairstyleSlug?: string;
   lengths: number[];
+  sizes?: SizeOption[];
   colors: ColorOption[];
   laceTypes: string[];
   capTypes: string[];
@@ -31,9 +47,10 @@ export interface Product {
   features: string[];
   specifications: {label: string;value: string;}[];
   included: string[];
-  badges: ('new' | 'featured' | 'bestseller')[];
+  badges: Badge[];
   createdAt: string;
   popularity: number;
+  reviews?: Review[];
 }
 
 export interface CartItem {
@@ -43,9 +60,10 @@ export interface CartItem {
   image: string;
   price: number;
   quantity: number;
-  length: number;
-  color: string;
-  capType: string;
+  length?: number;
+  size?: string;
+  color?: string;
+  capType?: string;
   savedForLater?: boolean;
 }
 
