@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: '%s | Dallian Luxe Hair Nairobi',
   },
   description:
-    'Shop 100% virgin human hair wigs, HD lace frontals, and Japanese Futura fibre wigs in Nairobi. Visit our salon studio at Mountain Mall, Thika Road for wig installation, styling, and laundry services.',
+    'Shop 100% virgin human hair wigs, HD lace frontals, and Japanese Futura  wigs in Nairobi. Visit our salon studio at Mountain Mall, Thika Road for wig installation, styling, and laundry services.',
   keywords: [
     'human hair wigs in nairobi',
     'wigs in kenya',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     'wig customization and plucking',
     'lace replacement kenya',
     '100% virgin human hair wigs',
-    'japanese futura fibre wigs',
+    'japanese futura  wigs',
     'bob wigs nairobi',
     'double drawn hair kenya',
     'wig studio mountain mall thika road',
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     siteName: 'Dallian Luxe Hair',
     title: 'Dallian Luxe Hair | Premium Wigs, Weaves & Studio Services Nairobi',
     description:
-      'Nairobi’s premier destination for raw human hair, Futura fibre wigs, HD lace melting, and professional wig care at Mountain Mall.',
+      'Nairobi’s premier destination for raw human hair, japanese Futura  wigs, HD lace melting, and professional wig care at Mountain Mall.',
     images: [
       {
         url: '/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg',
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Dallian Luxe Hair | Premium Wigs & Studio Services Nairobi',
     description:
-      'Explore luxury virgin human hair, Japanese Futura fibre wigs, and professional salon care in Nairobi at Mountain Mall.',
+      'Explore luxury virgin human hair, Japanese Futura  wigs, and professional salon care in Nairobi at Mountain Mall.',
     images: ['/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg'],
   },
   robots: {

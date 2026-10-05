@@ -21,14 +21,14 @@ import { brand } from '@/data/brand';
 export const metadata: Metadata = {
   title: 'Wig Care Guide & Longevity Secrets | Dallian Luxe Hair Nairobi',
   description:
-    'Comprehensive wig care guide for virgin human hair and Japanese Futura fibre wigs in Kenya. Learn proper washing, detangling, lace maintenance, heat guidelines, and studio care secrets.',
+    'Comprehensive wig care guide for virgin human hair and Japanese Futura wigs in Kenya. Learn proper washing, detangling, lace maintenance, heat guidelines, and studio care secrets.',
   alternates: {
     canonical: 'https://dallian.online/wig-care',
   },
   openGraph: {
     title: 'Wig Care Guide & Longevity Secrets | Dallian Luxe Hair Nairobi',
     description:
-      'Keep your human hair and Futura fibre wigs looking runway-fresh with expert washing, detangling, and storage techniques from Nairobi’s top wig specialists.',
+      'Keep your human hair and Futura wigs looking runway-fresh with expert washing, detangling, and storage techniques from Nairobi’s top wig specialists.',
     url: 'https://dallian.online/wig-care',
     siteName: 'Dallian Luxe Hair',
     images: [
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Wig Care Guide & Longevity Secrets | Dallian Luxe Hair Nairobi',
     description:
-      'Expert washing, detangling, heat protection, and storage tips for luxury human hair and Futura fibre wigs.',
+      'Expert washing, detangling, heat protection, and storage tips for luxury human hair and Futura wigs.',
     images: ['https://dallian.online/8a3f926d-4483-4271-8809-31d419bde337.jpg'],
   },
 };
@@ -66,9 +66,9 @@ const careFaqs = [
       'We recommend washing your human hair wig every 10 to 15 wears, or whenever product buildup begins to weigh the strands down. Over-washing strips the natural cuticle moisture.',
   },
   {
-    question: 'Can I use heat on Japanese Futura Fibre wigs?',
+    question: 'Can I use heat on Japanese Futura wigs?',
     answer:
-      'Yes, Japanese Futura fibre is heat-friendly up to 180°C (350°F). Always use a ceramic curling wand or flat iron with temperature control, and allow the styled curl to cool in your hand to lock in the shape.',
+      'Yes, Japanese Futura wig is heat-friendly up to 180°C (350°F). Always use a ceramic curling wand or flat iron with temperature control, and allow the styled curl to cool in your hand to lock in the shape.',
   },
   {
     question: 'How do I protect my HD lace from tearing or balding?',

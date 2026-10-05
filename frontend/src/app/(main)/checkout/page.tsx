@@ -506,7 +506,7 @@ export default function CheckoutPage() {
                       <label
                         key={option.id}
                         className={cx(
-                          'flex cursor-pointer items-start gap-4 rounded-lg border p-4 sm:p-5 transition',
+                          'flex cursor-pointer items-start gap-3 sm:gap-4 rounded-xl border p-3.5 sm:p-4.5 transition',
                           selected
                             ? 'border-chestnut bg-chestnut/[0.04] ring-1 ring-chestnut'
                             : 'border-ink/15 hover:border-ink/30 bg-white'
@@ -517,27 +517,30 @@ export default function CheckoutPage() {
                           name="delivery_option"
                           checked={selected}
                           onChange={() => setDelivery(option)}
-                          className="mt-1 h-4 w-4 text-chestnut focus:ring-chestnut"
+                          className="mt-1 h-4 w-4 shrink-0 text-chestnut focus:ring-chestnut"
                         />
 
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cream">
-                          <Icon width={18} height={18} className="text-chestnut" />
+                        <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-cream">
+                          <Icon width={17} height={17} className="text-chestnut" />
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-semibold text-ink">{option.label}</span>
-                            <span className="rounded bg-ink/5 px-2 py-0.5 text-[10px] font-medium text-ink/65">
-                              {option.badge}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                              <span className="text-xs sm:text-sm font-semibold text-ink leading-snug">
+                                {option.label}
+                              </span>
+                              <span className="rounded bg-ink/5 px-2 py-0.5 text-[10px] font-medium text-ink/65 whitespace-nowrap">
+                                {option.badge}
+                              </span>
+                            </div>
+                            <span className="shrink-0 font-serif text-xs sm:text-sm font-bold text-ink whitespace-nowrap pl-2">
+                              {option.fee === 0 ? 'Free' : formatKsh(option.fee)}
                             </span>
                           </div>
-                          <p className="mt-0.5 text-xs text-ink/60">{option.detail}</p>
-                        </div>
-
-                        <div className="text-right">
-                          <span className="font-serif text-sm font-semibold text-ink">
-                            {option.fee === 0 ? 'Free' : formatKsh(option.fee)}
-                          </span>
+                          <p className="mt-1 text-[11px] sm:text-xs text-ink/60 leading-relaxed">
+                            {option.detail}
+                          </p>
                         </div>
                       </label>
                     );

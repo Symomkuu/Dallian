@@ -87,7 +87,7 @@ export function SearchOverlay({
           product.style,
           product.category === 'human-hair'
             ? 'human hair'
-            : 'japanese futura fibre',
+            : 'japanese futura wig',
           product.shortDescription,
           product.description,
           ...product.colors.map((c) => c.name),

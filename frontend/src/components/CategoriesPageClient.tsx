@@ -114,7 +114,7 @@ export function CategoriesPageClient() {
           },
           {
             id: 2,
-            name: 'Japanese Futura Fibre',
+            name: 'Japanese Futura Wig',
             slug: 'futura',
             blurb: defaultCategoryDescriptions.futura.blurb,
             highlights: defaultCategoryDescriptions.futura.highlights,

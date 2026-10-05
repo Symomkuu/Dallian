@@ -7,7 +7,7 @@ import { imagery } from '../data/brand';
 import { LinkButton } from './ui/Button';
 
 const HERO_DESCRIPTION =
-  'Discover 100% virgin human hair and Japanese Futura fibre wigs crafted to elevate your presence with timeless poise.';
+  'Discover 100% virgin human hair and Japanese Futura wigs crafted to elevate your presence with timeless poise.';
 
 function HeroTypewriter() {
   const [displayText, setDisplayText] = useState('');
@@ -73,7 +73,7 @@ const heroSlides = [
   },
   {
     src: imagery.categoryFutura,
-    alt: 'Premium Japanese Futura heat-resistant fibre wigs',
+    alt: 'Premium Japanese Futura heat-resistant wigs',
     position: 'object-center',
   },
 ];
