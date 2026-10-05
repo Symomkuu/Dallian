@@ -122,15 +122,15 @@ export function Hero() {
         })}
       </div>
 
-      {/* Dynamic Gradient Overlay: Soft dark feathering under text on the left, completely clear across the rest of the image */}
+      {/* Dark Gradient Overlay to ensure maximum text readability and contrast */}
       <div
-        className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 via-30% to-transparent to-55% sm:from-black/70 sm:via-black/30 sm:via-25% sm:to-transparent sm:to-50%"
+        className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/35"
         aria-hidden="true"
       />
 
       {/* Content Container */}
       <div className="relative mx-auto flex min-h-[62vh] max-w-page flex-col justify-center px-5 py-12 sm:min-h-[66vh] sm:px-12 sm:py-16 lg:min-h-[72vh] lg:px-16 lg:py-20">
-        <div className="max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+        <div className="max-w-xl">
           {/* Accent Gold Rule & Eyebrow */}
           <motion.div
             initial={{ opacity: 0.9, x: -10 }}
