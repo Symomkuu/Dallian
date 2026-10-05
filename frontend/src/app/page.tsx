@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     'custom wig making in nairobi',
     'lace replacement nairobi',
     '100% virgin human hair wigs kenya',
-    'japanese futura fibre wigs',
+    'japanese futura  wigs',
     'bob wigs nairobi',
     'wig shop mountain mall thika road',
     'same day wig delivery nairobi',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Dallian Luxe Hair | Premium Wigs, Weaves & Studio Services Nairobi',
     description:
-      'Shop salon-grade human hair wigs and Japanese Futura fibre pieces in Kenya. In-studio HD lace melting, custom wig laundry, and doorstep delivery across Nairobi.',
+      'Shop salon-grade human hair wigs and Japanese Futura  pieces in Kenya. In-studio HD lace melting, custom wig laundry, and doorstep delivery across Nairobi.',
     url: '/',
     siteName: 'Dallian Luxe Hair',
     locale: 'en_KE',
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Dallian Luxe Hair | Luxury Wigs & Studio Care Nairobi',
     description:
-      'Shop 100% virgin human hair and Futura fibre wigs. Professional wig installation & laundry at Mountain Mall, Nairobi.',
+      'Shop 100% virgin human hair and Futura  wigs. Professional wig installation & laundry at Mountain Mall, Nairobi.',
     images: ['/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg'],
   },
 };
@@ -67,7 +67,7 @@ const homeSchema = {
       logo: 'https://dallian.online/logo.png',
       image: 'https://dallian.online/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg',
       description:
-        'Premier boutique for 100% raw virgin human hair wigs, HD lace frontals, Japanese Futura fibre wigs, salon installation, and restorative wig laundry in Nairobi.',
+        'Premier boutique for 100% raw virgin human hair wigs, HD lace frontals, Japanese Futura  wigs, salon installation, and restorative wig laundry in Nairobi.',
       telephone: '+254792114292',
       email: 'dallianltd@gmail.com',
       priceRange: 'KSh 7,000 - KSh 60,000',

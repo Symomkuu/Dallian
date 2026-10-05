@@ -6,11 +6,11 @@ import { brand } from '@/data/brand';
 export const metadata: Metadata = {
   title: 'Wig Collections & Categories | Dallian Luxe Hair Nairobi',
   description:
-    'Explore our luxury wig collections in Nairobi: 100% Virgin Human Hair and Japanese Futura synthetic fibre wigs across all lengths and textures.',
+    'Explore our luxury wig collections in Nairobi: 100% Virgin Human Hair and Japanese Futura synthetic  wigs across all lengths and textures.',
   keywords: [
     'human hair wigs in nairobi',
     'virgin human hair categories',
-    'japanese futura fibre wigs kenya',
+    'japanese futura  wigs kenya',
     'bone straight wigs kenya',
     'deep wave curly wigs nairobi',
     'body wave wigs kenya',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Wig Collections & Categories | Dallian Luxe Hair Nairobi',
     description:
-      'Explore our luxury wig collections in Nairobi: 100% Virgin Human Hair and Japanese Futura synthetic fibre wigs across all lengths and textures.',
+      'Explore our luxury wig collections in Nairobi: 100% Virgin Human Hair and Japanese Futura synthetic  wigs across all lengths and textures.',
     url: 'https://dallian.online/categories',
     siteName: brand.name,
     images: [
@@ -50,7 +50,7 @@ export default function CategoriesPage() {
     name: 'Wig Collections & Categories',
     url: 'https://dallian.online/categories',
     description:
-      'Curated luxury wig ranges including 100% virgin human hair and high-temperature Japanese Futura synthetic fibre units.',
+      'Curated luxury wig ranges including 100% virgin human hair and high-temperature Japanese Futura synthetic  units.',
     publisher: {
       '@type': 'Organization',
       name: 'Dallian Luxe Hair',
@@ -71,7 +71,7 @@ export default function CategoriesPage() {
         {
           '@type': 'ListItem',
           position: 2,
-          name: 'Japanese Futura Fibre Wigs',
+          name: 'Japanese Futura  Wigs',
           url: 'https://dallian.online/shop?category=futura',
         },
       ],

@@ -59,7 +59,7 @@ export function ShopFilters({
         ? availableCategories
         : [
             { id: 'human-hair', name: 'Premium Human Hair', slug: 'human-hair' },
-            { id: 'futura', name: 'Japanese Futura Fibre', slug: 'futura' },
+            { id: 'futura', name: 'Japanese Futura wig', slug: 'futura' },
           ];
     return [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
   }, [availableCategories]);

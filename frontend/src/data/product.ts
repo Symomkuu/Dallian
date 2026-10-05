@@ -113,10 +113,10 @@ export const products: Product[] = [
   images: [IMG.bob, IMG.classicStraight, IMG.silkyStraight],
   shortDescription: 'A blunt, sculpted bob you can wear straight out of the box.',
   description:
-  'Made from Japanese Futura fibre, the Glueless Bob keeps its blunt shape with minimal styling and is heat-friendly within the limits published in our Wig Care Guide.',
+  'Made from Japanese Futura , the Glueless Bob keeps its blunt shape with minimal styling and is heat-friendly within the limits published in our Wig Care Guide.',
   features: ['Premium Quality', 'Elegant Finish', 'Comfortable Fit', 'Carefully Selected'],
   specifications: [
-  { label: 'Hair Type', value: 'Japanese Futura Fibre' },
+  { label: 'Hair Type', value: 'Japanese Futura ' },
   { label: 'Texture', value: 'Blunt Bob' },
   { label: 'Lace', value: 'Transparent Lace' },
   { label: 'Cap', value: 'Glueless, adjustable' },
@@ -208,12 +208,12 @@ export const products: Product[] = [
   availability: 'in-stock',
   stock: 21,
   images: [IMG.curly, IMG.deepWave, IMG.bodyWave],
-  shortDescription: 'Bouncy, defined curls in a light, wearable fibre.',
+  shortDescription: 'Bouncy, defined curls in a light, wearable .',
   description:
-  'Elegant Curly is a Japanese Futura fibre piece with springy curl definition that bounces back after washing, following the routine in our Wig Care Guide.',
+  'Elegant Curly is a Japanese Futura  piece with springy curl definition that bounces back after washing, following the routine in our Wig Care Guide.',
   features: ['Premium Quality', 'Elegant Finish', 'Comfortable Fit', 'Carefully Selected'],
   specifications: [
-  { label: 'Hair Type', value: 'Japanese Futura Fibre' },
+  { label: 'Hair Type', value: 'Japanese Futura ' },
   { label: 'Texture', value: 'Curly' },
   { label: 'Lace', value: 'Transparent Lace' },
   { label: 'Cap', value: 'Glueless or Lace Front' },
@@ -242,10 +242,10 @@ export const products: Product[] = [
   images: [IMG.classicStraight, IMG.silkyStraight, IMG.bob],
   shortDescription: 'An easy, refined everyday straight style with a soft side part.',
   description:
-  'Classic Straight is an approachable Futura fibre wig for daily wear, with a soft side part and a lightweight glueless cap.',
+  'Classic Straight is an approachable Futura  wig for daily wear, with a soft side part and a lightweight glueless cap.',
   features: ['Premium Quality', 'Elegant Finish', 'Comfortable Fit', 'Carefully Selected'],
   specifications: [
-  { label: 'Hair Type', value: 'Japanese Futura Fibre' },
+  { label: 'Hair Type', value: 'Japanese Futura ' },
   { label: 'Texture', value: 'Straight' },
   { label: 'Lace', value: 'Transparent Lace' },
   { label: 'Cap', value: 'Glueless, adjustable' },
@@ -275,8 +275,8 @@ export const categoryMeta: Record<
     image: "/7944b14b-3fd0-4899-8dbf-c03571669315.jpg"
   },
   futura: {
-    label: 'Japanese Futura Fibre',
-    blurb: 'Beautiful, versatile and stylish fibre wigs for effortless looks.',
+    label: 'Japanese Futura Wigs ',
+    blurb: 'Beautiful, versatile and stylish  wigs for effortless looks.',
     cta: 'SHOP FUTURA',
     image: "/6cac8a29-06d2-466c-b5ea-c7d4d8d00223.jpg"
   }

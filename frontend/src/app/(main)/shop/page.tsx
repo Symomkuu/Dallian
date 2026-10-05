@@ -5,7 +5,7 @@ import { ShopPageClient } from '@/components/ShopPageClient';
 export const metadata: Metadata = {
   title: 'Shop Human Hair Wigs, Glueless Units & HD Lace Frontals Nairobi',
   description:
-    'Shop 100% virgin human hair wigs, bone straight units, glueless HD lace frontals, and Japanese Futura fibre wigs in Nairobi. Same-day delivery across Nairobi and nationwide courier in Kenya.',
+    'Shop 100% virgin human hair wigs, bone straight units, glueless HD lace frontals, and Japanese Futura wigs in Nairobi. Same-day delivery across Nairobi and nationwide courier in Kenya.',
   keywords: [
     'human hair wigs in nairobi',
     'buy wigs online kenya',
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     '100% virgin human hair wigs',
     'bob wigs nairobi',
     'double drawn wigs kenya',
-    'japanese futura fibre wigs',
+    'japanese futura wigs',
     'wig shop mountain mall thika road',
     'same day wig delivery nairobi',
     'dallian luxe hair',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Shop Premium Wigs & Weaves | Dallian Luxe Hair Nairobi',
     description:
-      'Explore salon-grade virgin human hair and heat-resistant Futura fibre wigs. In-stock units ready for immediate delivery across Kenya.',
+      'Explore salon-grade virgin human hair and heat-resistant Futura wigs. In-stock units ready for immediate delivery across Kenya.',
     url: '/shop',
     siteName: 'Dallian Luxe Hair',
     locale: 'en_KE',
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Shop Luxury Wigs & Human Hair Extensions Nairobi',
     description:
-      'Shop 100% virgin human hair & Japanese Futura fibre wigs online at Dallian Luxe Hair.',
+      'Shop 100% virgin human hair & Japanese Futura wigs online at Dallian Luxe Hair.',
     images: ['/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg'],
   },
 };
@@ -59,7 +59,7 @@ const shopSchema = {
       url: 'https://dallian.online/shop',
       name: 'Shop Luxury Wigs & Human Hair Extensions | Dallian Luxe Hair',
       description:
-        'Explore raw virgin human hair wigs, HD lace closures, frontals, and Japanese Futura fibre pieces in Nairobi, Kenya.',
+        'Explore raw virgin human hair wigs, HD lace closures, frontals, and Japanese Futura wigs pieces in Nairobi, Kenya.',
       isPartOf: {
         '@type': 'WebSite',
         '@id': 'https://dallian.online/#website',
@@ -96,7 +96,7 @@ const shopSchema = {
         },
         {
           '@type': 'OfferCatalog',
-          name: 'Japanese Futura Fibre Wigs',
+          name: 'Japanese Futura Wigs',
           url: 'https://dallian.online/shop?category=futura',
         },
       ],

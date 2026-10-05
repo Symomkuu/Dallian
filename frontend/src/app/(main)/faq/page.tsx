@@ -6,14 +6,14 @@ import { brand } from '@/data/brand';
 export const metadata: Metadata = {
   title: 'Frequently Asked Questions (FAQ) | Dallian Luxe Hair Nairobi',
   description:
-    'Find answers to common questions about virgin human hair wigs, Futura fibres, cap sizing, same-day Nairobi delivery, studio visits, and return policies.',
+    'Find answers to common questions about virgin human hair wigs, japanese Futura wigs, cap sizing, same-day Nairobi delivery, studio visits, and return policies.',
   alternates: {
     canonical: 'https://dallian.online/faq',
   },
   openGraph: {
     title: 'Frequently Asked Questions (FAQ) | Dallian Luxe Hair Nairobi',
     description:
-      'Find answers to common questions about virgin human hair wigs, Futura fibres, cap sizing, same-day Nairobi delivery, and returns.',
+      'Find answers to common questions about virgin human hair wigs, Futura wigs, cap sizing, same-day Nairobi delivery, and returns.',
     url: 'https://dallian.online/faq',
     siteName: brand.name,
     images: [
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Frequently Asked Questions | Dallian Luxe Hair Nairobi',
-    description: 'Frequently Asked Questions about human hair wigs, Futura fibre, care, and delivery in Kenya.',
+    description: 'Frequently Asked Questions about human hair wigs, Japanese Futura wigs, care, and delivery in Kenya.',
     images: ['https://dallian.online/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg'],
   },
 };
@@ -43,7 +43,7 @@ export default function FAQPage() {
         name: 'What types of wigs do you sell at Dallian Luxe Hair?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'We specialise in two premium ranges: 100% Virgin Human Hair wigs with aligned cuticles, and Japanese Futura heat-resistant fibre wigs.',
+          text: 'We specialise in two premium ranges: 100% Virgin Human Hair wigs with aligned cuticles, and Japanese Futura heat-resistant wigs.',
         },
       },
       {
@@ -56,7 +56,7 @@ export default function FAQPage() {
       },
       {
         '@type': 'Question',
-        name: 'What is Japanese Futura fibre?',
+        name: 'What is Japanese Futura wigs?',
         acceptedAnswer: {
           '@type': 'Answer',
           text: 'Futura is an advanced synthetic fibre used in luxury wig making that retains styled memory flawlessly and is heat-friendly up to 180°C.',

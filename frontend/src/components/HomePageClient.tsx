@@ -101,7 +101,7 @@ export function HomePageClient() {
               Two ranges, one standard of finish
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-ink/70 sm:mt-4 sm:text-base">
-              Choose the range that suits how you wear your hair — real human hair you can style freely, or Japanese Futura fibre that holds its shape with almost no effort.
+              Choose the range that suits how you wear your hair — real human hair you can style freely, or Japanese Futura wigs that holds its shape with almost no effort.
             </p>
           </motion.div>
 

@@ -15,7 +15,7 @@ const faqs: FAQItem[] = [
     question: 'What types of wigs do you sell?',
     answer: (
       <span>
-        Dallian Luxe Hair specialises in two distinct ranges: 100% Virgin Human Hair wigs and premium Japanese Futura Fibre wigs. Browse our complete range in the{' '}
+        Dallian Luxe Hair specialises in two distinct ranges: 100% Virgin Human Hair wigs and premium Japanese Futura wigs. Browse our complete range in the{' '}
         <Link to="/shop" className="text-chestnut underline hover:text-[#C89D34]">
           Shop collection
         </Link>{' '}
@@ -28,7 +28,7 @@ const faqs: FAQItem[] = [
     ),
   },
   {
-    question: 'What is Japanese Futura fibre?',
+    question: 'What is Japanese Futura wigs?',
     answer:
       'Futura is a high-grade synthetic fibre used in luxury wig making. It holds styled textures (straight, curls, body waves) flawlessly and is heat-friendly up to 180°C.',
   },

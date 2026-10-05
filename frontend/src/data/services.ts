@@ -47,7 +47,7 @@ export const servicesData: ServiceItem[] = [
     image: '/8a3f926d-4483-4271-8809-31d419bde337.jpg',
     suitableFor: [
       '100% Virgin & Raw Human Hair Wigs',
-      'Japanese Futura Fibre Wigs',
+      'Japanese Futura  Wigs',
       'Lace Frontal & Closure Pieces',
       'Wigs with heavy adhesive, glue, or makeup buildup',
     ],
@@ -96,9 +96,9 @@ export const servicesData: ServiceItem[] = [
           'For daily worn wigs, we recommend laundry every 2 to 3 weeks. For occasional wear (weekends/events), a wash every 6 to 8 weeks keeps the hair fresh and tangle-free.',
       },
       {
-        question: 'Can you wash synthetic Futura fibre wigs?',
+        question: 'Can you wash synthetic Futura  wigs?',
         answer:
-          'Yes! We use specialized low-pH synthetic cleansing formulas tailored specifically for Japanese Futura fibre to prevent static and preserve curl memory.',
+          'Yes! We use specialized low-pH synthetic cleansing formulas tailored specifically for Japanese Futura  to prevent static and preserve curl memory.',
       },
       {
         question: 'Do you offer pickup and delivery in Nairobi?',
@@ -175,9 +175,9 @@ export const servicesData: ServiceItem[] = [
           'You can request Hollywood Glamour Waves, Loose Beachy Waves, Bouncy Curtain Bangs, Bone Straight Silk Press, Wand Curls, Mermaid Crimps, or Chic Blunt Bob styling.',
       },
       {
-        question: 'Will heat styling damage my Futura fibre piece?',
+        question: 'Will heat styling damage my Futura  piece?',
         answer:
-          'Our stylists use calibrated temperature settings (140°C–160°C) suited specifically for Futura fibre, ensuring your curls set permanently without melting or singeing.',
+          'Our stylists use calibrated temperature settings (140°C–160°C) suited specifically for Futura , ensuring your curls set permanently without melting or singeing.',
       },
       {
         question: 'Can I send a photo of the style I want?',
