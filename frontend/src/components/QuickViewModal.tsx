@@ -8,7 +8,6 @@ import { XIcon } from 'lucide-react';
 import type { Product } from '../types';
 import { useStore } from '../contexts/StoreContext';
 import { formatKsh } from '../utils/format';
-import { StarRating } from './ui/StarRating';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -108,11 +107,7 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
               {product.name}
             </h2>
 
-            {product.rating > 0 && product.reviewCount > 0 && (
-              <div className="mt-2 flex items-center gap-2">
-                <StarRating rating={product.rating} count={product.reviewCount} />
-              </div>
-            )}
+
 
             <p className="mt-4 font-serif text-xl font-normal text-ink">
               {formatKsh(activePrice)}

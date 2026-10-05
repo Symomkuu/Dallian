@@ -350,7 +350,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const pushToast = useCallback((toast: Omit<ToastMessage, 'id'>) => {
     const id = ++toastId;
-    setToasts((prev) => [...prev, { ...toast, id }]);
+    setToasts((prev) => {
+      // Prevent duplicate toasts within the visible toast stack
+      const isDuplicate = prev.some(
+        (t) => t.title === toast.title && t.body === toast.body && t.tone === toast.tone
+      );
+      if (isDuplicate) return prev;
+      return [...prev, { ...toast, id }];
+    });
     window.setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
   }, []);
 
@@ -414,17 +421,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const toggleWishlist = useCallback(
     (product: Product) => {
-      setWishlist((prev) => {
-        const exists = prev.includes(product.id);
-        pushToast({
-          title: exists ? 'Removed from wishlist.' : 'Saved to wishlist.',
-          body: product.name,
-          tone: 'info',
-        });
-        return exists ? prev.filter((id) => id !== product.id) : [...prev, product.id];
+      const exists = wishlist.includes(product.id);
+      setWishlist((prev) =>
+        prev.includes(product.id) ? prev.filter((id) => id !== product.id) : [...prev, product.id]
+      );
+      pushToast({
+        title: exists ? 'Removed from wishlist.' : 'Saved to wishlist.',
+        body: product.name,
+        tone: 'info',
       });
     },
-    [pushToast]
+    [wishlist, pushToast]
   );
 
   const removeFromWishlist = useCallback((productId: string) => {

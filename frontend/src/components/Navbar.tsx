@@ -131,11 +131,11 @@ export function Navbar() {
               href="/wishlist"
               aria-label={mounted && wishlist.length > 0 ? `Wishlist, ${wishlist.length} items` : 'Wishlist'}
               suppressHydrationWarning
-              className="relative hidden p-2 text-ink transition-colors duration-200 hover:text-chestnut sm:block"
+              className="relative p-1.5 sm:p-2 text-ink transition-colors duration-200 hover:text-chestnut"
             >
-              <HeartIcon width={23} height={23} />
+              <HeartIcon width={20} height={20} className="sm:w-[23px] sm:h-[23px]" />
               {mounted && wishlist.length > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-chestnut px-1 text-[11px] font-bold text-cream shadow-xs ring-2 ring-cream">
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 sm:h-5 sm:min-w-5 items-center justify-center rounded-full bg-chestnut px-1 text-[10px] sm:text-[11px] font-bold text-cream shadow-xs ring-2 ring-cream">
                   {wishlist.length}
                 </span>
               )}
@@ -221,6 +221,32 @@ export function Navbar() {
                     </li>
                   );
                 })}
+                <li>
+                  <Link
+                    href="/wishlist"
+                    onClick={() => setMenuOpen(false)}
+                    className={cx(
+                      'label-luxe flex items-center justify-between py-3.5 px-4 rounded-xl transition-all duration-150',
+                      pathname === '/wishlist'
+                        ? 'bg-[#D99B26]/15 text-[#8B3A2A] font-bold border-l-4 border-[#D99B26] shadow-2xs'
+                        : 'text-ink/80 hover:bg-ink/5 hover:text-chestnut'
+                    )}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <HeartIcon width={16} height={16} className={pathname === '/wishlist' ? 'text-[#8B3A2A]' : 'text-ink/70'} />
+                      <span>Saved / Wishlist</span>
+                    </span>
+                    {mounted && wishlist.length > 0 ? (
+                      <span className="rounded-full bg-chestnut px-2 py-0.5 text-[10px] font-bold text-cream">
+                        {wishlist.length}
+                      </span>
+                    ) : (
+                      pathname === '/wishlist' && (
+                        <span className="h-2 w-2 rounded-full bg-[#D99B26] shadow-xs" />
+                      )
+                    )}
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/track"
