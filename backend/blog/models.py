@@ -147,11 +147,30 @@ class BlogPost(models.Model):
         if self.is_published and not self.published_at:
             self.published_at = timezone.now()
 
-        # Fallback meta fields from title/excerpt
-        if not self.meta_title:
-            self.meta_title = self.title
-        if not self.meta_description and self.excerpt:
-            self.meta_description = self.excerpt[:160]
+        # Fallback meta fields from title/excerpt, or sync when title/excerpt was renamed
+        # and meta fields were not custom overrides
+        if self.pk:
+            orig = (
+                BlogPost.objects.filter(pk=self.pk)
+                .values("title", "meta_title", "excerpt", "meta_description")
+                .first()
+            )
+            if orig:
+                if not self.meta_title or self.meta_title == orig["title"]:
+                    self.meta_title = self.title
+                orig_excerpt_160 = (orig["excerpt"] or "")[:160]
+                if not self.meta_description or (orig_excerpt_160 and self.meta_description == orig_excerpt_160):
+                    self.meta_description = self.excerpt[:160] if self.excerpt else ""
+            else:
+                if not self.meta_title:
+                    self.meta_title = self.title
+                if not self.meta_description and self.excerpt:
+                    self.meta_description = self.excerpt[:160]
+        else:
+            if not self.meta_title:
+                self.meta_title = self.title
+            if not self.meta_description and self.excerpt:
+                self.meta_description = self.excerpt[:160]
 
         # Enforce single top featured story: only published posts can be featured
         if not self.is_published:

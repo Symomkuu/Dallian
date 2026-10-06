@@ -63,9 +63,17 @@ export function BlogEditorForm({ initialPost, isEdit = false }: BlogEditorFormPr
   const [isPublished, setIsPublished] = useState(initialPost?.is_published ?? true);
   const [isFeatured, setIsFeatured] = useState(initialPost?.is_featured ?? false);
 
-  // SEO Fields
-  const [metaTitle, setMetaTitle] = useState(initialPost?.meta_title || '');
-  const [metaDescription, setMetaDescription] = useState(initialPost?.meta_description || '');
+  // SEO Fields: if meta_title/meta_description matched title/excerpt, treat as non-overridden (blank)
+  // so the placeholder shows the current title/excerpt and renaming dynamically updates SEO tags.
+  const [metaTitle, setMetaTitle] = useState(() => {
+    if (!initialPost?.meta_title) return '';
+    return initialPost.meta_title.trim() === initialPost.title?.trim() ? '' : initialPost.meta_title;
+  });
+  const [metaDescription, setMetaDescription] = useState(() => {
+    if (!initialPost?.meta_description) return '';
+    const initialExcerpt160 = (initialPost.excerpt || '').trim().slice(0, 160);
+    return initialPost.meta_description.trim() === initialExcerpt160 ? '' : initialPost.meta_description;
+  });
   const [keywords, setKeywords] = useState(initialPost?.keywords || '');
 
   // Editor states

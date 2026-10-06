@@ -215,3 +215,42 @@ class BlogTests(TestCase):
         self.assertEqual(res.data["total"], 2)
         self.assertEqual(res.data["published"], 1)
         self.assertEqual(res.data["draft"], 1)
+
+    def test_post_rename_updates_meta_title_and_description_when_default(self):
+        post = BlogPost.objects.create(
+            title="Original Title",
+            excerpt="Original Excerpt",
+            content="Some test content.",
+            category=self.category,
+        )
+        self.assertEqual(post.meta_title, "Original Title")
+        self.assertEqual(post.meta_description, "Original Excerpt")
+
+        # Renaming title and excerpt without custom overrides updates meta fields
+        post.title = "Renamed Title"
+        post.excerpt = "Renamed Excerpt"
+        post.save()
+        post.refresh_from_db()
+        self.assertEqual(post.meta_title, "Renamed Title")
+        self.assertEqual(post.meta_description, "Renamed Excerpt")
+
+    def test_post_rename_preserves_custom_meta_title_and_description(self):
+        post = BlogPost.objects.create(
+            title="Original Title",
+            meta_title="Custom SEO Title",
+            excerpt="Original Excerpt",
+            meta_description="Custom SEO Description",
+            content="Some test content.",
+            category=self.category,
+        )
+        self.assertEqual(post.meta_title, "Custom SEO Title")
+        self.assertEqual(post.meta_description, "Custom SEO Description")
+
+        # Renaming title and excerpt preserves custom SEO fields
+        post.title = "Renamed Title"
+        post.excerpt = "Renamed Excerpt"
+        post.save()
+        post.refresh_from_db()
+        self.assertEqual(post.meta_title, "Custom SEO Title")
+        self.assertEqual(post.meta_description, "Custom SEO Description")
+
