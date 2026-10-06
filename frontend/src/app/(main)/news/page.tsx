@@ -93,6 +93,7 @@ export default async function NewsListingPage() {
     url: 'https://dallian.online/news',
     description:
       'Professional hair guides, HD lace maintenance tutorials, and luxury wig insights from Nairobi, Kenya.',
+    inLanguage: 'en',
     publisher: {
       '@type': 'Organization',
       name: brand.name,
@@ -108,6 +109,14 @@ export default async function NewsListingPage() {
       url: `https://dallian.online/news/${post.slug}`,
       image: post.cover_image || 'https://dallian.online/shop-hero.jpg',
       datePublished: post.published_at || post.created_at,
+      dateModified: post.updated_at || post.published_at || post.created_at,
+      articleSection:
+        post.category_details?.name ||
+        (typeof post.category === 'object' ? post.category?.name : undefined),
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': `https://dallian.online/news/${post.slug}`,
+      },
       author: {
         '@type': 'Person',
         name: post.author_name || 'Dallian Luxe Stylists',
@@ -115,10 +124,32 @@ export default async function NewsListingPage() {
     })),
   };
 
+  const breadcrumbsSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://dallian.online/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Latest News & Hair Guides',
+        item: 'https://dallian.online/news',
+      },
+    ],
+  };
+
   return (
     <>
       <script type="application/ld+json" key="news-list-jsonld">
         {JSON.stringify(blogListSchema)}
+      </script>
+      <script type="application/ld+json" key="news-breadcrumbs-jsonld">
+        {JSON.stringify(breadcrumbsSchema)}
       </script>
       <NewsPageClient initialPosts={initialPosts} categories={categories} />
     </>

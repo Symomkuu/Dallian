@@ -83,6 +83,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       siteName: brand.name,
       type: 'article',
       publishedTime: post.published_at || post.created_at,
+      modifiedTime: post.updated_at || post.published_at || post.created_at,
+      section:
+        post.category_details?.name ||
+        (typeof post.category === 'object' ? post.category?.name : undefined),
+      tags: post.tags
+        ? post.tags.split(',').map((t) => t.trim())
+        : undefined,
       authors: [post.author_name || 'Dallian Luxe Hair Studio'],
       images: [
         {
@@ -110,11 +117,20 @@ export default async function NewsDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const categoryName =
+    post.category_details?.name ||
+    (typeof post.category === 'object' ? post.category?.name : undefined);
+  const wordCount = post.content ? post.content.trim().split(/\s+/).length : undefined;
+
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
     description: post.meta_description || post.excerpt,
+    articleSection: categoryName,
+    keywords: post.keywords || post.tags || undefined,
+    inLanguage: 'en',
+    wordCount,
     image: post.cover_image
       ? [post.cover_image]
       : ['https://dallian.online/shop-hero.jpg'],
