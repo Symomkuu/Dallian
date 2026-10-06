@@ -53,11 +53,19 @@ class BlogTests(TestCase):
         self.assertIn(self.published_post.slug, slugs)
         self.assertNotIn(self.draft_post.slug, slugs)
 
-    def test_public_detail_increments_views(self):
+    def test_public_detail_and_view_tracking(self):
         initial_views = self.published_post.views_count
-        url = reverse("blog-post-detail", kwargs={"slug": self.published_post.slug})
-        response = self.client.get(url)
+        detail_url = reverse("blog-post-detail", kwargs={"slug": self.published_post.slug})
+        response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.published_post.refresh_from_db()
+        # GET should be pure/cacheable and not mutate view count
+        self.assertEqual(self.published_post.views_count, initial_views)
+
+        # POST increments view count on real reader visits
+        view_url = reverse("blog-post-view-count", kwargs={"slug": self.published_post.slug})
+        view_res = self.client.post(view_url)
+        self.assertEqual(view_res.status_code, status.HTTP_200_OK)
         self.published_post.refresh_from_db()
         self.assertEqual(self.published_post.views_count, initial_views + 1)
 

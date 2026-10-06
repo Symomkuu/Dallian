@@ -97,7 +97,10 @@ export function BlogEditorForm({ initialPost, isEdit = false }: BlogEditorFormPr
   useEffect(() => {
     adminFetchBlogCategories()
       .then((data) => setCategories(Array.isArray(data) ? data : []))
-      .catch(() => setCategories([]))
+      .catch((err) => {
+        console.error('Failed to load blog categories:', err);
+        setCategories([]);
+      })
       .finally(() => setLoadingCategories(false));
   }, []);
 

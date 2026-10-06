@@ -11,6 +11,7 @@ import {
   SearchIcon,
 } from 'lucide-react';
 import type { BlogCategory, BlogPost } from '@/types';
+import { fetchBlogPosts } from '@/utils/api';
 import { cx, formatDate } from '@/utils/format';
 import { brand } from '@/data/brand';
 
@@ -22,15 +23,39 @@ interface NewsPageClientProps {
 export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [posts, setPosts] = useState<BlogPost[]>(initialPosts);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(initialPosts.length >= 50);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+
+  const handleLoadMore = async () => {
+    try {
+      setLoadingMore(true);
+      const nextPage = page + 1;
+      const res = await fetchBlogPosts({ page: nextPage, page_size: 20 });
+      const newItems = res.results || [];
+      setPosts((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const filtered = newItems.filter((p) => !existingIds.has(p.id));
+        return [...prev, ...filtered];
+      });
+      setPage(nextPage);
+      setHasMore(Boolean(res.next));
+    } catch (err) {
+      console.error('Failed to load more posts:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   // Strictly sort posts by newest first (published_at or created_at)
   const sortedPosts = useMemo(() => {
-    return [...initialPosts].sort((a, b) => {
+    return [...posts].sort((a, b) => {
       const timeA = new Date(a.published_at || a.created_at).getTime();
       const timeB = new Date(b.published_at || b.created_at).getTime();
       return timeB - timeA;
     });
-  }, [initialPosts]);
+  }, [posts]);
 
   const filteredPosts = useMemo(() => {
     return sortedPosts.filter((post) => {
@@ -288,6 +313,20 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
             ))}
           </div>
         ) : null}
+
+        {/* Load More Stories Button */}
+        {hasMore && (
+          <div className="mt-12 text-center">
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="rounded-full border border-ink/20 bg-white px-8 py-3 text-xs font-semibold uppercase tracking-wider text-ink shadow-2xs hover:bg-[#D99B26] hover:text-black hover:border-[#D99B26] transition-all disabled:opacity-50"
+            >
+              {loadingMore ? 'Loading More Articles...' : 'Load Older Stories'}
+            </button>
+          </div>
+        )}
 
         {/* Studio Appointment & Wig Consultation CTA Banner */}
         <section className="mt-20 overflow-hidden rounded-3xl bg-black p-8 sm:p-12 text-white relative">

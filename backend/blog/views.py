@@ -64,14 +64,11 @@ class PublicBlogPostDetailView(APIView):
         except BlogPost.DoesNotExist:
             return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Increment view counter efficiently
-        BlogPost.objects.filter(pk=post.pk).update(views_count=F("views_count") + 1)
-        post.refresh_from_db(fields=["views_count"])
-
         serializer = BlogPostDetailSerializer(post, context={"request": request})
         return Response(serializer.data)
 
-    def post(self, request, slug):
+    @staticmethod
+    def post(request, slug):
         """Track reader page view without cache poisoning."""
         updated = BlogPost.objects.filter(slug=slug, is_published=True).update(views_count=F("views_count") + 1)
         if not updated:

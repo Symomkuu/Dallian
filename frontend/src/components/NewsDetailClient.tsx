@@ -38,7 +38,9 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
   // Record real reader view on mount
   useEffect(() => {
     if (post.slug) {
-      recordBlogPostView(post.slug).catch(() => {});
+      recordBlogPostView(post.slug).catch((err) => {
+        console.error('Failed to record blog view:', err);
+      });
     }
   }, [post.slug]);
 

@@ -90,7 +90,11 @@ export default function AdminBlogsPage() {
       await adminDeleteBlogPost(id);
       setPosts((prev) => prev.filter((p) => p.id !== id));
       setTotalCount((prev) => Math.max(0, prev - 1));
-      adminFetchBlogStats().then(setStats).catch(() => {});
+      adminFetchBlogStats()
+        .then(setStats)
+        .catch((err) => {
+          console.error('Failed to refresh stats:', err);
+        });
       pushToast({ title: 'Article deleted.', tone: 'info' });
     } catch {
       pushToast({ title: 'Failed to delete article.', tone: 'error' });

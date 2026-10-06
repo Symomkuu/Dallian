@@ -59,6 +59,7 @@ export function renderInlineContent(text: string): React.ReactNode {
 
   return parts.map((part, index) => {
     if (!part) return null;
+    const tokenKey = `token-${index}-${part.slice(0, 12)}`;
 
     // Link: [label](url)
     const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
@@ -66,12 +67,12 @@ export function renderInlineContent(text: string): React.ReactNode {
       const [, label, rawUrl] = linkMatch;
       const url = rawUrl.trim();
       if (!isSafeLinkUrl(url)) {
-        return <React.Fragment key={index}>{label}</React.Fragment>;
+        return <React.Fragment key={tokenKey}>{label}</React.Fragment>;
       }
       const isInternal = url.startsWith('/') || url.startsWith('#');
       return (
         <a
-          key={index}
+          key={tokenKey}
           href={url}
           target={isInternal ? undefined : '_blank'}
           rel={isInternal ? undefined : 'noopener noreferrer'}
@@ -85,7 +86,7 @@ export function renderInlineContent(text: string): React.ReactNode {
     // Bold: **text**
     if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
       return (
-        <strong key={index} className="font-semibold text-ink">
+        <strong key={tokenKey} className="font-semibold text-ink">
           {part.slice(2, -2)}
         </strong>
       );
@@ -94,14 +95,14 @@ export function renderInlineContent(text: string): React.ReactNode {
     // Italic: *text*
     if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
       return (
-        <em key={index} className="italic">
+        <em key={tokenKey} className="italic">
           {part.slice(1, -1)}
         </em>
       );
     }
 
     // Plain text
-    return <React.Fragment key={index}>{part}</React.Fragment>;
+    return <React.Fragment key={tokenKey}>{part}</React.Fragment>;
   });
 }
 
@@ -270,7 +271,7 @@ export function ArticleRenderer({ blocks: propBlocks, content, emptyFallback }: 
           case 'h2':
             return (
               <h2
-                key={index}
+                key={block.id}
                 id={block.id}
                 className="scroll-mt-28 font-serif text-2xl sm:text-3xl font-medium text-ink mt-10 mb-4 pb-2 border-b border-ink/10"
               >
@@ -281,7 +282,7 @@ export function ArticleRenderer({ blocks: propBlocks, content, emptyFallback }: 
           case 'h3':
             return (
               <h3
-                key={index}
+                key={block.id}
                 id={block.id}
                 className="scroll-mt-28 font-serif text-xl sm:text-2xl font-medium text-ink mt-8 mb-3"
               >
@@ -292,7 +293,7 @@ export function ArticleRenderer({ blocks: propBlocks, content, emptyFallback }: 
           case 'blockquote':
             return (
               <blockquote
-                key={index}
+                key={`quote-${index}-${block.text.slice(0, 16)}`}
                 className="border-l-4 border-[#D99B26] bg-cream/40 rounded-r-2xl py-3 px-5 italic text-ink/80 my-6 leading-relaxed"
               >
                 {renderInlineContent(block.text)}
@@ -301,29 +302,29 @@ export function ArticleRenderer({ blocks: propBlocks, content, emptyFallback }: 
 
           case 'bullet-list':
             return (
-              <ul key={index} className="list-disc list-outside ml-5 space-y-2.5 my-4 text-ink/80 leading-relaxed">
+              <ul key={`ul-${index}`} className="list-disc list-outside ml-5 space-y-2.5 my-4 text-ink/80 leading-relaxed">
                 {block.items.map((item, itemIdx) => (
-                  <li key={itemIdx}>{renderInlineContent(item)}</li>
+                  <li key={`li-${itemIdx}-${item.slice(0, 16)}`}>{renderInlineContent(item)}</li>
                 ))}
               </ul>
             );
 
           case 'numbered-list':
             return (
-              <ol key={index} className="list-decimal list-outside ml-5 space-y-2.5 my-4 text-ink/80 leading-relaxed">
+              <ol key={`ol-${index}`} className="list-decimal list-outside ml-5 space-y-2.5 my-4 text-ink/80 leading-relaxed">
                 {block.items.map((item, itemIdx) => (
-                  <li key={itemIdx}>{renderInlineContent(item)}</li>
+                  <li key={`oli-${itemIdx}-${item.slice(0, 16)}`}>{renderInlineContent(item)}</li>
                 ))}
               </ol>
             );
 
           case 'hr':
-            return <hr key={index} className="my-8 border-ink/10" />;
+            return <hr key={`hr-${index}`} className="my-8 border-ink/10" />;
 
           case 'image':
             return (
               <figure
-                key={index}
+                key={`img-${index}-${block.src}`}
                 className="my-8 overflow-hidden rounded-2xl border border-ink/10 shadow-xs bg-[#FAF8F5]/60 flex flex-col items-center"
               >
                 <Image
@@ -344,7 +345,7 @@ export function ArticleRenderer({ blocks: propBlocks, content, emptyFallback }: 
 
           case 'paragraph':
             return (
-              <p key={index} className="text-ink/80 text-base sm:text-lg leading-relaxed mb-6 font-light">
+              <p key={`p-${index}-${block.text.slice(0, 16)}`} className="text-ink/80 text-base sm:text-lg leading-relaxed mb-6 font-light">
                 {renderInlineContent(block.text)}
               </p>
             );
