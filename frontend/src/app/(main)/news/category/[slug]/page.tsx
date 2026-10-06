@@ -14,7 +14,7 @@ interface CategoryPageProps {
 /** Memoized category & post getter to deduplicate metadata & page server component executions */
 const getCategoryData = cache(async (slug: string) => {
   const [postsRes, catRes] = await Promise.all([
-    fetch(`${API_BASE_URL}/api/blog/posts/?category=${slug}&page_size=50`, {
+    fetch(`${API_BASE_URL}/api/blog/posts/?category=${encodeURIComponent(slug)}&page_size=50`, {
       next: { revalidate: 60 },
     }),
     fetch(`${API_BASE_URL}/api/blog/categories/`, {
@@ -23,7 +23,7 @@ const getCategoryData = cache(async (slug: string) => {
   ]);
 
   if (catRes.status === 404) {
-    return { posts: [], categories: [], currentCategory: null };
+    return { posts: [] as BlogPost[], categories: [] as BlogCategory[], currentCategory: null };
   }
   if (!catRes.ok) {
     throw new Error(`Blog categories API responded with status ${catRes.status}`);
@@ -34,7 +34,7 @@ const getCategoryData = cache(async (slug: string) => {
   const currentCategory = categories.find((c) => c.slug === slug) || null;
 
   if (!currentCategory) {
-    return { posts: [], categories, currentCategory: null };
+    return { posts: [] as BlogPost[], categories, currentCategory: null };
   }
 
   let posts: BlogPost[] = [];
@@ -74,22 +74,25 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
   if (!currentCategory) {
     return {
-      title: 'Category Not Found | Dallian Luxe Hair Nairobi',
+      // The root layout template appends the brand suffix
+      title: 'Category Not Found',
       description: 'The requested category of hair guides could not be found.',
       robots: { index: false, follow: false },
     };
   }
 
-  const title = `${currentCategory.name} Guides & Articles | Dallian Luxe Hair Nairobi`;
+  const pageTitle = `${currentCategory.name} Guides & Articles`;
+  const socialTitle = `${pageTitle} | Dallian Luxe Hair Nairobi`;
   const description =
     currentCategory.description ||
     `Browse expert ${currentCategory.name.toLowerCase()} guides, maintenance advice, and tutorials from Dallian Luxe Studio in Nairobi, Kenya.`;
 
-  // Prevent thin indexation if category only has 0 or 1 post, but allow crawlers to follow links
+  // Prevent thin indexation if category only has 0 or 1 post, but allow crawlers to follow links.
+  // Keep this threshold in sync with MIN_POSTS_PER_CATEGORY in sitemap.ts.
   const shouldIndex = posts.length > 1;
 
   return {
-    title,
+    title: pageTitle,
     description,
     alternates: {
       canonical: `https://dallian.online/news/category/${slug}`,
@@ -106,7 +109,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       },
     },
     openGraph: {
-      title,
+      title: socialTitle,
       description,
       url: `https://dallian.online/news/category/${slug}`,
       siteName: brand.name,
@@ -123,7 +126,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: socialTitle,
       description,
       images: ['https://dallian.online/shop-hero.jpg'],
     },
@@ -207,7 +210,9 @@ export default async function CategoryNewsPage({ params }: CategoryPageProps) {
       <script type="application/ld+json" key="cat-breadcrumbs-jsonld">
         {jsonLd(breadcrumbsSchema)}
       </script>
+      {/* key={slug} remounts the client component per category so its state matches the route */}
       <NewsPageClient
+        key={slug}
         initialPosts={posts}
         categories={categories}
         initialCategory={slug}

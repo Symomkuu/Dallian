@@ -13,9 +13,11 @@ interface PageProps {
 
 /** Memoized post getter to deduplicate metadata & page server component executions */
 const getPost = cache(async (slug: string): Promise<BlogPost | null> => {
-  const res = await fetch(`${API_BASE_URL}/api/blog/posts/${slug}/`, {
+  const res = await fetch(`${API_BASE_URL}/api/blog/posts/${encodeURIComponent(slug)}/`, {
     next: { revalidate: 60 },
   });
+  // Only a real 404 means "not found". Anything else throws so Next keeps
+  // serving the last good cached page instead of showing Google a 404.
   if (res.status === 404) return null;
   if (!res.ok) {
     throw new Error(`Blog post API responded with status ${res.status}`);
@@ -60,7 +62,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!post) {
     return {
-      title: 'Article Not Found | Dallian Luxe Hair Nairobi',
+      // The root layout template appends the brand suffix
+      title: 'Article Not Found',
       description: 'The requested hair guide or news story could not be found.',
       robots: {
         index: false,
@@ -69,6 +72,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  // Full title, used as-is (see title.absolute below) so the root template doesn't double the brand
   const title = post.meta_title || `${post.title} | Dallian Luxe Hair Nairobi`;
   const description =
     post.meta_description ||
@@ -88,7 +92,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ];
 
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords: keywordsList,
     alternates: {

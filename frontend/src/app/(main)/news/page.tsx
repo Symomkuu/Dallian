@@ -6,7 +6,8 @@ import { brand } from '@/data/brand';
 import { absoluteUrl, buildAuthorSchema, jsonLd } from '@/utils/seo';
 
 export const metadata: Metadata = {
-  title: 'Latest News & Hair Guides | Dallian Luxe Hair Studio Nairobi',
+  // The root layout template appends " | Dallian Luxe Hair Nairobi"
+  title: 'Latest News & Hair Guides',
   description:
     'Read expert wig maintenance tips, HD lace care rituals, virgin hair trends, and salon styling secrets from Dallian Luxe Hair in Nairobi, Kenya.',
   alternates: {
@@ -59,22 +60,30 @@ async function getBlogData() {
     }),
   ]);
 
+  // Posts are essential: throw so Next keeps serving the last good cached page
+  // instead of caching an empty listing.
   if (!postsRes.ok) {
     throw new Error(`Blog posts API failed with status ${postsRes.status}`);
   }
-  if (!catRes.ok) {
-    throw new Error(`Blog categories API failed with status ${catRes.status}`);
-  }
-
-  const [postsData, catData] = await Promise.all([postsRes.json(), catRes.json()]);
-
+  const postsData = await postsRes.json();
   const initialPosts: BlogPost[] = Array.isArray(postsData)
     ? postsData
     : Array.isArray(postsData.results)
     ? postsData.results
     : [];
 
-  const categories: BlogCategory[] = Array.isArray(catData) ? catData : [];
+  // Categories are secondary: a failure here must not take the whole page down.
+  let categories: BlogCategory[] = [];
+  if (catRes.ok) {
+    try {
+      const catData = await catRes.json();
+      categories = Array.isArray(catData) ? catData : [];
+    } catch (err) {
+      console.error('Failed to parse blog categories JSON:', err);
+    }
+  } else {
+    console.error(`Blog categories API failed with status ${catRes.status}`);
+  }
 
   return { initialPosts, categories };
 }
