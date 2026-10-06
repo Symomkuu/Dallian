@@ -8,6 +8,7 @@ from blog.views import (
     PublicBlogPostListView,
 )
 
+
 urlpatterns = [
     path("posts/", PublicBlogPostListView.as_view(), name="blog-posts-list"),
     path("posts/<slug:slug>/", PublicBlogPostDetailView.as_view(), name="blog-post-detail"),

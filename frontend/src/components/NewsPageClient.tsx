@@ -79,6 +79,21 @@ export function NewsPageClient({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // If initialPosts was empty (e.g. backend was unavailable at build time),
+  // fetch live articles upon client mount
+  useEffect(() => {
+    if (!hasInitialCategory && defaultPosts.length === 0) {
+      fetchBlogPosts({ page: 1, page_size: PAGE_SIZE })
+        .then((res) => {
+          if (res.results && res.results.length > 0) {
+            setDefaultPosts(res.results);
+            setDefaultHasMore(Boolean(res.next));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [hasInitialCategory, defaultPosts.length]);
+
   const isDefaultView = selectedCategory === 'all' && !debouncedQuery;
   const viewKey = `${selectedCategory}|${debouncedQuery}`;
   const posts = isDefaultView ? defaultPosts : filteredPosts;

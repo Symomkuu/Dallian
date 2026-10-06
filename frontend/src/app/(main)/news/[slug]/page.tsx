@@ -13,16 +13,16 @@ interface PageProps {
 
 /** Memoized post getter to deduplicate metadata & page server component executions */
 const getPost = cache(async (slug: string): Promise<BlogPost | null> => {
-  const res = await fetch(`${API_BASE_URL}/api/blog/posts/${encodeURIComponent(slug)}/`, {
-    next: { revalidate: 60 },
-  });
-  // Only a real 404 means "not found". Anything else throws so Next keeps
-  // serving the last good cached page instead of showing Google a 404.
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(`Blog post API responded with status ${res.status}`);
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/blog/posts/${encodeURIComponent(slug)}/`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch (err) {
+    console.warn(`Failed to fetch blog post for slug ${slug}:`, err);
+    return null;
   }
-  return res.json();
 });
 
 async function getFallbackRelatedPosts(excludeSlug: string): Promise<BlogPost[]> {
