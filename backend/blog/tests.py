@@ -76,6 +76,27 @@ class BlogTests(TestCase):
         self.assertIn(post2.slug, slugs_by_id)
         self.assertNotIn(self.published_post.slug, slugs_by_id)
 
+    def test_public_list_query_count_avoids_n_plus_one(self):
+        """Verify serializing multiple posts with categories does not issue an N+1 query."""
+        cat2 = BlogCategory.objects.create(name="Lace Melting")
+        for i in range(10):
+            BlogPost.objects.create(
+                title=f"Lace Melting Tip {i}",
+                content="Tip details",
+                category=cat2 if i % 2 == 0 else self.category,
+                is_published=True,
+            )
+
+        url = reverse("blog-posts-list")
+        # Queries: 1 count for pagination, 1 select posts with select_related category, 1 batch category counts
+        with self.assertNumQueries(3):
+            res = self.client.get(f"{url}?page_size=20")
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data["results"]), 11)
+            for item in res.data["results"]:
+                self.assertIn("posts_count", item["category"])
+                self.assertGreater(item["category"]["posts_count"], 0)
+
     def test_public_detail_and_view_tracking(self):
         initial_views = self.published_post.views_count
         detail_url = reverse("blog-post-detail", kwargs={"slug": self.published_post.slug})

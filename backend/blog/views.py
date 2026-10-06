@@ -1,6 +1,4 @@
-"""Views for the blog app: public storefront and staff dashboard."""
-
-from django.db.models import F, Q, Sum
+from django.db.models import Count, F, Q, Sum
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -68,6 +66,11 @@ class PublicBlogPostDetailView(APIView):
         except BlogPost.DoesNotExist:
             return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        if post.category:
+            post.category.posts_count = BlogPost.objects.filter(
+                category=post.category, is_published=True
+            ).count()
+
         serializer = BlogPostDetailSerializer(post, context={"request": request})
         return Response(serializer.data)
 
@@ -88,7 +91,12 @@ class PublicBlogCategoryListView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        return BlogCategory.objects.filter(posts__is_published=True).distinct().order_by("name")
+        return (
+            BlogCategory.objects.filter(posts__is_published=True)
+            .distinct()
+            .annotate(posts_count=Count("posts", filter=Q(posts__is_published=True)))
+            .order_by("name")
+        )
 
 
 # ==========================================
@@ -144,7 +152,11 @@ class AdminBlogPostViewSet(viewsets.ModelViewSet):
 class AdminBlogCategoryViewSet(viewsets.ModelViewSet):
     """Staff CRUD for blog categories."""
 
-    queryset = BlogCategory.objects.all().order_by("name")
+    queryset = (
+        BlogCategory.objects.annotate(
+            posts_count=Count("posts", filter=Q(posts__is_published=True))
+        ).order_by("name")
+    )
     serializer_class = BlogCategorySerializer
     permission_classes = [IsStaffRole]
     pagination_class = None

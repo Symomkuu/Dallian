@@ -1,7 +1,35 @@
-"""Serializers for blog app: public storefront and staff dashboard."""
-
+from django.db.models import Count
 from rest_framework import serializers
 from blog.models import BlogCategory, BlogPost
+
+
+class BatchCategoryCountListSerializer(serializers.ListSerializer):
+    """Batches published-post count queries for nested categories across all items in a result page."""
+
+    def to_representation(self, data):
+        items = list(data) if not isinstance(data, list) else data
+        category_ids = {
+            post.category_id
+            for post in items
+            if getattr(post, "category_id", None)
+            and not (
+                getattr(post, "category", None)
+                and hasattr(post.category, "posts_count")
+                and isinstance(post.category.posts_count, int)
+            )
+        }
+        if category_ids:
+            counts = dict(
+                BlogPost.objects.filter(category_id__in=category_ids, is_published=True)
+                .values("category_id")
+                .annotate(count=Count("id"))
+                .values_list("category_id", "count")
+            )
+            for post in items:
+                cat = getattr(post, "category", None)
+                if cat and not (hasattr(cat, "posts_count") and isinstance(cat.posts_count, int)):
+                    cat.posts_count = counts.get(post.category_id, 0)
+        return super().to_representation(data)
 
 
 class BlogCategorySerializer(serializers.ModelSerializer):
@@ -12,6 +40,11 @@ class BlogCategorySerializer(serializers.ModelSerializer):
         fields = ["id", "name", "slug", "description", "posts_count"]
 
     def get_posts_count(self, obj) -> int:
+        if hasattr(obj, "posts_count") and isinstance(obj.posts_count, int):
+            return obj.posts_count
+        categories_counts = self.context.get("categories_posts_counts")
+        if categories_counts is not None and isinstance(categories_counts, dict) and obj.id in categories_counts:
+            return categories_counts[obj.id]
         return obj.posts.filter(is_published=True).count()
 
 
@@ -20,6 +53,7 @@ class BlogPostListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BlogPost
+        list_serializer_class = BatchCategoryCountListSerializer
         fields = [
             "id",
             "title",
@@ -100,6 +134,7 @@ class AdminBlogPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BlogPost
+        list_serializer_class = BatchCategoryCountListSerializer
         fields = [
             "id",
             "title",
