@@ -31,6 +31,7 @@ const columns = [
     heading: 'COMPANY',
     links: [
       { label: 'About Us', to: '/about' },
+      { label: 'Latest News & Blog', to: '/news' },
       { label: 'Track Order', to: '/track' },
       { label: 'Privacy Policy', to: '/privacy' },
       { label: 'Terms & Conditions', to: '/terms' },

@@ -1,7 +1,10 @@
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dallian.online';
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const baseUrl = (
+    rawSiteUrl && rawSiteUrl.startsWith('http') ? rawSiteUrl : 'https://dallian.online'
+  ).replace(/\/+$/, '');
 
   return {
     rules: [
@@ -16,6 +19,7 @@ export default function robots(): MetadataRoute.Robots {
           '/cart',
           '/wishlist',
           '/order-confirmed',
+          '/track',
           '/login',
           '/register',
           '/signup',

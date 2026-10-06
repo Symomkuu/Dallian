@@ -1,0 +1,188 @@
+from django.core.cache import cache
+from django.db.models import Count, F, Q, Sum
+from rest_framework import generics, permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.views import APIView
+
+from blog.models import BlogCategory, BlogPost
+from blog.serializers import (
+    AdminBlogPostSerializer,
+    BlogCategorySerializer,
+    BlogPostDetailSerializer,
+    BlogPostListSerializer,
+)
+from users.permissions import IsStaffRole
+
+
+class BlogPagination(PageNumberPagination):
+    page_size = 9
+    page_size_query_param = "page_size"
+    max_page_size = 50
+
+
+# ==========================================
+# Public Storefront Views (Read-Only)
+# ==========================================
+
+
+class PublicBlogPostListView(generics.ListAPIView):
+    """List published blog posts for visitors with search and category filtering."""
+
+    serializer_class = BlogPostListSerializer
+    pagination_class = BlogPagination
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "blog_search"
+
+    def get_queryset(self):
+        qs = BlogPost.objects.filter(is_published=True).select_related("category")
+        category_param = self.request.query_params.get("category")
+        if category_param:
+            if category_param.isdigit():
+                qs = qs.filter(Q(category__slug=category_param) | Q(category__id=int(category_param)))
+            else:
+                qs = qs.filter(category__slug=category_param)
+
+        raw_search = self.request.query_params.get("search")
+        if raw_search:
+            search = raw_search.strip()[:100]
+            if len(search) >= 2:
+                qs = qs.filter(
+                    Q(title__icontains=search)
+                    | Q(excerpt__icontains=search)
+                    | Q(tags__icontains=search)
+                )
+
+        return qs.order_by("-is_featured", "-published_at", "-created_at")
+
+
+class BlogPostViewCountView(APIView):
+    """Track real reader view count with rate limiting and deduplication."""
+
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "blog_view"
+
+    def post(self, request, slug):
+        post = BlogPost.objects.filter(slug=slug, is_published=True).first()
+        if not post:
+            return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Deduplicate repeat views by IP/ident over a 1-hour window
+        throttle = ScopedRateThrottle()
+        ident = throttle.get_ident(request)
+        view_cache_key = f"blog_viewed_{post.id}_{ident}"
+
+        if not cache.get(view_cache_key):
+            cache.set(view_cache_key, True, timeout=3600)
+            BlogPost.objects.filter(pk=post.pk).update(views_count=F("views_count") + 1)
+            return Response({"status": "view_counted"})
+
+        return Response({"status": "already_counted"})
+
+
+class PublicBlogPostDetailView(APIView):
+    """Retrieve full blog post by slug and increment views count."""
+
+    permission_classes = [permissions.AllowAny]
+
+    @staticmethod
+    def get(request, slug):
+        try:
+            post = BlogPost.objects.select_related("category").get(slug=slug, is_published=True)
+        except BlogPost.DoesNotExist:
+            return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if post.category:
+            post.category.posts_count = BlogPost.objects.filter(
+                category=post.category, is_published=True
+            ).count()
+
+        serializer = BlogPostDetailSerializer(post, context={"request": request})
+        return Response(serializer.data)
+
+    def post(self, request, slug):
+        """Track reader page view (forwarding to BlogPostViewCountView)."""
+        return BlogPostViewCountView().post(request, slug)
+
+
+class PublicBlogCategoryListView(generics.ListAPIView):
+    """List all categories that have published posts."""
+
+    serializer_class = BlogCategorySerializer
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None
+
+    def get_queryset(self):
+        return (
+            BlogCategory.objects.filter(posts__is_published=True)
+            .distinct()
+            .annotate(posts_count=Count("posts", filter=Q(posts__is_published=True)))
+            .order_by("name")
+        )
+
+
+# ==========================================
+# Staff Dashboard Views (Admin Only)
+# ==========================================
+
+
+class AdminBlogPostViewSet(viewsets.ModelViewSet):
+    """Staff CRUD for all blog posts (drafts and published)."""
+
+    queryset = BlogPost.objects.all().select_related("category").order_by("-published_at", "-created_at")
+    serializer_class = AdminBlogPostSerializer
+    permission_classes = [IsStaffRole]
+    pagination_class = BlogPagination
+
+    @action(detail=False, methods=["get"])
+    def stats(self, request):
+        """Return total, published, draft, and view counts across the entire store."""
+        total = BlogPost.objects.count()
+        published = BlogPost.objects.filter(is_published=True).count()
+        draft = BlogPost.objects.filter(is_published=False).count()
+        total_views = BlogPost.objects.aggregate(total_views=Sum("views_count"))["total_views"] or 0
+        return Response({
+            "total": total,
+            "published": published,
+            "draft": draft,
+            "total_views": total_views,
+        })
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        category_id = self.request.query_params.get("category")
+        if category_id:
+            qs = qs.filter(category_id=category_id)
+
+        status_filter = self.request.query_params.get("status")
+        if status_filter == "published":
+            qs = qs.filter(is_published=True)
+        elif status_filter == "draft":
+            qs = qs.filter(is_published=False)
+
+        search = self.request.query_params.get("search")
+        if search:
+            qs = qs.filter(
+                Q(title__icontains=search)
+                | Q(slug__icontains=search)
+                | Q(excerpt__icontains=search)
+                | Q(tags__icontains=search)
+            )
+        return qs.order_by("-published_at", "-created_at")
+
+
+class AdminBlogCategoryViewSet(viewsets.ModelViewSet):
+    """Staff CRUD for blog categories."""
+
+    queryset = (
+        BlogCategory.objects.annotate(
+            posts_count=Count("posts", filter=Q(posts__is_published=True))
+        ).order_by("name")
+    )
+    serializer_class = BlogCategorySerializer
+    permission_classes = [IsStaffRole]
+    pagination_class = None

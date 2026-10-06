@@ -114,3 +114,43 @@ export interface Customer {
   joined: string;
   status: 'Active' | 'Disabled';
 }
+
+export interface BlogCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  posts_count?: number;
+}
+
+export interface BlogPost {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  cover_image: string;
+  category?: BlogCategory | number | null;
+  category_id?: number | null;
+  category_details?: BlogCategory | null;
+  tags: string;
+  author_name: string;
+  is_published: boolean;
+  is_featured: boolean;
+  published_at: string | null;
+  read_time_minutes: number;
+  views_count: number;
+  meta_title?: string;
+  meta_description?: string;
+  keywords?: string;
+  created_at: string;
+  updated_at?: string;
+  related_posts?: BlogPost[];
+}
+
+export interface BlogStats {
+  total: number;
+  published: number;
+  draft: number;
+  total_views: number;
+}

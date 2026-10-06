@@ -27,6 +27,8 @@ urlpatterns = [
     path("api/auth/", include("users.urls")),
     path("api/store/", include("catalog.urls")),
     path("api/dashboard/", include("catalog.urls_dashboard")),
+    path("api/dashboard/blogs/", include("blog.urls_dashboard")),
+    path("api/blog/", include("blog.urls")),
     path("api/orders/", include("orders.urls")),
     path("api/contact/", ContactEnquiryView.as_view(), name="contact-enquiry"),
 ]
