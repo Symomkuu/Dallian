@@ -72,8 +72,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  // Full title, used as-is (see title.absolute below) so the root template doesn't double the brand
-  const title = post.meta_title || `${post.title} | Dallian Luxe Hair Nairobi`;
+  const pageTitle = (
+    post.meta_title && post.meta_title.trim() !== post.title.trim()
+      ? post.meta_title
+      : post.title
+  ).trim();
+  const hasBrand = /dallian/i.test(pageTitle);
+  const socialTitle = hasBrand ? pageTitle : `${pageTitle} | Dallian Luxe Hair Nairobi`;
+
   const description =
     post.meta_description ||
     post.excerpt ||
@@ -92,7 +98,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ];
 
   return {
-    title: { absolute: title },
+    title: hasBrand ? { absolute: pageTitle } : pageTitle,
     description,
     keywords: keywordsList,
     alternates: {
@@ -110,7 +116,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
     },
     openGraph: {
-      title,
+      title: socialTitle,
       description,
       url: `https://dallian.online/news/${slug}`,
       siteName: brand.name,
@@ -136,7 +142,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: socialTitle,
       description,
       images: [coverImage],
     },

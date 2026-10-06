@@ -1,8 +1,10 @@
+from django.core.cache import cache
 from django.db.models import Count, F, Q, Sum
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from blog.models import BlogCategory, BlogPost
@@ -32,6 +34,8 @@ class PublicBlogPostListView(generics.ListAPIView):
     serializer_class = BlogPostListSerializer
     pagination_class = BlogPagination
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "blog_search"
 
     def get_queryset(self):
         qs = BlogPost.objects.filter(is_published=True).select_related("category")
@@ -42,16 +46,42 @@ class PublicBlogPostListView(generics.ListAPIView):
             else:
                 qs = qs.filter(category__slug=category_param)
 
-        search = self.request.query_params.get("search")
-        if search:
-            qs = qs.filter(
-                Q(title__icontains=search)
-                | Q(excerpt__icontains=search)
-                | Q(tags__icontains=search)
-                | Q(content__icontains=search)
-            )
+        raw_search = self.request.query_params.get("search")
+        if raw_search:
+            search = raw_search.strip()[:100]
+            if len(search) >= 2:
+                qs = qs.filter(
+                    Q(title__icontains=search)
+                    | Q(excerpt__icontains=search)
+                    | Q(tags__icontains=search)
+                )
 
         return qs.order_by("-is_featured", "-published_at", "-created_at")
+
+
+class BlogPostViewCountView(APIView):
+    """Track real reader view count with rate limiting and deduplication."""
+
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "blog_view"
+
+    def post(self, request, slug):
+        post = BlogPost.objects.filter(slug=slug, is_published=True).first()
+        if not post:
+            return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Deduplicate repeat views by IP/ident over a 1-hour window
+        throttle = ScopedRateThrottle()
+        ident = throttle.get_ident(request)
+        view_cache_key = f"blog_viewed_{post.id}_{ident}"
+
+        if not cache.get(view_cache_key):
+            cache.set(view_cache_key, True, timeout=3600)
+            BlogPost.objects.filter(pk=post.pk).update(views_count=F("views_count") + 1)
+            return Response({"status": "view_counted"})
+
+        return Response({"status": "already_counted"})
 
 
 class PublicBlogPostDetailView(APIView):
@@ -74,13 +104,9 @@ class PublicBlogPostDetailView(APIView):
         serializer = BlogPostDetailSerializer(post, context={"request": request})
         return Response(serializer.data)
 
-    @staticmethod
-    def post(request, slug):
-        """Track reader page view without cache poisoning."""
-        updated = BlogPost.objects.filter(slug=slug, is_published=True).update(views_count=F("views_count") + 1)
-        if not updated:
-            return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
-        return Response({"status": "view_counted"})
+    def post(self, request, slug):
+        """Track reader page view (forwarding to BlogPostViewCountView)."""
+        return BlogPostViewCountView().post(request, slug)
 
 
 class PublicBlogCategoryListView(generics.ListAPIView):

@@ -145,6 +145,8 @@ REST_FRAMEWORK = {
         "login": os.getenv("LOGIN_THROTTLE_RATE", "10/minute"),
         "otp": os.getenv("OTP_THROTTLE_RATE", "5/minute"),
         "google": os.getenv("GOOGLE_THROTTLE_RATE", "10/minute"),
+        "blog_view": os.getenv("BLOG_VIEW_THROTTLE_RATE", "30/hour"),
+        "blog_search": os.getenv("BLOG_SEARCH_THROTTLE_RATE", "60/minute"),
     },
 }
 

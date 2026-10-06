@@ -36,12 +36,23 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
   const { blocks, toc } = useMemo(() => parseArticleBlocks(post.content), [post.content]);
   const activeId = activeHeadingId || (toc[0]?.id ?? '');
 
-  // Record real reader view on mount
+  // Record real reader view on mount (deduplicated per browser session)
   useEffect(() => {
-    if (post.slug) {
-      recordBlogPostView(post.slug).catch((err) => {
-        console.error('Failed to record blog view:', err);
-      });
+    if (!post.slug || typeof window === 'undefined') return;
+    try {
+      const sessionKey = `dallian_viewed_blog_${post.slug}`;
+      if (sessionStorage.getItem(sessionKey)) return;
+
+      recordBlogPostView(post.slug)
+        .then(() => {
+          sessionStorage.setItem(sessionKey, '1');
+        })
+        .catch((err) => {
+          console.error('Failed to record blog view:', err);
+        });
+    } catch {
+      // Storage unavailable fallback
+      recordBlogPostView(post.slug).catch(() => {});
     }
   }, [post.slug]);
 

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -11,6 +12,7 @@ User = get_user_model()
 
 class BlogTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.staff_user = User.objects.create_user(
             email="staff@dallian.com",
@@ -110,8 +112,33 @@ class BlogTests(TestCase):
         view_url = reverse("blog-post-view-count", kwargs={"slug": self.published_post.slug})
         view_res = self.client.post(view_url)
         self.assertEqual(view_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(view_res.data["status"], "view_counted")
         self.published_post.refresh_from_db()
         self.assertEqual(self.published_post.views_count, initial_views + 1)
+
+        # Immediate repeat POST from the same visitor is deduplicated
+        view_res2 = self.client.post(view_url)
+        self.assertEqual(view_res2.status_code, status.HTTP_200_OK)
+        self.assertEqual(view_res2.data["status"], "already_counted")
+        self.published_post.refresh_from_db()
+        self.assertEqual(self.published_post.views_count, initial_views + 1)
+
+    def test_search_length_and_predicates(self):
+        url = reverse("blog-posts-list")
+        # 1-char search ignored (returns full list)
+        res1 = self.client.get(f"{url}?search=a")
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res1.data["results"]), 1)
+
+        # Matching title keyword (>=2 chars)
+        res2 = self.client.get(f"{url}?search=Wash")
+        self.assertEqual(res2.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res2.data["results"]), 1)
+
+        # Non-matching keyword
+        res3 = self.client.get(f"{url}?search=Nonexistent")
+        self.assertEqual(res3.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res3.data["results"]), 0)
 
     def test_staff_dashboard_permissions(self):
         url = reverse("dashboard-blog-post-list")
