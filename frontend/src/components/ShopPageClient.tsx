@@ -124,11 +124,11 @@ function ShopHero() {
         </div>
       ))}
 
-      {/* Dark gradient so the copy stays readable over the photo */}
-      <div className="absolute inset-0 bg-gradient-to-r from-ink/10 via-ink/55 to-ink/80" />
+      {/* Dynamic Gradient Overlay: Completely clear across left and middle, soft dark feathering only on far right */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent from-45% via-black/35 via-70% to-black/75 sm:from-55% sm:via-black/30 sm:via-75% sm:to-black/70" />
 
       <div className="relative mx-auto w-full max-w-page px-5 sm:px-8">
-        <div className="ml-auto max-w-[85%] text-right sm:max-w-md lg:max-w-lg lg:pr-6">
+        <div className="ml-auto max-w-[85%] text-right sm:max-w-md lg:max-w-lg lg:pr-6 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
           <div className="mb-2 flex items-center justify-end gap-2 sm:mb-3 sm:gap-3">
             <span className="h-px w-6 bg-gold sm:w-10" />
             <span className="text-[10px] font-medium tracking-[0.25em] text-white/85 sm:text-xs sm:tracking-[0.3em]">

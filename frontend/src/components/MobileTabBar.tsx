@@ -8,7 +8,7 @@ import { cx } from '../utils/format';
 const emptySubscribe = () => () => {};
 
 export function MobileTabBar() {
-  const { cartCount, setCartOpen } = useStore();
+  const { cartCount, wishlist, setCartOpen } = useStore();
   const { pathname } = useLocation();
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
@@ -44,7 +44,14 @@ export function MobileTabBar() {
                   active ? 'text-[#8B3A2A] font-bold' : 'text-ink/60 hover:text-ink'
                 )}
               >
-                <item.icon width={19} height={19} className={active ? 'stroke-[2.5]' : 'stroke-2'} />
+                <div className="relative">
+                  <item.icon width={19} height={19} className={active ? 'stroke-[2.5]' : 'stroke-2'} />
+                  {item.to === '/wishlist' && mounted && wishlist.length > 0 && (
+                    <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-chestnut px-1 text-[10px] font-bold text-cream shadow-xs ring-2 ring-cream">
+                      {wishlist.length}
+                    </span>
+                  )}
+                </div>
                 <span>{item.label}</span>
               </Link>
             </li>

@@ -438,7 +438,11 @@ export function ProductDetailClient({ slug, initialProduct }: ProductDetailClien
 
             <button
               type="button"
-              onClick={() => toggleWishlist(product)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleWishlist(product);
+              }}
               className={cx(
                 'flex h-12 w-12 items-center justify-center border transition-colors duration-200',
                 isWishlisted(product.id)

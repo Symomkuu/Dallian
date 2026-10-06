@@ -7,7 +7,6 @@ import { EyeIcon, HeartIcon, ShoppingBagIcon } from 'lucide-react';
 import type { Product } from '../types';
 import { useStore } from '../contexts/StoreContext';
 import { availabilityLabel, cx, formatKsh } from '../utils/format';
-import { StarRating } from './ui/StarRating';
 
 interface ProductCardProps {
   product: Product;
@@ -87,7 +86,11 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
         {/* Wishlist Icon */}
         <button
           type="button"
-          onClick={() => toggleWishlist(product)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(product);
+          }}
           aria-pressed={saved}
           aria-label={saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
           className="absolute right-2 top-2 sm:right-3 sm:top-3 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-white text-stone-900 shadow-sm transition-colors duration-200 hover:text-[#D99B26]"
@@ -168,10 +171,6 @@ export function ProductCard({ product, onQuickView, layout = 'grid' }: ProductCa
           </div>
         )}
 
-        {/* Star Rating */}
-        <div className="mt-2">
-          <StarRating rating={product.rating} count={product.reviewCount} />
-        </div>
 
         {/* Price & Stock Status */}
         <div className="mt-auto pt-3 sm:pt-4">
