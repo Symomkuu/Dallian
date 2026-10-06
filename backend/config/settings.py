@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "users",
     "catalog",
     "orders",
+    "blog",
 ]
 
 AUTH_USER_MODEL = "users.User"

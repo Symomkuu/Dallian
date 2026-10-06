@@ -4,18 +4,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { BoxesIcon, ClipboardListIcon, ExternalLinkIcon, KeyRoundIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, TrendingUpIcon, UsersIcon, XIcon } from 'lucide-react';
+import { BoxesIcon, ClipboardListIcon, ExternalLinkIcon, KeyRoundIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, NewspaperIcon, TrendingUpIcon, UsersIcon, XIcon } from 'lucide-react';
 import { brand } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
 import { cx } from '@/utils/format';
 import { ResetPasswordModal } from '@/components/ResetPasswordModal';
 
 const navItems = [
-  { label: 'Dashboard',    href: '/admin/dashboard',    icon: LayoutDashboardIcon },
-  { label: 'Products',     href: '/admin/products',     icon: BoxesIcon },
-  { label: 'Orders',       href: '/admin/orders',       icon: ClipboardListIcon },
-  { label: 'Customers',    href: '/admin/customers',    icon: UsersIcon },
-  { label: 'Top Products', href: '/admin/top-products', icon: TrendingUpIcon },
+  { label: 'Dashboard',       href: '/admin/dashboard',    icon: LayoutDashboardIcon },
+  { label: 'Products',        href: '/admin/products',     icon: BoxesIcon },
+  { label: 'Orders',          href: '/admin/orders',       icon: ClipboardListIcon },
+  { label: 'Customers',       href: '/admin/customers',    icon: UsersIcon },
+  { label: 'Articles / Blog', href: '/admin/blogs',        icon: NewspaperIcon },
+  { label: 'Top Products',    href: '/admin/top-products', icon: TrendingUpIcon },
 ];
 
 /**

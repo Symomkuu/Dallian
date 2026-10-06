@@ -62,10 +62,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     {
-      url: `${baseUrl}/wig-care`,
+      url: `${baseUrl}/news`,
       lastModified,
-      changeFrequency: 'weekly',
-      priority: 0.75,
+      changeFrequency: 'daily',
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/track`,
@@ -116,5 +116,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Backend offline during build fallback
   }
 
-  return [...staticRoutes, ...serviceRoutes, ...productRoutes];
+  // Dynamic Blog News Pages
+  let blogRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/blog/posts/?page_size=100`, {
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const posts = Array.isArray(data) ? data : Array.isArray(data.results) ? data.results : [];
+      blogRoutes = posts.map((post: { slug: string; updated_at?: string; published_at?: string }) => ({
+        url: `${baseUrl}/news/${post.slug}`,
+        lastModified: post.updated_at ? new Date(post.updated_at) : post.published_at ? new Date(post.published_at) : lastModified,
+        changeFrequency: 'weekly',
+        priority: 0.85,
+      }));
+    }
+  } catch {
+    // Backend offline during build fallback
+  }
+
+  return [...staticRoutes, ...serviceRoutes, ...productRoutes, ...blogRoutes];
 }

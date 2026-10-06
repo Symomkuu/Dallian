@@ -10,6 +10,8 @@ export function formatDate(iso: string): string {
   });
 }
 
+export const formatShortDate = formatDate;
+
 export function cx(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(' ');
 }

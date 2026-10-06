@@ -25,6 +25,7 @@ const navLinks = [
   { label: 'Home', to: '/' },
   { label: 'Shop', to: '/shop' },
   { label: 'Services', to: '/services' },
+  { label: 'Latest News', to: '/news' },
   { label: 'About Us', to: '/about' },
   { label: 'Contact', to: '/contact' },
 ];

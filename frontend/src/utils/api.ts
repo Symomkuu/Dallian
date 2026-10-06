@@ -6,7 +6,7 @@
  * token to store in JS — the browser handles that via cookies automatically.
  */
 
-import type { Product, Category, HairStyle, Review } from '@/types';
+import type { Product, Category, HairStyle, Review, BlogPost, BlogCategory } from '@/types';
 
 export const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -194,6 +194,10 @@ function get<T>(path: string): Promise<T> {
 
 function patch<T>(path: string, body: unknown): Promise<T> {
   return request<T>(path, { method: 'PATCH', body: JSON.stringify(body) });
+}
+
+function put<T>(path: string, body?: unknown): Promise<T> {
+  return request<T>(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined });
 }
 
 function del<T>(path: string): Promise<T> {
@@ -1044,6 +1048,96 @@ export interface TopProductsAnalyticsResponse {
 export function adminFetchTopProducts() {
   return get<TopProductsAnalyticsResponse>('/api/orders/admin/top-products/');
 }
+
+// ── Blog / News API ──────────────────────────────────────────────────────────
+
+export interface BlogListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: BlogPost[];
+}
+
+export interface BlogListParams {
+  category?: string;
+  search?: string;
+  page?: number;
+  page_size?: number;
+}
+
+/** Public: Fetch published blog posts list. */
+export function fetchBlogPosts(params: BlogListParams = {}) {
+  const query = new URLSearchParams();
+  if (params.category) query.set('category', params.category);
+  if (params.search) query.set('search', params.search);
+  if (params.page != null) query.set('page', String(params.page));
+  if (params.page_size != null) query.set('page_size', String(params.page_size));
+  const qs = query.toString();
+  return get<BlogListResponse>(`/api/blog/posts/${qs ? `?${qs}` : ''}`);
+}
+
+/** Public: Fetch single blog post by slug. */
+export function fetchBlogPostBySlug(slug: string) {
+  return get<BlogPost>(`/api/blog/posts/${slug}/`);
+}
+
+/** Public: Fetch blog categories with active posts. */
+export function fetchBlogCategories() {
+  return get<BlogCategory[]>('/api/blog/categories/');
+}
+
+// ── Admin Blog Management API ────────────────────────────────────────────────
+
+export interface AdminBlogListParams {
+  category?: number | string;
+  status?: 'published' | 'draft' | 'all';
+  search?: string;
+  page?: number;
+  page_size?: number;
+}
+
+/** Admin: Fetch all blog posts (drafts & published) with filters. */
+export function adminFetchBlogPosts(params: AdminBlogListParams = {}) {
+  const query = new URLSearchParams();
+  if (params.category) query.set('category', String(params.category));
+  if (params.status && params.status !== 'all') query.set('status', params.status);
+  if (params.search) query.set('search', params.search);
+  if (params.page != null) query.set('page', String(params.page));
+  if (params.page_size != null) query.set('page_size', String(params.page_size));
+  const qs = query.toString();
+  return get<BlogListResponse>(`/api/dashboard/blogs/${qs ? `?${qs}` : ''}`);
+}
+
+/** Admin: Fetch single blog post by ID for editing. */
+export function adminFetchBlogPost(id: number | string) {
+  return get<BlogPost>(`/api/dashboard/blogs/${id}/`);
+}
+
+/** Admin: Create a new blog post. */
+export function adminCreateBlogPost(data: Partial<BlogPost>) {
+  return post<BlogPost>('/api/dashboard/blogs/', data);
+}
+
+/** Admin: Update an existing blog post. */
+export function adminUpdateBlogPost(id: number | string, data: Partial<BlogPost>) {
+  return put<BlogPost>(`/api/dashboard/blogs/${id}/`, data);
+}
+
+/** Admin: Delete a blog post. */
+export function adminDeleteBlogPost(id: number | string) {
+  return del<{ success: boolean }>(`/api/dashboard/blogs/${id}/`);
+}
+
+/** Admin: Fetch all blog categories for post creation. */
+export function adminFetchBlogCategories() {
+  return get<BlogCategory[]>('/api/dashboard/blogs/categories/');
+}
+
+/** Admin: Create a new blog category. */
+export function adminCreateBlogCategory(data: { name: string; description?: string }) {
+  return post<BlogCategory>('/api/dashboard/blogs/categories/', data);
+}
+
 
 
 
