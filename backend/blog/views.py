@@ -37,9 +37,12 @@ class PublicBlogPostListView(generics.ListAPIView):
 
     def get_queryset(self):
         qs = BlogPost.objects.filter(is_published=True).select_related("category")
-        category_slug = self.request.query_params.get("category")
-        if category_slug:
-            qs = qs.filter(category__slug=category_slug)
+        category_param = self.request.query_params.get("category")
+        if category_param:
+            if category_param.isdigit():
+                qs = qs.filter(Q(category__slug=category_param) | Q(category__id=int(category_param)))
+            else:
+                qs = qs.filter(category__slug=category_param)
 
         search = self.request.query_params.get("search")
         if search:

@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { IMAGE_UNOPTIMIZED } from '@/utils/seo';
 
 export interface TocItem {
   id: string;
@@ -24,6 +25,14 @@ export function slugifyHeading(text: string): string {
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+export function cleanHeadingText(text: string): string {
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .trim();
 }
 
 const isSafeLinkUrl = (u: string): boolean => {
@@ -166,20 +175,22 @@ export function parseArticleBlocks(markdown: string): {
     // Heading 2: ##
     if (line.startsWith('## ')) {
       flushLists();
-      const text = line.slice(3).trim();
+      const rawText = line.slice(3).trim();
+      const text = cleanHeadingText(rawText);
       const id = getUniqueId(text, i);
       toc.push({ id, text, level: 2 });
-      blocks.push({ type: 'h2', id, text });
+      blocks.push({ type: 'h2', id, text: rawText });
       continue;
     }
 
     // Heading 3: ###
     if (line.startsWith('### ')) {
       flushLists();
-      const text = line.slice(4).trim();
+      const rawText = line.slice(4).trim();
+      const text = cleanHeadingText(rawText);
       const id = getUniqueId(text, i);
       toc.push({ id, text, level: 3 });
-      blocks.push({ type: 'h3', id, text });
+      blocks.push({ type: 'h3', id, text: rawText });
       continue;
     }
 
@@ -258,9 +269,8 @@ export function ArticleRenderer({ blocks: propBlocks, content, emptyFallback }: 
 
   if (blocks.length === 0) {
     return (
-      emptyFallback ?? (
-        <p className="text-ink/40 italic">No content yet. Start writing your story above...</p>
-      )
+      // Never ship editor placeholder copy to the public site.
+      emptyFallback ?? null
     );
   }
 
@@ -329,14 +339,18 @@ export function ArticleRenderer({ blocks: propBlocks, content, emptyFallback }: 
               >
                 <Image
                   src={block.src}
-                  alt={block.alt || 'Article visual'}
+                  alt={block.alt || ''}
                   width={1200}
                   height={800}
-                  unoptimized
+                  sizes="(min-width: 768px) 760px, 100vw"
+                  unoptimized={IMAGE_UNOPTIMIZED}
                   className="max-h-[520px] w-auto max-w-full object-contain rounded-xl"
                 />
                 {block.alt && (
-                  <figcaption className="w-full text-xs text-center text-ink/50 py-2.5 bg-cream/30 italic">
+                  <figcaption
+                    aria-hidden="true"
+                    className="w-full text-xs text-center text-ink/50 py-2.5 bg-cream/30 italic"
+                  >
                     {block.alt}
                   </figcaption>
                 )}

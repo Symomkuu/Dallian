@@ -152,5 +152,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Backend offline during build fallback
   }
 
-  return [...staticRoutes, ...serviceRoutes, ...productRoutes, ...blogRoutes];
+  // Dynamic Blog Category Pages
+  const blogCategoryRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const catRes = await fetch(`${API_BASE_URL}/api/blog/categories/`, {
+      next: { revalidate: 3600 },
+    });
+    if (catRes.ok) {
+      const catData = await catRes.json();
+      const categories: { slug: string }[] = Array.isArray(catData) ? catData : [];
+      for (const cat of categories) {
+        blogCategoryRoutes.push({
+          url: `${baseUrl}/news/category/${cat.slug}`,
+          lastModified,
+          changeFrequency: 'weekly',
+          priority: 0.8,
+        });
+      }
+    }
+  } catch {
+    // Backend offline during build fallback
+  }
+
+  return [
+    ...staticRoutes,
+    ...serviceRoutes,
+    ...productRoutes,
+    ...blogRoutes,
+    ...blogCategoryRoutes,
+  ];
 }

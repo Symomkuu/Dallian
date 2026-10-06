@@ -15,10 +15,17 @@ import type { BlogCategory, BlogPost } from '@/types';
 import { fetchBlogPosts } from '@/utils/api';
 import { cx, formatDate } from '@/utils/format';
 import { brand } from '@/data/brand';
+import { DEFAULT_AUTHOR_NAME, IMAGE_UNOPTIMIZED } from '@/utils/seo';
+
+/** Must match the page_size used by the server pages (50). */
+const PAGE_SIZE = 50;
 
 interface NewsPageClientProps {
   initialPosts: BlogPost[];
   categories: BlogCategory[];
+  initialCategory?: string;
+  categoryTitle?: string;
+  categoryDescription?: string;
 }
 
 function getCategoryName(post?: BlogPost | null): string | null {
@@ -28,23 +35,41 @@ function getCategoryName(post?: BlogPost | null): string | null {
   return null;
 }
 
-export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+export function NewsPageClient({
+  initialPosts,
+  categories,
+  initialCategory = 'all',
+  categoryTitle,
+  categoryDescription,
+}: NewsPageClientProps) {
+  // On /news/category/[slug] the route decides the category. Pills are real
+  // links, and the category page passes key={slug} so this remounts per category.
+  const selectedCategory = initialCategory;
+  const hasInitialCategory = initialCategory !== 'all';
+
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedQuery, setDebouncedQuery] = useState<string>('');
 
-  // Default SSR posts state
-  const [defaultPosts, setDefaultPosts] = useState<BlogPost[]>(initialPosts);
+  // Default view (/news): server-rendered posts + "load more"
+  const [defaultPosts, setDefaultPosts] = useState<BlogPost[]>(hasInitialCategory ? [] : initialPosts);
   const [defaultPage, setDefaultPage] = useState<number>(1);
-  const [defaultHasMore, setDefaultHasMore] = useState<boolean>(initialPosts.length >= 50);
+  const [defaultHasMore, setDefaultHasMore] = useState<boolean>(
+    !hasInitialCategory && initialPosts.length >= PAGE_SIZE
+  );
 
-  // Filtered/search posts state
-  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
+  // Category / search view. Category pages start from the server-rendered posts
+  // so the first HTML response contains the article links.
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>(hasInitialCategory ? initialPosts : []);
   const [filteredPage, setFilteredPage] = useState<number>(1);
-  const [filteredHasMore, setFilteredHasMore] = useState<boolean>(false);
+  const [filteredHasMore, setFilteredHasMore] = useState<boolean>(
+    hasInitialCategory && initialPosts.length >= PAGE_SIZE
+  );
+  // Which "category|query" the filteredPosts currently belong to
+  const [loadedKey, setLoadedKey] = useState<string | null>(
+    hasInitialCategory ? `${initialCategory}|` : null
+  );
 
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
 
   // Debounce search input by 350ms
   useEffect(() => {
@@ -55,14 +80,15 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
   }, [searchQuery]);
 
   const isDefaultView = selectedCategory === 'all' && !debouncedQuery;
+  const viewKey = `${selectedCategory}|${debouncedQuery}`;
   const posts = isDefaultView ? defaultPosts : filteredPosts;
   const hasMore = isDefaultView ? defaultHasMore : filteredHasMore;
+  const isSearching =
+    (!isDefaultView && loadedKey !== viewKey) || searchQuery.trim() !== debouncedQuery;
 
-  // Re-fetch from backend whenever category filter or search query is active
+  // Fetch only when the view differs from what we already hold
   useEffect(() => {
-    if (isDefaultView) {
-      return;
-    }
+    if (isDefaultView || loadedKey === viewKey) return;
 
     let isCurrent = true;
 
@@ -70,49 +96,31 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
       category: selectedCategory !== 'all' ? selectedCategory : undefined,
       search: debouncedQuery || undefined,
       page: 1,
-      page_size: 20,
+      page_size: PAGE_SIZE,
     })
       .then((res) => {
         if (!isCurrent) return;
         setFilteredPosts(res.results || []);
         setFilteredPage(1);
         setFilteredHasMore(Boolean(res.next));
+        setLoadedKey(viewKey);
       })
       .catch((err) => {
         console.error('Failed to filter blog posts:', err);
         if (!isCurrent) return;
         setFilteredPosts([]);
         setFilteredHasMore(false);
-      })
-      .finally(() => {
-        if (isCurrent) {
-          setIsSearching(false);
-        }
+        setLoadedKey(viewKey);
       });
 
     return () => {
       isCurrent = false;
     };
-  }, [isDefaultView, selectedCategory, debouncedQuery]);
-
-  const handleCategorySelect = (slug: string) => {
-    setSelectedCategory(slug);
-    if (slug !== 'all' || debouncedQuery) {
-      setIsSearching(true);
-    }
-  };
-
-  const handleSearchChange = (val: string) => {
-    setSearchQuery(val);
-    if (val.trim() || selectedCategory !== 'all') {
-      setIsSearching(true);
-    }
-  };
+  }, [isDefaultView, loadedKey, viewKey, selectedCategory, debouncedQuery]);
 
   const handleResetFilters = () => {
     setSearchQuery('');
-    setSelectedCategory('all');
-    setIsSearching(false);
+    setDebouncedQuery('');
   };
 
   const handleLoadMore = async () => {
@@ -120,12 +128,11 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
       setLoadingMore(true);
       if (isDefaultView) {
         const nextPage = defaultPage + 1;
-        const res = await fetchBlogPosts({ page: nextPage, page_size: 20 });
+        const res = await fetchBlogPosts({ page: nextPage, page_size: PAGE_SIZE });
         const newItems = res.results || [];
         setDefaultPosts((prev) => {
           const existingIds = new Set(prev.map((p) => p.id));
-          const filtered = newItems.filter((p) => !existingIds.has(p.id));
-          return [...prev, ...filtered];
+          return [...prev, ...newItems.filter((p) => !existingIds.has(p.id))];
         });
         setDefaultPage(nextPage);
         setDefaultHasMore(Boolean(res.next));
@@ -135,13 +142,12 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
           category: selectedCategory !== 'all' ? selectedCategory : undefined,
           search: debouncedQuery || undefined,
           page: nextPage,
-          page_size: 20,
+          page_size: PAGE_SIZE,
         });
         const newItems = res.results || [];
         setFilteredPosts((prev) => {
           const existingIds = new Set(prev.map((p) => p.id));
-          const filtered = newItems.filter((p) => !existingIds.has(p.id));
-          return [...prev, ...filtered];
+          return [...prev, ...newItems.filter((p) => !existingIds.has(p.id))];
         });
         setFilteredPage(nextPage);
         setFilteredHasMore(Boolean(res.next));
@@ -181,10 +187,10 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
         <div className="absolute inset-0 opacity-15">
           <Image
             src="/shop-hero.jpg"
-            alt="Dallian Luxe Hair Studio"
+            alt=""
             fill
+            sizes="100vw"
             className="object-cover"
-            priority
           />
         </div>
         <div className="relative mx-auto max-w-page px-4 sm:px-8 text-center">
@@ -192,11 +198,11 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
             The Dallian Journal
           </p>
           <h1 className="mt-3 font-serif text-3xl sm:text-5xl lg:text-6xl text-white font-normal">
-            Latest News &amp; Hair Guides
+            {categoryTitle || 'Latest News & Hair Guides'}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm sm:text-base text-white/70 leading-relaxed font-light">
-            Expert care rituals, luxury virgin hair trends, and studio secrets straight
-            from Nairobi&apos;s premier wig artisans.
+            {categoryDescription ||
+              "Expert care rituals, luxury virgin hair trends, and studio secrets straight from Nairobi's premier wig artisans."}
           </p>
         </div>
       </section>
@@ -213,9 +219,10 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
                     src={featuredPost.cover_image || '/shop-hero.jpg'}
                     alt={featuredPost.title}
                     fill
+                    sizes="(min-width: 1024px) 58vw, 100vw"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     priority
-                    unoptimized
+                    unoptimized={IMAGE_UNOPTIMIZED}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent lg:hidden" />
                   <div className="absolute top-4 left-4 inline-flex items-center rounded-full bg-[#D99B26] px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-black shadow-sm">
@@ -273,10 +280,9 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
         {/* Categories Bar & Search Filter */}
         <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-ink/10 pb-6">
           {/* Category Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-            <button
-              type="button"
-              onClick={() => handleCategorySelect('all')}
+          <nav aria-label="Article categories" className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+            <Link
+              href="/news"
               className={cx(
                 'whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200',
                 selectedCategory === 'all'
@@ -285,12 +291,11 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
               )}
             >
               All Stories
-            </button>
+            </Link>
             {categories.map((cat) => (
-              <button
+              <Link
                 key={cat.id}
-                type="button"
-                onClick={() => handleCategorySelect(cat.slug)}
+                href={`/news/category/${cat.slug}`}
                 className={cx(
                   'whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200',
                   selectedCategory === cat.slug
@@ -299,9 +304,9 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
                 )}
               >
                 {cat.name}
-              </button>
+              </Link>
             ))}
-          </div>
+          </nav>
 
           {/* Search Box */}
           <div className="relative w-full md:w-72 shrink-0">
@@ -312,9 +317,10 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
             )}
             <input
               type="text"
+              aria-label="Search guides and news"
               placeholder="Search guides & news..."
               value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-full border border-ink/15 bg-white pl-10 pr-4 py-2 text-xs text-ink placeholder:text-ink/40 shadow-2xs focus:border-[#D99B26] focus:outline-none focus:ring-1 focus:ring-[#D99B26]"
             />
           </div>
@@ -352,8 +358,9 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
                     src={post.cover_image || '/shop-hero.jpg'}
                     alt={post.title}
                     fill
+                    sizes="(min-width: 1024px) 33vw, 50vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    unoptimized
+                    unoptimized={IMAGE_UNOPTIMIZED}
                   />
                   {getCategoryName(post) && (
                     <span className="absolute top-2 left-2 sm:top-3 sm:left-3 rounded-full bg-white/95 px-2 py-0.5 sm:px-3 sm:py-1 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-[#8B3A2A] shadow-xs backdrop-blur">
@@ -391,7 +398,7 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
 
                   <div className="mt-2.5 sm:mt-5 pt-2 sm:pt-4 border-t border-ink/5 flex items-center justify-between text-[10px] sm:text-xs">
                     <span className="hidden sm:inline text-[11px] text-ink/50 font-medium truncate max-w-[120px]">
-                      By {post.author_name}
+                      By {post.author_name || DEFAULT_AUTHOR_NAME}
                     </span>
                     <Link
                       href={`/news/${post.slug}`}
@@ -425,8 +432,9 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
           <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-20 hidden md:block">
             <Image
               src="/shop-hero-3.jpg"
-              alt="Dallian Luxe Hair Salon"
+              alt=""
               fill
+              sizes="33vw"
               className="object-cover"
             />
           </div>

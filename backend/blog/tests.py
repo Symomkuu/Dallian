@@ -53,6 +53,29 @@ class BlogTests(TestCase):
         self.assertIn(self.published_post.slug, slugs)
         self.assertNotIn(self.draft_post.slug, slugs)
 
+    def test_public_list_filters_by_category(self):
+        cat2 = BlogCategory.objects.create(name="Styling Tips")
+        post2 = BlogPost.objects.create(
+            title="Heat Styling Secrets",
+            content="Use heat protectant spray.",
+            category=cat2,
+            is_published=True,
+        )
+        url = reverse("blog-posts-list")
+        # Filter by slug
+        res_slug = self.client.get(f"{url}?category={self.category.slug}")
+        self.assertEqual(res_slug.status_code, status.HTTP_200_OK)
+        slugs_by_cat = [p["slug"] for p in res_slug.data["results"]]
+        self.assertIn(self.published_post.slug, slugs_by_cat)
+        self.assertNotIn(post2.slug, slugs_by_cat)
+
+        # Filter by ID
+        res_id = self.client.get(f"{url}?category={cat2.id}")
+        self.assertEqual(res_id.status_code, status.HTTP_200_OK)
+        slugs_by_id = [p["slug"] for p in res_id.data["results"]]
+        self.assertIn(post2.slug, slugs_by_id)
+        self.assertNotIn(self.published_post.slug, slugs_by_id)
+
     def test_public_detail_and_view_tracking(self):
         initial_views = self.published_post.views_count
         detail_url = reverse("blog-post-detail", kwargs={"slug": self.published_post.slug})

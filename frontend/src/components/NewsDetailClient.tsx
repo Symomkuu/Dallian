@@ -19,6 +19,7 @@ import { cx, formatDate } from '@/utils/format';
 import { brand } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
 import { recordBlogPostView } from '@/utils/api';
+import { DEFAULT_AUTHOR_NAME, IMAGE_UNOPTIMIZED } from '@/utils/seo';
 
 interface NewsDetailClientProps {
   post: BlogPost;
@@ -70,7 +71,14 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
     e.preventDefault();
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setActiveHeadingId(id);
+    window.history.replaceState(null, '', `#${id}`);
   };
+
+  const authorName = post.author_name || DEFAULT_AUTHOR_NAME;
+  const publishedIso = post.published_at || post.created_at;
+  const showUpdated =
+    Boolean(post.updated_at) && Boolean(publishedIso) &&
+    (post.updated_at as string).slice(0, 10) !== publishedIso.slice(0, 10);
 
   const shareUrl = `https://dallian.online/news/${post.slug}`;
   const shareTitle = encodeURIComponent(post.title);
@@ -88,11 +96,28 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
     }
   };
 
+  const categoryName =
+    post.category_details?.name ||
+    (typeof post.category === 'object' && post.category !== null ? post.category.name : undefined);
+  const categorySlug =
+    post.category_details?.slug ||
+    (typeof post.category === 'object' && post.category !== null ? post.category.slug : undefined);
+
+  const safeFormatDate = (iso?: string | null) => {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      return isNaN(d.getTime()) ? '' : formatDate(iso);
+    } catch {
+      return '';
+    }
+  };
+
   const displayRelated =
     (relatedPosts && relatedPosts.length > 0 ? relatedPosts : post.related_posts) || [];
 
   return (
-    <article className="min-h-screen bg-[#FAF8F5]">
+    <div className="min-h-screen bg-[#FAF8F5]">
       {/* ── 1. Top Dark Hero Banner (Synowatt style with Dallian Luxury Colors) ── */}
       <section className="relative overflow-hidden bg-[#0A0A0A] pb-16 pt-10 sm:pb-24 sm:pt-14 text-white">
         {/* Subtle Luxury Gold Radial Glow */}
@@ -100,22 +125,35 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumbs */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-white/60">
+          <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-2 text-xs text-white/60">
             <Link href="/" className="hover:text-white transition-colors">
               Home
             </Link>
             <span>&gt;</span>
             <Link href="/news" className="hover:text-white transition-colors">
-              Blog
+              Hair Guides & News
             </Link>
-            {post.category && (
+            {categoryName && (
               <>
                 <span>&gt;</span>
-                <span className="text-[#D99B26] font-medium truncate max-w-[200px]">
-                  {post.category.name}
-                </span>
+                {categorySlug ? (
+                  <Link
+                    href={`/news/category/${categorySlug}`}
+                    className="text-[#D99B26] font-medium truncate max-w-[200px] hover:underline transition-colors"
+                  >
+                    {categoryName}
+                  </Link>
+                ) : (
+                  <span className="text-[#D99B26] font-medium truncate max-w-[200px]">
+                    {categoryName}
+                  </span>
+                )}
               </>
             )}
+            <span>&gt;</span>
+            <span className="text-white/80 truncate max-w-[200px] sm:max-w-xs" aria-current="page">
+              {post.title}
+            </span>
           </nav>
 
           {/* Headline */}
@@ -139,32 +177,41 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
                   alt={brand.name}
                   fill
                   className="object-contain"
-                  unoptimized
+                  unoptimized={IMAGE_UNOPTIMIZED}
                 />
               </div>
               <div className="leading-tight">
                 <p className="font-semibold text-white">
-                  {post.author_name || 'Dallian Luxe Editorial Team'}
+                  <Link href="/about" className="hover:underline">{authorName}</Link>
                 </p>
                 <p className="text-[11px] text-white/50">{brand.name}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-4 text-white/60">
-              <span className="flex items-center gap-1.5">
-                <CalendarIcon className="h-3.5 w-3.5 text-[#D99B26]" />
-                {post.published_at
-                  ? formatDate(post.published_at)
-                  : formatDate(post.created_at)}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <ClockIcon className="h-3.5 w-3.5 text-[#D99B26]" />
-                {post.read_time_minutes} min read
-              </span>
-              <span className="hidden sm:flex items-center gap-1.5">
-                <EyeIcon className="h-3.5 w-3.5 text-[#D99B26]" />
-                {post.views_count.toLocaleString()} views
-              </span>
+              {safeFormatDate(post.published_at || post.created_at) && (
+                <span className="flex items-center gap-1.5">
+                  <CalendarIcon className="h-3.5 w-3.5 text-[#D99B26]" />
+                  <time dateTime={publishedIso}>{safeFormatDate(publishedIso)}</time>
+                </span>
+              )}
+              {showUpdated && safeFormatDate(post.updated_at) && (
+                <span className="hidden sm:inline">
+                  Updated <time dateTime={post.updated_at as string}>{safeFormatDate(post.updated_at)}</time>
+                </span>
+              )}
+              {post.read_time_minutes > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <ClockIcon className="h-3.5 w-3.5 text-[#D99B26]" />
+                  {post.read_time_minutes} min read
+                </span>
+              )}
+              {typeof post.views_count === 'number' && (
+                <span className="hidden sm:flex items-center gap-1.5">
+                  <EyeIcon className="h-3.5 w-3.5 text-[#D99B26]" />
+                  {post.views_count.toLocaleString()} views
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -178,7 +225,7 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
             <div
               className="absolute inset-0 scale-110 opacity-30 blur-2xl pointer-events-none"
               style={{
-                backgroundImage: `url(${post.cover_image})`,
+                backgroundImage: `url(${JSON.stringify(post.cover_image)})`,
                 backgroundPosition: 'center',
                 backgroundSize: 'cover',
               }}
@@ -191,7 +238,8 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
               height={800}
               className="relative z-10 mx-auto max-h-[500px] sm:max-h-[560px] w-auto max-w-full object-contain"
               priority
-              unoptimized
+              sizes="(min-width: 1024px) 1024px, 100vw"
+              unoptimized={IMAGE_UNOPTIMIZED}
             />
           </div>
         </div>
@@ -299,13 +347,13 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
                       alt={brand.name}
                       fill
                       className="object-contain"
-                      unoptimized
+                      unoptimized={IMAGE_UNOPTIMIZED}
                     />
                   </div>
                   <div>
                     <p className="text-[9px] uppercase tracking-wider text-ink/50 font-bold">Written by</p>
                     <p className="font-serif text-xs font-semibold text-ink leading-tight">
-                      {post.author_name || 'Dallian Luxe Studio'}
+                      <Link href="/about" className="hover:text-[#8B3A2A] transition-colors">{authorName}</Link>
                     </p>
                   </div>
                 </div>
@@ -316,9 +364,9 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
 
               {/* 4. Luxury Salon Consultation CTA Box */}
               <div className="rounded-2xl bg-[#0A0A0A] p-4 text-white shadow-card border border-white/10">
-                <h4 className="font-serif text-sm font-medium leading-snug">
+                <p className="font-serif text-sm font-medium leading-snug">
                   Have questions about our wigs or services?
-                </h4>
+                </p>
                 <p className="mt-1.5 text-[11px] text-white/70 leading-relaxed font-light">
                   Talk to our stylists about custom unit plucking, styling, or revamping.
                 </p>
@@ -329,6 +377,12 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
                   >
                     <ShoppingBagIcon className="h-3 w-3" />
                     Shop Luxury Wigs
+                  </Link>
+                  <Link
+                    href="/services"
+                    className="inline-flex items-center justify-center rounded-full px-3 py-1.5 text-[11px] font-medium text-white/80 underline decoration-[#D99B26] underline-offset-4 hover:text-[#D99B26] transition-colors"
+                  >
+                    Explore studio services
                   </Link>
                   <a
                     href={`https://wa.me/${brand.phoneIntl}?text=Hi%20Dallian,%20I%20read%20your%20article%20'${encodeURIComponent(post.title)}'%20and%20would%20like%20to%20inquire.`}
@@ -433,12 +487,12 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
                     alt={brand.name}
                     fill
                     className="object-contain"
-                    unoptimized
+                    unoptimized={IMAGE_UNOPTIMIZED}
                   />
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wider text-ink/50 font-medium">Written by</p>
-                  <p className="font-serif text-base font-medium text-ink">{post.author_name || 'Dallian Luxe Studio'}</p>
+                  <p className="font-serif text-base font-medium text-ink"><Link href="/about" className="hover:text-[#8B3A2A] transition-colors">{authorName}</Link></p>
                   <p className="mt-1 text-xs leading-relaxed text-ink/70 font-light">
                     Practical hair care rituals and styling guidance from the stylists at Dallian Luxe Hair Studio in Nairobi.
                   </p>
@@ -447,9 +501,9 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
 
               {/* Mobile CTA */}
               <div className="rounded-3xl bg-[#0A0A0A] p-6 text-white shadow-card border border-white/10">
-                <h3 className="font-serif text-xl font-normal leading-tight">
+                <p className="font-serif text-xl font-normal leading-tight">
                   Have questions about our wigs or salon services?
-                </h3>
+                </p>
                 <p className="mt-2 text-xs text-white/80 leading-relaxed font-light">
                   Talk to Dallian Luxe Hair Studio about custom unit plucking, styling, or revamping needs.
                 </p>
@@ -460,6 +514,12 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
                   >
                     <ShoppingBagIcon className="h-4 w-4" />
                     Shop Luxury Wigs
+                  </Link>
+                  <Link
+                    href="/services"
+                    className="inline-flex items-center justify-center rounded-full px-5 py-2 text-xs font-medium text-white/80 underline decoration-[#D99B26] underline-offset-4 hover:text-[#D99B26] transition-colors"
+                  >
+                    Explore studio services
                   </Link>
                   <a
                     href={`https://wa.me/${brand.phoneIntl}?text=Hi%20Dallian,%20I%20read%20your%20article%20'${encodeURIComponent(post.title)}'%20and%20would%20like%20to%20inquire.`}
@@ -512,14 +572,23 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
                       src={rel.cover_image || '/shop-hero.jpg'}
                       alt={rel.title}
                       fill
+                      sizes="(min-width: 1024px) 25vw, 50vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      unoptimized
+                      unoptimized={IMAGE_UNOPTIMIZED}
                     />
-                    {rel.category && (
-                      <span className="absolute top-2 left-2 sm:top-3 sm:left-3 rounded-full bg-white/95 backdrop-blur-xs px-2 py-0.5 sm:px-3 sm:py-1 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-[#8B3A2A] shadow-xs">
-                        {rel.category.name}
-                      </span>
-                    )}
+                    {(() => {
+                      const relCatName =
+                        rel.category_details?.name ||
+                        (typeof rel.category === 'object' && rel.category !== null
+                          ? rel.category.name
+                          : undefined);
+                      if (!relCatName) return null;
+                      return (
+                        <span className="absolute top-2 left-2 sm:top-3 sm:left-3 rounded-full bg-white/95 backdrop-blur-xs px-2 py-0.5 sm:px-3 sm:py-1 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-[#8B3A2A] shadow-xs">
+                          {relCatName}
+                        </span>
+                      );
+                    })()}
                   </Link>
 
                   <div className="p-3 sm:p-5 flex-1 flex flex-col justify-between">
@@ -529,16 +598,20 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
                           <ClockIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#D99B26]" />
                           {rel.read_time_minutes} min read
                         </span>
-                        <span className="hidden sm:inline">•</span>
-                        <span className="hidden sm:inline">
-                          {rel.published_at ? formatDate(rel.published_at) : formatDate(rel.created_at)}
-                        </span>
+                        {safeFormatDate(rel.published_at || rel.created_at) && (
+                          <>
+                            <span className="hidden sm:inline">•</span>
+                            <span className="hidden sm:inline">
+                              {safeFormatDate(rel.published_at || rel.created_at)}
+                            </span>
+                          </>
+                        )}
                       </div>
 
                       <Link href={`/news/${rel.slug}`}>
-                        <h4 className="mt-1 sm:mt-2.5 font-serif text-xs sm:text-base text-ink font-medium group-hover:text-[#8B3A2A] transition-colors line-clamp-2 leading-snug">
+                        <h3 className="mt-1 sm:mt-2.5 font-serif text-xs sm:text-base text-ink font-medium group-hover:text-[#8B3A2A] transition-colors line-clamp-2 leading-snug">
                           {rel.title}
-                        </h4>
+                        </h3>
                       </Link>
 
                       <p className="mt-1.5 text-xs text-ink/65 line-clamp-2 leading-relaxed font-light hidden sm:block">
@@ -561,6 +634,6 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
           </div>
         </section>
       )}
-    </article>
+    </div>
   );
 }

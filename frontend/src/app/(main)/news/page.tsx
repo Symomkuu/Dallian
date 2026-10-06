@@ -3,23 +3,25 @@ import { NewsPageClient } from '@/components/NewsPageClient';
 import { API_BASE_URL } from '@/utils/api';
 import type { BlogPost, BlogCategory } from '@/types';
 import { brand } from '@/data/brand';
+import { absoluteUrl, buildAuthorSchema, jsonLd } from '@/utils/seo';
 
 export const metadata: Metadata = {
   title: 'Latest News & Hair Guides | Dallian Luxe Hair Studio Nairobi',
   description:
     'Read expert wig maintenance tips, HD lace care rituals, virgin hair trends, and salon styling secrets from Dallian Luxe Hair in Nairobi, Kenya.',
-  keywords: [
-    'wig care tips nairobi',
-    'how to care for hd lace kenya',
-    'virgin human hair maintenance',
-    'bone straight wigs nairobi',
-    'glueless wigs kenya',
-    'wig revamping salon thika road',
-    'dallian luxe hair journal',
-    'hair trends nairobi',
-  ],
   alternates: {
     canonical: 'https://dallian.online/news',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   openGraph: {
     title: 'Latest News & Hair Care Guides | Dallian Luxe Hair Studio Nairobi',
@@ -27,6 +29,8 @@ export const metadata: Metadata = {
       'Expert advice on virgin hair wigs, HD lace care, and luxury styling rituals in Nairobi, Kenya.',
     url: 'https://dallian.online/news',
     siteName: brand.name,
+    locale: 'en_KE',
+    type: 'website',
     images: [
       {
         url: 'https://dallian.online/shop-hero.jpg',
@@ -46,10 +50,7 @@ export const metadata: Metadata = {
 };
 
 async function getBlogData() {
-  let initialPosts: BlogPost[] = [];
-  let categories: BlogCategory[] = [];
-
-  const [postsRes, catRes] = await Promise.allSettled([
+  const [postsRes, catRes] = await Promise.all([
     fetch(`${API_BASE_URL}/api/blog/posts/?page_size=50`, {
       next: { revalidate: 60 },
     }),
@@ -58,27 +59,22 @@ async function getBlogData() {
     }),
   ]);
 
-  if (postsRes.status === 'fulfilled' && postsRes.value.ok) {
-    try {
-      const postsData = await postsRes.value.json();
-      initialPosts = Array.isArray(postsData)
-        ? postsData
-        : Array.isArray(postsData.results)
-        ? postsData.results
-        : [];
-    } catch (err) {
-      console.error('Failed to parse blog posts JSON:', err);
-    }
+  if (!postsRes.ok) {
+    throw new Error(`Blog posts API failed with status ${postsRes.status}`);
+  }
+  if (!catRes.ok) {
+    throw new Error(`Blog categories API failed with status ${catRes.status}`);
   }
 
-  if (catRes.status === 'fulfilled' && catRes.value.ok) {
-    try {
-      const catData = await catRes.value.json();
-      categories = Array.isArray(catData) ? catData : [];
-    } catch (err) {
-      console.error('Failed to parse blog categories JSON:', err);
-    }
-  }
+  const [postsData, catData] = await Promise.all([postsRes.json(), catRes.json()]);
+
+  const initialPosts: BlogPost[] = Array.isArray(postsData)
+    ? postsData
+    : Array.isArray(postsData.results)
+    ? postsData.results
+    : [];
+
+  const categories: BlogCategory[] = Array.isArray(catData) ? catData : [];
 
   return { initialPosts, categories };
 }
@@ -96,7 +92,9 @@ export default async function NewsListingPage() {
     inLanguage: 'en',
     publisher: {
       '@type': 'Organization',
+      '@id': 'https://dallian.online/#organization',
       name: brand.name,
+      url: 'https://dallian.online',
       logo: {
         '@type': 'ImageObject',
         url: 'https://dallian.online/logo.png',
@@ -107,20 +105,19 @@ export default async function NewsListingPage() {
       headline: post.title,
       description: post.excerpt,
       url: `https://dallian.online/news/${post.slug}`,
-      image: post.cover_image || 'https://dallian.online/shop-hero.jpg',
+      image: absoluteUrl(post.cover_image),
       datePublished: post.published_at || post.created_at,
       dateModified: post.updated_at || post.published_at || post.created_at,
       articleSection:
         post.category_details?.name ||
-        (typeof post.category === 'object' ? post.category?.name : undefined),
+        (typeof post.category === 'object' && post.category !== null
+          ? post.category.name
+          : undefined),
       mainEntityOfPage: {
         '@type': 'WebPage',
         '@id': `https://dallian.online/news/${post.slug}`,
       },
-      author: {
-        '@type': 'Person',
-        name: post.author_name || 'Dallian Luxe Stylists',
-      },
+      author: buildAuthorSchema(post.author_name),
     })),
   };
 
@@ -137,7 +134,7 @@ export default async function NewsListingPage() {
       {
         '@type': 'ListItem',
         position: 2,
-        name: 'Latest News & Hair Guides',
+        name: 'Hair Guides & News',
         item: 'https://dallian.online/news',
       },
     ],
@@ -146,10 +143,10 @@ export default async function NewsListingPage() {
   return (
     <>
       <script type="application/ld+json" key="news-list-jsonld">
-        {JSON.stringify(blogListSchema)}
+        {jsonLd(blogListSchema)}
       </script>
       <script type="application/ld+json" key="news-breadcrumbs-jsonld">
-        {JSON.stringify(breadcrumbsSchema)}
+        {jsonLd(breadcrumbsSchema)}
       </script>
       <NewsPageClient initialPosts={initialPosts} categories={categories} />
     </>

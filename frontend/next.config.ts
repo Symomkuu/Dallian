@@ -16,6 +16,22 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/news',
+        has: [
+          {
+            type: 'query',
+            key: 'category',
+            value: '(?<slug>[^&]+)',
+          },
+        ],
+        destination: '/news/category/:slug',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
