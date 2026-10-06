@@ -13,45 +13,43 @@ interface CategoryPageProps {
 
 /** Memoized category & post getter to deduplicate metadata & page server component executions */
 const getCategoryData = cache(async (slug: string) => {
-  const [postsRes, catRes] = await Promise.all([
-    fetch(`${API_BASE_URL}/api/blog/posts/?category=${encodeURIComponent(slug)}&page_size=50`, {
-      next: { revalidate: 60 },
-    }),
-    fetch(`${API_BASE_URL}/api/blog/categories/`, {
-      next: { revalidate: 300 },
-    }),
-  ]);
+  try {
+    const [postsRes, catRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/api/blog/posts/?category=${encodeURIComponent(slug)}&page_size=50`, {
+        next: { revalidate: 60 },
+      }),
+      fetch(`${API_BASE_URL}/api/blog/categories/`, {
+        next: { revalidate: 300 },
+      }),
+    ]);
 
-  if (catRes.status === 404) {
+    if (!catRes.ok) {
+      return { posts: [] as BlogPost[], categories: [] as BlogCategory[], currentCategory: null };
+    }
+
+    const catData = await catRes.json();
+    const categories: BlogCategory[] = Array.isArray(catData) ? catData : [];
+    const currentCategory = categories.find((c) => c.slug === slug) || null;
+
+    if (!currentCategory) {
+      return { posts: [] as BlogPost[], categories, currentCategory: null };
+    }
+
+    let posts: BlogPost[] = [];
+    if (postsRes.ok) {
+      const postsData = await postsRes.json();
+      posts = Array.isArray(postsData)
+        ? postsData
+        : Array.isArray(postsData.results)
+        ? postsData.results
+        : [];
+    }
+
+    return { posts, categories, currentCategory };
+  } catch (err) {
+    console.warn(`Failed to fetch blog data for category ${slug}:`, err);
     return { posts: [] as BlogPost[], categories: [] as BlogCategory[], currentCategory: null };
   }
-  if (!catRes.ok) {
-    throw new Error(`Blog categories API responded with status ${catRes.status}`);
-  }
-
-  const catData = await catRes.json();
-  const categories: BlogCategory[] = Array.isArray(catData) ? catData : [];
-  const currentCategory = categories.find((c) => c.slug === slug) || null;
-
-  if (!currentCategory) {
-    return { posts: [] as BlogPost[], categories, currentCategory: null };
-  }
-
-  let posts: BlogPost[] = [];
-  if (postsRes.status === 404) {
-    posts = [];
-  } else if (!postsRes.ok) {
-    throw new Error(`Blog posts by category API responded with status ${postsRes.status}`);
-  } else {
-    const postsData = await postsRes.json();
-    posts = Array.isArray(postsData)
-      ? postsData
-      : Array.isArray(postsData.results)
-      ? postsData.results
-      : [];
-  }
-
-  return { posts, categories, currentCategory };
 });
 
 export async function generateStaticParams() {

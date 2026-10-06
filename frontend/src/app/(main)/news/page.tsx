@@ -51,41 +51,49 @@ export const metadata: Metadata = {
 };
 
 async function getBlogData() {
-  const [postsRes, catRes] = await Promise.all([
-    fetch(`${API_BASE_URL}/api/blog/posts/?page_size=50`, {
-      next: { revalidate: 60 },
-    }),
-    fetch(`${API_BASE_URL}/api/blog/categories/`, {
-      next: { revalidate: 300 },
-    }),
-  ]);
+  try {
+    const [postsRes, catRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/api/blog/posts/?page_size=50`, {
+        next: { revalidate: 60 },
+      }),
+      fetch(`${API_BASE_URL}/api/blog/categories/`, {
+        next: { revalidate: 300 },
+      }),
+    ]);
 
-  // Posts are essential: throw so Next keeps serving the last good cached page
-  // instead of caching an empty listing.
-  if (!postsRes.ok) {
-    throw new Error(`Blog posts API failed with status ${postsRes.status}`);
-  }
-  const postsData = await postsRes.json();
-  const initialPosts: BlogPost[] = Array.isArray(postsData)
-    ? postsData
-    : Array.isArray(postsData.results)
-    ? postsData.results
-    : [];
-
-  // Categories are secondary: a failure here must not take the whole page down.
-  let categories: BlogCategory[] = [];
-  if (catRes.ok) {
-    try {
-      const catData = await catRes.json();
-      categories = Array.isArray(catData) ? catData : [];
-    } catch (err) {
-      console.error('Failed to parse blog categories JSON:', err);
+    let initialPosts: BlogPost[] = [];
+    if (postsRes.ok) {
+      try {
+        const postsData = await postsRes.json();
+        initialPosts = Array.isArray(postsData)
+          ? postsData
+          : Array.isArray(postsData.results)
+          ? postsData.results
+          : [];
+      } catch (err) {
+        console.error('Failed to parse blog posts JSON:', err);
+      }
+    } else {
+      console.warn(`Blog posts API returned status ${postsRes.status}. Using fallback empty list.`);
     }
-  } else {
-    console.error(`Blog categories API failed with status ${catRes.status}`);
-  }
 
-  return { initialPosts, categories };
+    let categories: BlogCategory[] = [];
+    if (catRes.ok) {
+      try {
+        const catData = await catRes.json();
+        categories = Array.isArray(catData) ? catData : [];
+      } catch (err) {
+        console.error('Failed to parse blog categories JSON:', err);
+      }
+    } else {
+      console.warn(`Blog categories API returned status ${catRes.status}. Using fallback empty list.`);
+    }
+
+    return { initialPosts, categories };
+  } catch (err) {
+    console.warn('Failed to fetch blog data at build/request time:', err);
+    return { initialPosts: [], categories: [] };
+  }
 }
 
 export default async function NewsListingPage() {
