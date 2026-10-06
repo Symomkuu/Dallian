@@ -89,6 +89,7 @@ class BlogTests(TestCase):
                 is_published=True,
             )
 
+
         url = reverse("blog-posts-list")
         # Queries: 1 count for pagination, 1 select posts with select_related category, 1 batch category counts
         with self.assertNumQueries(3):
