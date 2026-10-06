@@ -58,7 +58,8 @@ class PublicBlogPostDetailView(APIView):
 
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request, slug):
+    @staticmethod
+    def get(request, slug):
         try:
             post = BlogPost.objects.select_related("category").get(slug=slug, is_published=True)
         except BlogPost.DoesNotExist:

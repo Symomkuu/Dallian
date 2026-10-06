@@ -34,6 +34,7 @@ class BlogPostListSerializer(serializers.ModelSerializer):
             "read_time_minutes",
             "views_count",
             "created_at",
+            "updated_at",
         ]
 
 

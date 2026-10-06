@@ -66,8 +66,8 @@ async function getBlogData() {
         : Array.isArray(postsData.results)
         ? postsData.results
         : [];
-    } catch {
-      // JSON parse fallback
+    } catch (err) {
+      console.error('Failed to parse blog posts JSON:', err);
     }
   }
 
@@ -75,8 +75,8 @@ async function getBlogData() {
     try {
       const catData = await catRes.value.json();
       categories = Array.isArray(catData) ? catData : [];
-    } catch {
-      // JSON parse fallback
+    } catch (err) {
+      console.error('Failed to parse blog categories JSON:', err);
     }
   }
 

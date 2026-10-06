@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowRightIcon,
   BookOpenIcon,
   ClockIcon,
+  Loader2Icon,
   MessageCircleIcon,
   SearchIcon,
 } from 'lucide-react';
@@ -20,27 +21,131 @@ interface NewsPageClientProps {
   categories: BlogCategory[];
 }
 
+function getCategoryName(post?: BlogPost | null): string | null {
+  if (!post) return null;
+  if (post.category_details?.name) return post.category_details.name;
+  if (typeof post.category === 'object' && post.category?.name) return post.category.name;
+  return null;
+}
+
 export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [posts, setPosts] = useState<BlogPost[]>(initialPosts);
-  const [page, setPage] = useState<number>(1);
-  const [hasMore, setHasMore] = useState<boolean>(initialPosts.length >= 50);
+  const [debouncedQuery, setDebouncedQuery] = useState<string>('');
+
+  // Default SSR posts state
+  const [defaultPosts, setDefaultPosts] = useState<BlogPost[]>(initialPosts);
+  const [defaultPage, setDefaultPage] = useState<number>(1);
+  const [defaultHasMore, setDefaultHasMore] = useState<boolean>(initialPosts.length >= 50);
+
+  // Filtered/search posts state
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
+  const [filteredPage, setFilteredPage] = useState<number>(1);
+  const [filteredHasMore, setFilteredHasMore] = useState<boolean>(false);
+
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+
+  // Debounce search input by 350ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const isDefaultView = selectedCategory === 'all' && !debouncedQuery;
+  const posts = isDefaultView ? defaultPosts : filteredPosts;
+  const hasMore = isDefaultView ? defaultHasMore : filteredHasMore;
+
+  // Re-fetch from backend whenever category filter or search query is active
+  useEffect(() => {
+    if (isDefaultView) {
+      return;
+    }
+
+    let isCurrent = true;
+
+    fetchBlogPosts({
+      category: selectedCategory !== 'all' ? selectedCategory : undefined,
+      search: debouncedQuery || undefined,
+      page: 1,
+      page_size: 20,
+    })
+      .then((res) => {
+        if (!isCurrent) return;
+        setFilteredPosts(res.results || []);
+        setFilteredPage(1);
+        setFilteredHasMore(Boolean(res.next));
+      })
+      .catch((err) => {
+        console.error('Failed to filter blog posts:', err);
+        if (!isCurrent) return;
+        setFilteredPosts([]);
+        setFilteredHasMore(false);
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsSearching(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [isDefaultView, selectedCategory, debouncedQuery]);
+
+  const handleCategorySelect = (slug: string) => {
+    setSelectedCategory(slug);
+    if (slug !== 'all' || debouncedQuery) {
+      setIsSearching(true);
+    }
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    if (val.trim() || selectedCategory !== 'all') {
+      setIsSearching(true);
+    }
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setIsSearching(false);
+  };
 
   const handleLoadMore = async () => {
     try {
       setLoadingMore(true);
-      const nextPage = page + 1;
-      const res = await fetchBlogPosts({ page: nextPage, page_size: 20 });
-      const newItems = res.results || [];
-      setPosts((prev) => {
-        const existingIds = new Set(prev.map((p) => p.id));
-        const filtered = newItems.filter((p) => !existingIds.has(p.id));
-        return [...prev, ...filtered];
-      });
-      setPage(nextPage);
-      setHasMore(Boolean(res.next));
+      if (isDefaultView) {
+        const nextPage = defaultPage + 1;
+        const res = await fetchBlogPosts({ page: nextPage, page_size: 20 });
+        const newItems = res.results || [];
+        setDefaultPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const filtered = newItems.filter((p) => !existingIds.has(p.id));
+          return [...prev, ...filtered];
+        });
+        setDefaultPage(nextPage);
+        setDefaultHasMore(Boolean(res.next));
+      } else {
+        const nextPage = filteredPage + 1;
+        const res = await fetchBlogPosts({
+          category: selectedCategory !== 'all' ? selectedCategory : undefined,
+          search: debouncedQuery || undefined,
+          page: nextPage,
+          page_size: 20,
+        });
+        const newItems = res.results || [];
+        setFilteredPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const filtered = newItems.filter((p) => !existingIds.has(p.id));
+          return [...prev, ...filtered];
+        });
+        setFilteredPage(nextPage);
+        setFilteredHasMore(Boolean(res.next));
+      }
     } catch (err) {
       console.error('Failed to load more posts:', err);
     } finally {
@@ -57,31 +162,17 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
     });
   }, [posts]);
 
-  const filteredPosts = useMemo(() => {
-    return sortedPosts.filter((post) => {
-      const matchCat =
-        selectedCategory === 'all' || post.category?.slug === selectedCategory;
-      const matchSearch =
-        !searchQuery.trim() ||
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.tags.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchCat && matchSearch;
-    });
-  }, [sortedPosts, selectedCategory, searchQuery]);
-
-  // Featured hero article (the single featured post, or the newest post)
+  // Featured hero article (shown only in default view when browsing "all" without active search)
   const featuredPost = useMemo(() => {
+    if (!isDefaultView) return null;
     return sortedPosts.find((p) => p.is_featured) || sortedPosts[0];
-  }, [sortedPosts]);
+  }, [sortedPosts, isDefaultView]);
 
-  // Grid posts: excluding featured if no search/filter active, strictly newest first
+  // Grid posts: excluding featured if default view, otherwise show all matching posts
   const gridPosts = useMemo(() => {
-    if (searchQuery.trim() || selectedCategory !== 'all') {
-      return filteredPosts;
-    }
-    return filteredPosts.filter((p) => p.id !== featuredPost?.id);
-  }, [filteredPosts, featuredPost, searchQuery, selectedCategory]);
+    if (!featuredPost) return sortedPosts;
+    return sortedPosts.filter((p) => p.id !== featuredPost.id);
+  }, [sortedPosts, featuredPost]);
 
   return (
     <div className="bg-[#FAF8F5] min-h-screen">
@@ -113,7 +204,7 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
       {/* Main Container */}
       <div className="mx-auto max-w-page px-4 py-10 sm:px-8 sm:py-16">
         {/* Featured Story Hero (when browsing all without query) */}
-        {!searchQuery && selectedCategory === 'all' && featuredPost && (
+        {featuredPost && (
           <div className="mb-14">
             <div className="group relative overflow-hidden rounded-3xl border border-ink/10 bg-white shadow-card transition-all duration-300 hover:shadow-lg">
               <div className="grid lg:grid-cols-12 items-stretch">
@@ -134,9 +225,9 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
 
                 <div className="flex flex-col justify-between p-6 sm:p-10 lg:col-span-5">
                   <div>
-                    {featuredPost.category && (
+                    {getCategoryName(featuredPost) && (
                       <span className="text-xs font-semibold uppercase tracking-wider text-[#8B3A2A]">
-                        {featuredPost.category.name}
+                        {getCategoryName(featuredPost)}
                       </span>
                     )}
 
@@ -185,7 +276,7 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
           <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
             <button
               type="button"
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => handleCategorySelect('all')}
               className={cx(
                 'whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200',
                 selectedCategory === 'all'
@@ -199,7 +290,7 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
               <button
                 key={cat.id}
                 type="button"
-                onClick={() => setSelectedCategory(cat.slug)}
+                onClick={() => handleCategorySelect(cat.slug)}
                 className={cx(
                   'whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200',
                   selectedCategory === cat.slug
@@ -214,19 +305,23 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
 
           {/* Search Box */}
           <div className="relative w-full md:w-72 shrink-0">
-            <SearchIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
+            {isSearching ? (
+              <Loader2Icon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[#D99B26]" />
+            ) : (
+              <SearchIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
+            )}
             <input
               type="text"
               placeholder="Search guides & news..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full rounded-full border border-ink/15 bg-white pl-10 pr-4 py-2 text-xs text-ink placeholder:text-ink/40 shadow-2xs focus:border-[#D99B26] focus:outline-none focus:ring-1 focus:ring-[#D99B26]"
             />
           </div>
         </div>
 
         {/* Articles Grid */}
-        {filteredPosts.length === 0 ? (
+        {sortedPosts.length === 0 && !isSearching ? (
           <div className="rounded-3xl border border-ink/10 bg-white p-12 text-center shadow-card">
             <BookOpenIcon className="mx-auto h-12 w-12 text-ink/20" />
             <h3 className="mt-4 font-serif text-xl text-ink">No articles match your search</h3>
@@ -235,17 +330,14 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
             </p>
             <button
               type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory('all');
-              }}
+              onClick={handleResetFilters}
               className="mt-5 rounded-full bg-[#D99B26] px-5 py-2 text-xs font-semibold uppercase tracking-wider text-black shadow-xs hover:bg-[#c88d1f]"
             >
               Reset Filters
             </button>
           </div>
         ) : gridPosts.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={cx('grid grid-cols-2 gap-3 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3', isSearching && 'opacity-60 transition-opacity')}>
             {gridPosts.map((post) => (
               <article
                 key={post.id}
@@ -263,9 +355,9 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     unoptimized
                   />
-                  {post.category && (
+                  {getCategoryName(post) && (
                     <span className="absolute top-2 left-2 sm:top-3 sm:left-3 rounded-full bg-white/95 px-2 py-0.5 sm:px-3 sm:py-1 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-[#8B3A2A] shadow-xs backdrop-blur">
-                      {post.category.name}
+                      {getCategoryName(post)}
                     </span>
                   )}
                 </Link>
@@ -315,7 +407,7 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
         ) : null}
 
         {/* Load More Stories Button */}
-        {hasMore && (
+        {hasMore && !isSearching && (
           <div className="mt-12 text-center">
             <button
               type="button"
