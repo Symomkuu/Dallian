@@ -78,3 +78,61 @@ class BlogTests(TestCase):
         resp_staff = self.client.get(url)
         self.assertEqual(resp_staff.status_code, status.HTTP_200_OK)
         self.assertEqual(resp_staff.data["count"], 2)
+
+    def test_create_post_with_category_id(self):
+        """Verify submitting category_id correctly links the category."""
+        self.client.force_authenticate(user=self.staff_user)
+        url = reverse("dashboard-blog-post-list")
+        payload = {
+            "title": "Frontal Installation 101",
+            "content": "Tips on glue application.",
+            "category_id": self.category.id,
+            "is_published": True,
+        }
+        res = self.client.post(url, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        new_post = BlogPost.objects.get(id=res.data["id"])
+        self.assertEqual(new_post.category, self.category)
+        self.assertEqual(res.data["category"], self.category.id)
+        self.assertEqual(res.data["category_details"]["id"], self.category.id)
+
+    def test_duplicate_title_slug_collision_resolution(self):
+        """Verify creating a second post with identical title auto-resolves slug without crashing."""
+        self.client.force_authenticate(user=self.staff_user)
+        url = reverse("dashboard-blog-post-list")
+        payload = {
+            "title": self.published_post.title,
+            "slug": self.published_post.slug,
+            "content": "Duplicate content.",
+            "is_published": False,
+        }
+        res = self.client.post(url, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(res.data["slug"], self.published_post.slug)
+        self.assertTrue(res.data["slug"].startswith(self.published_post.slug))
+
+    def test_featuring_draft_does_not_unfeature_live_story(self):
+        """A draft cannot be featured, and does not unfeature published hero story."""
+        self.published_post.is_featured = True
+        self.published_post.save()
+        self.published_post.refresh_from_db()
+        self.assertTrue(self.published_post.is_featured)
+
+        # Try to feature a draft
+        self.draft_post.is_featured = True
+        self.draft_post.save()
+        self.draft_post.refresh_from_db()
+        self.assertFalse(self.draft_post.is_featured)
+
+        # Published post remains featured
+        self.published_post.refresh_from_db()
+        self.assertTrue(self.published_post.is_featured)
+
+    def test_blog_stats_action(self):
+        self.client.force_authenticate(user=self.staff_user)
+        url = reverse("dashboard-blog-post-stats")
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["total"], 2)
+        self.assertEqual(res.data["published"], 1)
+        self.assertEqual(res.data["draft"], 1)

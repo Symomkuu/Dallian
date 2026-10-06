@@ -130,8 +130,9 @@ export interface BlogPost {
   excerpt: string;
   content: string;
   cover_image: string;
-  category?: BlogCategory | null;
+  category?: BlogCategory | number | null;
   category_id?: number | null;
+  category_details?: BlogCategory | null;
   tags: string;
   author_name: string;
   is_published: boolean;
@@ -145,4 +146,11 @@ export interface BlogPost {
   created_at: string;
   updated_at?: string;
   related_posts?: BlogPost[];
+}
+
+export interface BlogStats {
+  total: number;
+  published: number;
+  draft: number;
+  total_views: number;
 }

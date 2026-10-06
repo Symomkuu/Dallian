@@ -18,6 +18,7 @@ import type { BlogPost } from '@/types';
 import { cx, formatDate } from '@/utils/format';
 import { brand } from '@/data/brand';
 import { useStore } from '@/contexts/StoreContext';
+import { recordBlogPostView } from '@/utils/api';
 
 interface NewsDetailClientProps {
   post: BlogPost;
@@ -33,6 +34,13 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
 
   const { blocks, toc } = useMemo(() => parseArticleBlocks(post.content), [post.content]);
   const activeId = activeHeadingId || (toc[0]?.id ?? '');
+
+  // Record real reader view on mount
+  useEffect(() => {
+    if (post.slug) {
+      recordBlogPostView(post.slug).catch(() => {});
+    }
+  }, [post.slug]);
 
   // Synowatt IntersectionObserver scroll-spy with rootMargin: '-110px 0px -65% 0px'
   useEffect(() => {
@@ -79,9 +87,7 @@ export function NewsDetailClient({ post, relatedPosts }: NewsDetailClientProps) 
   };
 
   const displayRelated =
-    post.related_posts && post.related_posts.length > 0
-      ? post.related_posts
-      : relatedPosts || [];
+    (relatedPosts && relatedPosts.length > 0 ? relatedPosts : post.related_posts) || [];
 
   return (
     <article className="min-h-screen bg-[#FAF8F5]">

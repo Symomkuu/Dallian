@@ -1,7 +1,8 @@
 """Views for the blog app: public storefront and staff dashboard."""
 
-from django.db.models import F, Q
+from django.db.models import F, Q, Sum
 from rest_framework import generics, permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -70,6 +71,13 @@ class PublicBlogPostDetailView(APIView):
         serializer = BlogPostDetailSerializer(post, context={"request": request})
         return Response(serializer.data)
 
+    def post(self, request, slug):
+        """Track reader page view without cache poisoning."""
+        updated = BlogPost.objects.filter(slug=slug, is_published=True).update(views_count=F("views_count") + 1)
+        if not updated:
+            return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"status": "view_counted"})
+
 
 class PublicBlogCategoryListView(generics.ListAPIView):
     """List all categories that have published posts."""
@@ -94,6 +102,20 @@ class AdminBlogPostViewSet(viewsets.ModelViewSet):
     serializer_class = AdminBlogPostSerializer
     permission_classes = [IsStaffRole]
     pagination_class = BlogPagination
+
+    @action(detail=False, methods=["get"])
+    def stats(self, request):
+        """Return total, published, draft, and view counts across the entire store."""
+        total = BlogPost.objects.count()
+        published = BlogPost.objects.filter(is_published=True).count()
+        draft = BlogPost.objects.filter(is_published=False).count()
+        total_views = BlogPost.objects.aggregate(total_views=Sum("views_count"))["total_views"] or 0
+        return Response({
+            "total": total,
+            "published": published,
+            "draft": draft,
+            "total_views": total_views,
+        })
 
     def get_queryset(self):
         qs = super().get_queryset()

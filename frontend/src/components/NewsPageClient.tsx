@@ -201,7 +201,7 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
         </div>
 
         {/* Articles Grid */}
-        {gridPosts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <div className="rounded-3xl border border-ink/10 bg-white p-12 text-center shadow-card">
             <BookOpenIcon className="mx-auto h-12 w-12 text-ink/20" />
             <h3 className="mt-4 font-serif text-xl text-ink">No articles match your search</h3>
@@ -219,7 +219,7 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
               Reset Filters
             </button>
           </div>
-        ) : (
+        ) : gridPosts.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {gridPosts.map((post) => (
               <article
@@ -287,7 +287,7 @@ export function NewsPageClient({ initialPosts, categories }: NewsPageClientProps
               </article>
             ))}
           </div>
-        )}
+        ) : null}
 
         {/* Studio Appointment & Wig Consultation CTA Banner */}
         <section className="mt-20 overflow-hidden rounded-3xl bg-black p-8 sm:p-12 text-white relative">

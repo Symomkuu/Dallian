@@ -1,9 +1,7 @@
-"""Staff Dashboard URLs for managing blogs and categories."""
-
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 from blog.views import AdminBlogCategoryViewSet, AdminBlogPostViewSet
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register("categories", AdminBlogCategoryViewSet, basename="dashboard-blog-category")
 router.register("", AdminBlogPostViewSet, basename="dashboard-blog-post")
 

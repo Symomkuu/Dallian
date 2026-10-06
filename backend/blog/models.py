@@ -123,15 +123,18 @@ class BlogPost(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        # Auto slugify title if not specified
+        # Auto slugify title if not specified, and resolve any duplicate collisions
         if not self.slug:
             base_slug = slugify(self.title) or "post"
-            slug = base_slug
-            counter = 1
-            while BlogPost.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            self.slug = slug
+        else:
+            base_slug = slugify(self.slug) or "post"
+
+        slug = base_slug[:190]
+        counter = 1
+        while BlogPost.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{base_slug[:185]}-{counter}"
+            counter += 1
+        self.slug = slug
 
         # Calculate read time based on 200 words per minute if not set or default
         if self.content:
@@ -150,8 +153,10 @@ class BlogPost(models.Model):
         if not self.meta_description and self.excerpt:
             self.meta_description = self.excerpt[:160]
 
-        # Enforce single top featured story: unmark any other featured posts
-        if self.is_featured:
+        # Enforce single top featured story: only published posts can be featured
+        if not self.is_published:
+            self.is_featured = False
+        elif self.is_featured:
             BlogPost.objects.filter(is_featured=True).exclude(pk=self.pk).update(is_featured=False)
 
         super().save(*args, **kwargs)

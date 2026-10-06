@@ -83,6 +83,18 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
 class AdminBlogPostSerializer(serializers.ModelSerializer):
     """Full read/write serializer used by staff in the Admin Dashboard."""
 
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=BlogCategory.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=BlogCategory.objects.all(),
+        source="category",
+        required=False,
+        allow_null=True,
+        write_only=True,
+    )
     category_details = BlogCategorySerializer(source="category", read_only=True)
 
     class Meta:
@@ -95,6 +107,7 @@ class AdminBlogPostSerializer(serializers.ModelSerializer):
             "content",
             "cover_image",
             "category",
+            "category_id",
             "category_details",
             "tags",
             "author_name",
@@ -110,11 +123,16 @@ class AdminBlogPostSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "views_count", "created_at", "updated_at"]
+        extra_kwargs = {
+            "slug": {"required": False, "validators": []},
+        }
 
     def create(self, validated_data):
         request = self.context.get("request")
         if request and request.user and request.user.is_authenticated:
             validated_data["author"] = request.user
             if not validated_data.get("author_name"):
-                validated_data["author_name"] = request.user.get_full_name() or request.user.username
+                validated_data["author_name"] = (
+                    request.user.get_full_name() or getattr(request.user, "email", "Dallian Staff")
+                )
         return super().create(validated_data)

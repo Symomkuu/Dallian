@@ -15,8 +15,8 @@ import {
   SearchIcon,
   Trash2Icon,
 } from 'lucide-react';
-import type { BlogPost } from '@/types';
-import { adminDeleteBlogPost, adminFetchBlogPosts } from '@/utils/api';
+import type { BlogPost, BlogStats } from '@/types';
+import { adminDeleteBlogPost, adminFetchBlogPosts, adminFetchBlogStats } from '@/utils/api';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { useStore } from '@/contexts/StoreContext';
 import { cx, formatDate } from '@/utils/format';
@@ -26,29 +26,45 @@ export default function AdminBlogsPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<BlogStats | null>(null);
 
-  // Filters
+  // Filters & Pagination
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const pageSize = 20;
 
   const loadPosts = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await adminFetchBlogPosts({
-        status: statusFilter,
-        search: search.trim() || undefined,
-        page_size: 50,
-      });
-      setPosts(res.results || []);
-      setTotalCount(res.count || 0);
+      const [res, statsRes] = await Promise.allSettled([
+        adminFetchBlogPosts({
+          status: statusFilter,
+          search: search.trim() || undefined,
+          page,
+          page_size: pageSize,
+        }),
+        adminFetchBlogStats(),
+      ]);
+
+      if (res.status === 'fulfilled') {
+        setPosts(res.value.results || []);
+        setTotalCount(res.value.count || 0);
+      } else {
+        pushToast({ title: 'Failed to load blog posts.', tone: 'error' });
+        setPosts([]);
+      }
+
+      if (statsRes.status === 'fulfilled') {
+        setStats(statsRes.value);
+      }
     } catch {
       pushToast({ title: 'Failed to load blog posts.', tone: 'error' });
-      setPosts([]);
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, search, pushToast]);
+  }, [statusFilter, search, page, pushToast]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -57,6 +73,16 @@ export default function AdminBlogsPage() {
     return () => clearTimeout(timer);
   }, [loadPosts]);
 
+  const handleStatusFilterChange = (newStatus: 'all' | 'published' | 'draft') => {
+    setStatusFilter(newStatus);
+    setPage(1);
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setPage(1);
+  };
+
   const handleDelete = async (id: number, title: string) => {
     if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
     try {
@@ -64,6 +90,7 @@ export default function AdminBlogsPage() {
       await adminDeleteBlogPost(id);
       setPosts((prev) => prev.filter((p) => p.id !== id));
       setTotalCount((prev) => Math.max(0, prev - 1));
+      adminFetchBlogStats().then(setStats).catch(() => {});
       pushToast({ title: 'Article deleted.', tone: 'info' });
     } catch {
       pushToast({ title: 'Failed to delete article.', tone: 'error' });
@@ -72,9 +99,10 @@ export default function AdminBlogsPage() {
     }
   };
 
-  const publishedCount = posts.filter((p) => p.is_published).length;
-  const draftCount = posts.filter((p) => !p.is_published).length;
-  const totalViews = posts.reduce((sum, p) => sum + (p.views_count || 0), 0);
+  const totalStories = stats?.total ?? totalCount;
+  const publishedCount = stats?.published ?? posts.filter((p) => p.is_published).length;
+  const draftCount = stats?.draft ?? posts.filter((p) => !p.is_published).length;
+  const totalViews = stats?.total_views ?? posts.reduce((sum, p) => sum + (p.views_count || 0), 0);
 
   return (
     <div className="space-y-6 pb-16">
@@ -96,7 +124,7 @@ export default function AdminBlogsPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         <div className="rounded-2xl border border-ink/10 bg-white p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/50">Total Stories</p>
-          <p className="mt-1 font-serif text-2xl text-ink">{totalCount}</p>
+          <p className="mt-1 font-serif text-2xl text-ink">{totalStories}</p>
         </div>
         <div className="rounded-2xl border border-ink/10 bg-white p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600">Published</p>
@@ -118,7 +146,7 @@ export default function AdminBlogsPage() {
         <div className="flex items-center rounded-xl bg-cream/70 p-1 text-xs">
           <button
             type="button"
-            onClick={() => setStatusFilter('all')}
+            onClick={() => handleStatusFilterChange('all')}
             className={cx(
               'rounded-lg px-3 py-1.5 font-medium transition-colors',
               statusFilter === 'all'
@@ -130,7 +158,7 @@ export default function AdminBlogsPage() {
           </button>
           <button
             type="button"
-            onClick={() => setStatusFilter('published')}
+            onClick={() => handleStatusFilterChange('published')}
             className={cx(
               'rounded-lg px-3 py-1.5 font-medium transition-colors',
               statusFilter === 'published'
@@ -142,7 +170,7 @@ export default function AdminBlogsPage() {
           </button>
           <button
             type="button"
-            onClick={() => setStatusFilter('draft')}
+            onClick={() => handleStatusFilterChange('draft')}
             className={cx(
               'rounded-lg px-3 py-1.5 font-medium transition-colors',
               statusFilter === 'draft'
@@ -161,7 +189,7 @@ export default function AdminBlogsPage() {
             type="text"
             placeholder="Search articles by title or keyword..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full rounded-xl border border-ink/15 bg-cream/30 pl-9 pr-3 py-1.5 text-xs text-ink placeholder:text-ink/40 focus:border-[#D99B26] focus:bg-white focus:outline-none"
           />
         </div>
@@ -244,13 +272,18 @@ export default function AdminBlogsPage() {
 
                     {/* Category */}
                     <td className="px-3 py-3.5 whitespace-nowrap">
-                      {post.category ? (
-                        <span className="rounded-full bg-cream/90 px-2.5 py-1 text-[11px] font-medium text-ink/70 border border-ink/10">
-                          {post.category.name}
-                        </span>
-                      ) : (
-                        <span className="text-ink/30 italic">Uncategorized</span>
-                      )}
+                      {(() => {
+                        const catName =
+                          post.category_details?.name ||
+                          (typeof post.category === 'object' && post.category ? post.category.name : null);
+                        return catName ? (
+                          <span className="rounded-full bg-cream/90 px-2.5 py-1 text-[11px] font-medium text-ink/70 border border-ink/10">
+                            {catName}
+                          </span>
+                        ) : (
+                          <span className="text-ink/30 italic">Uncategorized</span>
+                        );
+                      })()}
                     </td>
 
                     {/* Status Badge */}
@@ -314,6 +347,37 @@ export default function AdminBlogsPage() {
                 ))}
               </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            {totalCount > pageSize && (
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 bg-white px-5 py-3.5 text-xs text-ink/70">
+                <div>
+                  Showing {Math.min((page - 1) * pageSize + 1, totalCount)} to{' '}
+                  {Math.min(page * pageSize, totalCount)} of {totalCount} articles
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="rounded-lg border border-ink/10 bg-cream/30 px-3 py-1.5 font-medium hover:bg-cream disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
+                  <span className="px-2 font-mono text-[11px]">
+                    Page {page} of {Math.ceil(totalCount / pageSize)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => Math.min(Math.ceil(totalCount / pageSize), p + 1))}
+                    disabled={page >= Math.ceil(totalCount / pageSize)}
+                    className="rounded-lg border border-ink/10 bg-cream/30 px-3 py-1.5 font-medium hover:bg-cream disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

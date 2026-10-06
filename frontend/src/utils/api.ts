@@ -6,7 +6,7 @@
  * token to store in JS — the browser handles that via cookies automatically.
  */
 
-import type { Product, Category, HairStyle, Review, BlogPost, BlogCategory } from '@/types';
+import type { Product, Category, HairStyle, Review, BlogPost, BlogCategory, BlogStats } from '@/types';
 
 export const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -1136,6 +1136,16 @@ export function adminFetchBlogCategories() {
 /** Admin: Create a new blog category. */
 export function adminCreateBlogCategory(data: { name: string; description?: string }) {
   return post<BlogCategory>('/api/dashboard/blogs/categories/', data);
+}
+
+/** Admin: Fetch blog summary metrics across entire store. */
+export function adminFetchBlogStats() {
+  return get<BlogStats>('/api/dashboard/blogs/stats/');
+}
+
+/** Storefront: Record view for blog post by slug. */
+export function recordBlogPostView(slug: string) {
+  return post<{ status: string }>(`/api/blog/posts/${slug}/view/`, {});
 }
 
 

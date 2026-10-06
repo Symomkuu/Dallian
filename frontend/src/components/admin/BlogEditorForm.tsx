@@ -59,9 +59,13 @@ export function BlogEditorForm({ initialPost, isEdit = false }: BlogEditorFormPr
   const [title, setTitle] = useState(initialPost?.title || '');
   const [slug, setSlug] = useState(initialPost?.slug || '');
   const [manualSlug, setManualSlug] = useState(!!initialPost?.slug);
-  const [categoryId, setCategoryId] = useState<number | ''>(
-    initialPost?.category?.id || (initialPost?.category as unknown as number) || ''
-  );
+  const [categoryId, setCategoryId] = useState<number | ''>(() => {
+    if (initialPost?.category_details?.id) return initialPost.category_details.id;
+    if (typeof initialPost?.category === 'number') return initialPost.category;
+    if (typeof initialPost?.category === 'object' && initialPost?.category?.id) return initialPost.category.id;
+    if (initialPost?.category_id) return initialPost.category_id;
+    return '';
+  });
   const [excerpt, setExcerpt] = useState(initialPost?.excerpt || '');
   const [content, setContent] = useState(initialPost?.content || '');
   const [coverImage, setCoverImage] = useState(initialPost?.cover_image || '');
@@ -199,17 +203,20 @@ export function BlogEditorForm({ initialPost, isEdit = false }: BlogEditorFormPr
     }
 
     setIsSubmitting(true);
+    setIsPublished(publishState);
+    const catNum = categoryId ? Number(categoryId) : null;
     const payload: Partial<BlogPost> = {
       title: title.trim(),
-      slug: slug.trim() || slugify(title),
+      slug: (slug.trim() || slugify(title)).slice(0, 190),
       excerpt: excerpt.trim(),
       content: content.trim(),
       cover_image: coverImage.trim(),
-      category_id: categoryId ? Number(categoryId) : null,
+      category: catNum,
+      category_id: catNum,
       tags: tags.trim(),
       author_name: authorName.trim() || 'Dallian Luxe Studio',
       is_published: publishState,
-      is_featured: isFeatured,
+      is_featured: publishState ? isFeatured : false,
       read_time_minutes: readTime,
       meta_title: metaTitle.trim() || title.trim(),
       meta_description: metaDescription.trim() || excerpt.trim().slice(0, 160),
@@ -264,7 +271,7 @@ export function BlogEditorForm({ initialPost, isEdit = false }: BlogEditorFormPr
             disabled={isSubmitting}
             className="rounded-xl border border-ink/20 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink shadow-2xs hover:bg-ink/5 transition-all disabled:opacity-50"
           >
-            {isSubmitting ? 'Saving...' : 'Save as Draft'}
+            {isSubmitting ? 'Saving...' : isEdit && isPublished ? 'Revert to Draft' : 'Save as Draft'}
           </button>
           <button
             type="button"
@@ -277,7 +284,7 @@ export function BlogEditorForm({ initialPost, isEdit = false }: BlogEditorFormPr
             ) : (
               <CheckIcon className="h-4 w-4" />
             )}
-            {isEdit ? 'Update & Publish' : 'Publish Article'}
+            {isEdit && isPublished ? 'Update Article' : 'Publish Article'}
           </button>
         </div>
       </div>
@@ -565,27 +572,22 @@ export function BlogEditorForm({ initialPost, isEdit = false }: BlogEditorFormPr
                   {isPublished ? 'Visible live on storefront' : 'Saved privately as draft'}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsPublished(!isPublished)}
+              <span
                 className={cx(
-                  'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out',
-                  isPublished ? 'bg-emerald-600' : 'bg-neutral-300'
+                  'rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider border',
+                  isPublished
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
                 )}
               >
-                <span
-                  className={cx(
-                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                    isPublished ? 'translate-x-5' : 'translate-x-0'
-                  )}
-                />
-              </button>
+                {isPublished ? 'Published' : 'Draft'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between border-t border-ink/10 pt-3">
               <div>
                 <p className="text-xs font-semibold text-ink">Featured Headline</p>
-                <p className="text-[11px] text-ink/50">Highlight as top hero story</p>
+                <p className="text-[11px] text-ink/50">Highlight as top hero story (published only)</p>
               </div>
               <button
                 type="button"

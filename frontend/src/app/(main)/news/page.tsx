@@ -46,37 +46,41 @@ export const metadata: Metadata = {
 };
 
 async function getBlogData() {
-  try {
-    const [postsRes, catRes] = await Promise.all([
-      fetch(`${API_BASE_URL}/api/blog/posts/?page_size=50`, {
-        next: { revalidate: 60 },
-      }),
-      fetch(`${API_BASE_URL}/api/blog/categories/`, {
-        next: { revalidate: 300 },
-      }),
-    ]);
+  let initialPosts: BlogPost[] = [];
+  let categories: BlogCategory[] = [];
 
-    let initialPosts: BlogPost[] = [];
-    let categories: BlogCategory[] = [];
+  const [postsRes, catRes] = await Promise.allSettled([
+    fetch(`${API_BASE_URL}/api/blog/posts/?page_size=50`, {
+      next: { revalidate: 60 },
+    }),
+    fetch(`${API_BASE_URL}/api/blog/categories/`, {
+      next: { revalidate: 300 },
+    }),
+  ]);
 
-    if (postsRes.ok) {
-      const postsData = await postsRes.json();
+  if (postsRes.status === 'fulfilled' && postsRes.value.ok) {
+    try {
+      const postsData = await postsRes.value.json();
       initialPosts = Array.isArray(postsData)
         ? postsData
         : Array.isArray(postsData.results)
         ? postsData.results
         : [];
+    } catch {
+      // JSON parse fallback
     }
-
-    if (catRes.ok) {
-      const catData = await catRes.json();
-      categories = Array.isArray(catData) ? catData : [];
-    }
-
-    return { initialPosts, categories };
-  } catch {
-    return { initialPosts: [], categories: [] };
   }
+
+  if (catRes.status === 'fulfilled' && catRes.value.ok) {
+    try {
+      const catData = await catRes.value.json();
+      categories = Array.isArray(catData) ? catData : [];
+    } catch {
+      // JSON parse fallback
+    }
+  }
+
+  return { initialPosts, categories };
 }
 
 export default async function NewsListingPage() {

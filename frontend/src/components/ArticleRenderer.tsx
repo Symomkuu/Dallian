@@ -26,6 +26,27 @@ export function slugifyHeading(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+const isSafeLinkUrl = (u: string): boolean => {
+  const trimmed = u.trim().toLowerCase();
+  return (
+    trimmed.startsWith('/') ||
+    trimmed.startsWith('#') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('mailto:') ||
+    trimmed.startsWith('tel:')
+  );
+};
+
+const isSafeImageUrl = (src: string): boolean => {
+  const trimmed = src.trim().toLowerCase();
+  return (
+    trimmed.startsWith('/') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('http://')
+  );
+};
+
 /**
  * Safely parse markdown inline tokens (**bold**, *italic*, [link](url))
  * into pure React elements without any HTML string injection.
@@ -42,7 +63,11 @@ export function renderInlineContent(text: string): React.ReactNode {
     // Link: [label](url)
     const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (linkMatch) {
-      const [, label, url] = linkMatch;
+      const [, label, rawUrl] = linkMatch;
+      const url = rawUrl.trim();
+      if (!isSafeLinkUrl(url)) {
+        return <React.Fragment key={index}>{label}</React.Fragment>;
+      }
       const isInternal = url.startsWith('/') || url.startsWith('#');
       return (
         <a
@@ -197,8 +222,12 @@ export function parseArticleBlocks(markdown: string): {
     // Image: ![alt](url)
     const imgMatch = line.match(/^!\[(.*?)\]\((.*?)\)$/);
     if (imgMatch) {
-      blocks.push({ type: 'image', alt: imgMatch[1], src: imgMatch[2] });
-      continue;
+      const alt = imgMatch[1].trim();
+      const src = imgMatch[2].trim();
+      if (isSafeImageUrl(src)) {
+        blocks.push({ type: 'image', alt, src });
+        continue;
+      }
     }
 
     // Regular paragraph
