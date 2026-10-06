@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import {
-  LinkIcon,
+  CheckCircle2Icon,
   Loader2Icon,
   Trash2Icon,
   UploadCloudIcon,
@@ -23,12 +23,12 @@ export function BlogCoverImageUpload({
 }: BlogCoverImageUploadProps) {
   const { pushToast } = useStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imageInputMode, setImageInputMode] = useState<'upload' | 'url'>('upload');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      pushToast({ title: 'Please select an image file.', tone: 'error' });
+      pushToast({ title: 'Please select an image file (PNG, JPG, or WEBP).', tone: 'error' });
       return;
     }
     try {
@@ -36,7 +36,7 @@ export function BlogCoverImageUpload({
       const res = await uploadImageToCloudinary(file);
       onCoverImageChange(res.secureUrl);
       pushToast({
-        title: 'Image uploaded to Cloudinary & link autofilled!',
+        title: 'Cover image uploaded successfully!',
         tone: 'success',
       });
     } catch (err: unknown) {
@@ -47,132 +47,87 @@ export function BlogCoverImageUpload({
     }
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleImageFile(file);
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-2xs space-y-4">
       <div className="flex items-center justify-between border-b border-ink/10 pb-2">
         <div>
           <h3 className="font-serif text-base text-ink">Cover Banner Image</h3>
-          <p className="text-[11px] text-ink/50">Upload to Cloudinary or paste an image link directly</p>
+          <p className="text-[11px] text-ink/50">Upload a featured cover image for this article</p>
         </div>
         {coverImage && (
           <button
             type="button"
             onClick={() => onCoverImageChange('')}
-            className="text-xs text-red-600 hover:underline inline-flex items-center gap-1"
+            className="text-xs text-red-600 hover:underline inline-flex items-center gap-1 font-medium"
           >
-            <Trash2Icon className="h-3 w-3" /> Clear
+            <Trash2Icon className="h-3 w-3" /> Remove
           </button>
         )}
       </div>
 
-      {/* Mode Switcher Tabs */}
-      <div className="flex rounded-xl bg-cream/40 p-1 text-xs border border-ink/10">
-        <button
-          type="button"
-          onClick={() => setImageInputMode('upload')}
-          className={cx(
-            'flex-1 rounded-lg py-1.5 font-medium transition-all text-center inline-flex items-center justify-center gap-1.5',
-            imageInputMode === 'upload'
-              ? 'bg-white shadow-2xs text-ink font-semibold'
-              : 'text-ink/60 hover:text-ink'
-          )}
-        >
-          <UploadCloudIcon className="h-3.5 w-3.5 text-[#D99B26]" />
-          Upload File (Cloudinary)
-        </button>
-        <button
-          type="button"
-          onClick={() => setImageInputMode('url')}
-          className={cx(
-            'flex-1 rounded-lg py-1.5 font-medium transition-all text-center inline-flex items-center justify-center gap-1.5',
-            imageInputMode === 'url'
-              ? 'bg-white shadow-2xs text-ink font-semibold'
-              : 'text-ink/60 hover:text-ink'
-          )}
-        >
-          <LinkIcon className="h-3.5 w-3.5 text-[#8B3A2A]" />
-          Paste Image Link
-        </button>
-      </div>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleImageFile(file);
+          e.target.value = '';
+        }}
+        className="hidden"
+      />
 
-      {/* Mode 1: File Upload */}
-      {imageInputMode === 'upload' && (
+      {/* Upload Zone (shown when no cover image or during upload) */}
+      {!coverImage ? (
         <div
           onClick={() => fileInputRef.current?.click()}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
           className={cx(
-            'flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-ink/20 p-5 text-center transition-all cursor-pointer hover:border-[#D99B26] hover:bg-cream/40',
+            'flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all cursor-pointer',
+            isDragging
+              ? 'border-[#D99B26] bg-cream/60'
+              : 'border-ink/20 hover:border-[#D99B26] hover:bg-cream/40',
             isUploadingImage && 'pointer-events-none opacity-60'
           )}
         >
           {isUploadingImage ? (
-            <Loader2Icon className="h-7 w-7 animate-spin text-[#D99B26]" />
+            <Loader2Icon className="h-8 w-8 animate-spin text-[#D99B26]" />
           ) : (
-            <UploadCloudIcon className="h-7 w-7 text-ink/40" />
+            <UploadCloudIcon className="h-8 w-8 text-ink/40" />
           )}
           <p className="mt-2 text-xs font-semibold text-ink">
-            {isUploadingImage ? 'Uploading & saving to Cloudinary...' : 'Click to select or drop image'}
+            {isUploadingImage ? 'Uploading to cloud...' : 'Click to select or drop an image'}
           </p>
-          <p className="mt-0.5 text-[10px] text-ink/50">PNG, JPG, or WEBP up to 5MB (autofills link)</p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleImageFile(file);
-            }}
-            className="hidden"
-          />
+          <p className="mt-0.5 text-[10px] text-ink/50">PNG, JPG, or WEBP up to 5MB</p>
         </div>
-      )}
-
-      {/* Mode 2: Direct Link Input */}
-      {imageInputMode === 'url' && (
-        <div>
-          <label htmlFor="cover-url-manual" className="block text-[11px] font-medium text-ink/70">
-            Enter image web address (URL):
-          </label>
-          <input
-            id="cover-url-manual"
-            type="url"
-            placeholder="https://images.unsplash.com/... or https://res.cloudinary.com/..."
-            value={coverImage}
-            onChange={(e) => onCoverImageChange(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-ink/15 bg-cream/30 px-3 py-2 text-xs text-ink placeholder:text-ink/30 focus:border-[#D99B26] focus:bg-white focus:outline-none"
-          />
-        </div>
-      )}
-
-      {/* Autofilled Image URL Field */}
-      <div>
-        <div className="flex items-center justify-between text-[11px] font-medium text-ink/70">
-          <span>Active Image Link (autofilled):</span>
-          {coverImage && (
-            <button
-              type="button"
-              onClick={() => {
-                navigator.clipboard.writeText(coverImage);
-                pushToast({ title: 'Image link copied to clipboard!', tone: 'success' });
-              }}
-              className="text-[10px] text-[#8B3A2A] hover:underline inline-flex items-center gap-1 font-semibold"
-            >
-              Copy Link
-            </button>
-          )}
-        </div>
-        <input
-          type="text"
-          value={coverImage}
-          onChange={(e) => onCoverImageChange(e.target.value)}
-          placeholder="No image uploaded or entered yet"
-          className="mt-1 w-full rounded-xl border border-ink/15 bg-cream/20 px-3 py-1.5 font-mono text-[11px] text-ink focus:border-[#D99B26] focus:bg-white focus:outline-none"
-        />
-      </div>
-
-      {/* Live Preview Display */}
-      {coverImage && (
-        <div className="space-y-1.5">
-          <p className="text-[11px] font-medium text-ink/60">Live Image Preview:</p>
+      ) : (
+        /* Live Preview Display with Replace / Remove controls */
+        <div className="space-y-3">
           <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-ink/10 bg-cream/40 shadow-2xs group">
             <Image
               src={coverImage}
@@ -181,22 +136,43 @@ export function BlogCoverImageUpload({
               className="object-cover"
               unoptimized
             />
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-black hover:bg-[#D99B26] shadow-sm transition-colors"
-              >
-                Replace File
-              </button>
-              <button
-                type="button"
-                onClick={() => onCoverImageChange('')}
-                className="rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700 shadow-sm transition-colors"
-              >
-                Clear
-              </button>
-            </div>
+            {isUploadingImage ? (
+              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 text-white">
+                <Loader2Icon className="h-6 w-6 animate-spin text-[#D99B26]" />
+                <span className="text-xs font-medium">Uploading replacement...</span>
+              </div>
+            ) : (
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-black hover:bg-[#D99B26] shadow-sm transition-colors"
+                >
+                  Replace Image
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onCoverImageChange('')}
+                  className="rounded-full bg-red-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-red-700 shadow-sm transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-ink/70">
+            <span className="inline-flex items-center gap-1.5 text-emerald-700 font-medium text-[11px]">
+              <CheckCircle2Icon className="h-3.5 w-3.5 text-emerald-600" />
+              Image uploaded
+            </span>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="text-xs font-semibold text-[#8B3A2A] hover:underline"
+            >
+              Upload another
+            </button>
           </div>
         </div>
       )}
