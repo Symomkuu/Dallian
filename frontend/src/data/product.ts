@@ -275,7 +275,7 @@ export const categoryMeta: Record<
     image: "/7944b14b-3fd0-4899-8dbf-c03571669315.jpg"
   },
   futura: {
-    label: 'Japanese Futura Wigs ',
+    label: 'Japanese Futura Unit ',
     blurb: 'Beautiful, versatile and stylish  wigs for effortless looks.',
     cta: 'SHOP FUTURA',
     image: "/6cac8a29-06d2-466c-b5ea-c7d4d8d00223.jpg"

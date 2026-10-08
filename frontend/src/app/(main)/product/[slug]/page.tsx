@@ -27,15 +27,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!product) {
     return {
-      title: 'Luxury Human Hair Wig | Dallian Luxe Hair Nairobi',
-      description: 'Explore our premium virgin human hair wigs, HD lace frontals, and custom units in Nairobi, Kenya.',
+      title: 'Wigs in Nairobi | Dallian Luxe Hair',
+      description: 'Shop lace front wigs, bob wigs and human hair wigs at Dallian Luxe Hair, Nairobi. Delivery across Kenya.',
     };
   }
 
   const title = `${product.name} | Dallian Luxe Hair Nairobi`;
   const description = product.description
-    ? `${product.description.slice(0, 155).trim()}... Buy virgin human hair wigs in Nairobi with same-day delivery.`
-    : `Shop ${product.name} at Dallian Luxe Hair Nairobi. 100% virgin human hair, HD lace, and custom luxury styling across Kenya.`;
+    ? product.description.length > 155
+      ? `${product.description.slice(0, 155).trim()}...`
+      : product.description
+    : `Shop ${product.name} at Dallian Luxe Hair Nairobi.`;
 
   const primaryImage = product.images?.[0]
     ? product.images[0].startsWith('http')
@@ -85,7 +87,7 @@ export default async function ProductPage({ params }: PageProps) {
         image: product.images.map((img) =>
           img.startsWith('http') ? img : `https://dallian.online${img}`
         ),
-        description: product.description || `Luxury human hair wig ${product.name} by Dallian Luxe Hair.`,
+        description: product.description || `${product.name} wig by Dallian Luxe Hair, Nairobi.`,
         sku: product.id,
         brand: {
           '@type': 'Brand',
