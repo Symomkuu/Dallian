@@ -498,9 +498,9 @@ function CategoryBuyerGuide({
         </p>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          {seoContext.highlights.map((highlight, idx) => (
+          {seoContext.highlights.map((highlight) => (
             <span
-              key={idx}
+              key={highlight}
               className="inline-flex items-center gap-1.5 rounded-lg border border-ink/10 bg-[#FAF7F2] px-3 py-1.5 text-xs font-medium text-ink/80"
             >
               <CheckCircle2 width={13} height={13} className="text-[#C89D34]" />
@@ -599,7 +599,7 @@ function CategoryFaqSection({
 
         <div className="mt-6 space-y-5 divide-y divide-white/10">
           {faqs.map((faq, index) => (
-            <div key={index} className={index > 0 ? 'pt-5' : ''}>
+            <div key={faq.question} className={index > 0 ? 'pt-5' : ''}>
               <h3 className="font-serif text-base font-normal text-white">
                 {faq.question}
               </h3>
