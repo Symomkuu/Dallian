@@ -66,13 +66,13 @@ export default function CategoriesPage() {
           '@type': 'ListItem',
           position: 1,
           name: '100% Virgin Human Hair Wigs',
-          url: 'https://dallian.online/shop?category=human-hair',
+          url: 'https://dallian.online/categories/human-hair',
         },
         {
           '@type': 'ListItem',
           position: 2,
-          name: 'Japanese Futura  Wigs',
-          url: 'https://dallian.online/shop?category=futura',
+          name: 'Japanese Futura Wigs',
+          url: 'https://dallian.online/categories/futura',
         },
       ],
     },
@@ -97,6 +97,37 @@ export default function CategoriesPage() {
     ],
   };
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Where can I buy human hair and futura wigs in Nairobi?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'You can order online at dallian.online with same-day doorstep delivery in Nairobi, or visit our studio at Mountain Mall, Thika Road.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is the difference between Virgin Human Hair and Japanese Futura wigs?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Virgin human hair can be dyed, bleached, washed, and heat styled like natural hair. Japanese Futura is a high-grade heat-resistant synthetic fibre engineered for superior curl memory and effortless everyday wear.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Do you deliver wigs outside Nairobi across Kenya?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. We deliver nationwide to Mombasa, Kisumu, Nakuru, Eldoret, and all 47 counties within 24 to 48 hours via secure courier.',
+        },
+      },
+    ],
+  };
+
   return (
     <>
       <script type="application/ld+json" key="categories-collection-jsonld">
@@ -104,6 +135,9 @@ export default function CategoriesPage() {
       </script>
       <script type="application/ld+json" key="categories-breadcrumbs-jsonld">
         {JSON.stringify(breadcrumbSchema)}
+      </script>
+      <script type="application/ld+json" key="categories-faq-jsonld">
+        {JSON.stringify(faqSchema)}
       </script>
 
       <CategoriesPageClient />

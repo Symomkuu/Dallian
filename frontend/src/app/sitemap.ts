@@ -130,7 +130,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/`, changeFrequency: 'weekly', priority: 1.0 },
     { url: `${siteUrl}/shop`, changeFrequency: 'daily', priority: 0.95 },
     { url: `${siteUrl}/services`, changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${siteUrl}/categories`, changeFrequency: 'weekly', priority: 0.85 },
+    { url: `${siteUrl}/categories`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/brands`, changeFrequency: 'weekly', priority: 0.85 },
     { url: `${siteUrl}/about`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/contact`, changeFrequency: 'monthly', priority: 0.75 },
     { url: `${siteUrl}/delivery`, changeFrequency: 'monthly', priority: 0.7 },
@@ -147,6 +148,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // /track is intentionally omitted (utility page, not meant to rank)
   ];
 
+  // Store Categories
+  let categoryRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const categories = await fetchAll('/api/store/categories/', 50);
+    categoryRoutes = categories
+      .filter((c) => c.slug)
+      .map((c) => ({
+        url: `${siteUrl}/categories/${c.slug}`,
+        changeFrequency: 'weekly' as const,
+        priority: 0.85,
+      }));
+  } catch {
+    categoryRoutes = [
+      { url: `${siteUrl}/categories/human-hair`, changeFrequency: 'weekly', priority: 0.85 },
+      { url: `${siteUrl}/categories/futura`, changeFrequency: 'weekly', priority: 0.85 },
+    ];
+  }
+
+  // Store Brands / Textures
+  let brandRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const hairstyles = await fetchAll('/api/store/hairstyles/', 50);
+    brandRoutes = hairstyles
+      .filter((h) => h.slug)
+      .map((h) => ({
+        url: `${siteUrl}/brands/${h.slug}`,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      }));
+  } catch {
+    // Fallback if offline
+  }
+
   const serviceRoutes: MetadataRoute.Sitemap = servicesData.map((service) => ({
     url: `${siteUrl}/services/${service.slug}`,
     changeFrequency: 'monthly',
@@ -155,6 +189,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticRoutes,
+    ...categoryRoutes,
+    ...brandRoutes,
     ...serviceRoutes,
     ...productRoutes,
     ...blogRoutes,

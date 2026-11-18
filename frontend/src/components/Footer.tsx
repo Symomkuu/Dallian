@@ -11,10 +11,9 @@ const columns = [
     heading: 'SHOP',
     links: [
       { label: 'Explore Categories', to: '/categories' },
-      { label: 'Human Hair', to: '/shop?category=human-hair' },
-      { label: 'Japanese Futura', to: '/shop?category=futura' },
-      { label: 'New Arrivals', to: '/shop?sort=newest' },
-      { label: 'Featured', to: '/shop?badge=featured' },
+      { label: 'Vietnamese Human Hair', to: '/categories/vietnamese-human-hair' },
+      { label: 'Japanese Futura Unit', to: '/categories/japanese-futura-unit' },
+      { label: 'All Wigs', to: '/shop' },
     ],
   },
   {

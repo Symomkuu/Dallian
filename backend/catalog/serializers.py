@@ -22,7 +22,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ("id", "name", "slug", "image_url")
+        fields = ("id", "name", "slug", "image_url", "seo_name", "seo_description")
 
 
 class HairStyleSerializer(serializers.ModelSerializer):
@@ -30,7 +30,7 @@ class HairStyleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HairStyle
-        fields = ("id", "name", "slug", "logo_url")
+        fields = ("id", "name", "slug", "logo_url", "seo_name", "seo_description")
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
