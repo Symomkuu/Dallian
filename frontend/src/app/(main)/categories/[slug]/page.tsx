@@ -41,8 +41,24 @@ const PAGE_SIZE = 24;
 // Known intentional alias clusters for user convenience & legacy marketing URLs
 const ALIAS_CLUSTERS: string[][] = [
   ['vietnamese-human-hair', 'human-hair', 'vietnamese', 'vietnamese-hair', 'virgin-hair', 'raw-hair'],
-  ['japanese-futura-unit', 'futura', 'japanese-futura', 'synthetic'],
+  [
+    'japanese-futura-unit',
+    'japanese-futura-fibre',
+    'futura-fibre',
+    'futura-fiber',
+    'japanese-futura',
+    'futura',
+    'synthetic',
+  ],
 ];
+
+// Map legacy or internal database slugs to their preferred public storefront URLs
+const PREFERRED_PUBLIC_SLUGS: Record<string, string> = {
+  'japanese-futura-fibre': 'japanese-futura-unit',
+  'futura-fibre': 'japanese-futura-unit',
+  'futura': 'japanese-futura-unit',
+  'human-hair': 'vietnamese-human-hair',
+};
 
 // Fallback metadata for core brand lines to ensure official navigation never 404s
 const KNOWN_CORE_CATEGORIES: Record<string, { name: string; slug: string }> = {
@@ -116,7 +132,7 @@ async function getCategory(slug: string): Promise<StoreCategory | null> {
   return null;
 }
 
-async function getCategoryProducts(categorySlug: string, page = 1): Promise<CategoryProductsResult> {
+async function fetchCategoryProductsQuery(categorySlug: string, page = 1): Promise<CategoryProductsResult> {
   const safePage = Math.max(1, page);
   try {
     const res = await fetch(
@@ -153,6 +169,17 @@ async function getCategoryProducts(categorySlug: string, page = 1): Promise<Cate
   } catch {
     return { products: [], totalCount: 0, currentPage: safePage, totalPages: 1, hasError: true };
   }
+}
+
+async function getCategoryProducts(categorySlug: string, page = 1, fallbackSlug?: string): Promise<CategoryProductsResult> {
+  const primary = await fetchCategoryProductsQuery(categorySlug, page);
+  if (!primary.hasError && primary.products.length === 0 && fallbackSlug && fallbackSlug !== categorySlug) {
+    const fallback = await fetchCategoryProductsQuery(fallbackSlug, page);
+    if (!fallback.hasError && fallback.products.length > 0) {
+      return fallback;
+    }
+  }
+  return primary;
 }
 
 async function getAllCategories(): Promise<StoreCategory[]> {
@@ -202,10 +229,12 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
     category.seo_description?.trim() ||
     `${seoContext.intro.slice(0, 155).trim()} Available at Dallian Luxe Hair Nairobi with same-day delivery.`;
 
+  const cleanSlug = slug.toLowerCase().trim();
+  const canonicalPublicSlug = PREFERRED_PUBLIC_SLUGS[cleanSlug] || cleanSlug;
   const canonicalUrl =
     currentPage > 1
-      ? `https://dallian.online/categories/${category.slug}?page=${currentPage}`
-      : `https://dallian.online/categories/${category.slug}`;
+      ? `https://dallian.online/categories/${canonicalPublicSlug}?page=${currentPage}`
+      : `https://dallian.online/categories/${canonicalPublicSlug}`;
   const keywords = getCategoryKeywords(category);
 
   return {
@@ -656,31 +685,41 @@ export default async function CategoryDetailPage({ params, searchParams }: Categ
   const { slug } = await params;
   const rawParams = searchParams ? await searchParams : undefined;
   const currentPage = Math.max(1, parseInt(rawParams?.page || '1', 10) || 1);
+  const cleanSlug = slug.toLowerCase().trim();
 
-  const category = await getCategory(slug);
+  // 1. If accessed via an old/legacy slug (e.g. /categories/japanese-futura-fibre),
+  // seamlessly redirect to the preferred official URL (/categories/japanese-futura-unit)
+  const canonicalRedirect = PREFERRED_PUBLIC_SLUGS[cleanSlug];
+  if (canonicalRedirect && cleanSlug !== canonicalRedirect) {
+    redirect(`/categories/${canonicalRedirect}`);
+  }
+
+  const category = await getCategory(cleanSlug);
 
   if (!category) {
     notFound();
   }
 
-  // Canonical redirect: if accessed via an intentional alias (e.g. /categories/human-hair or /categories/futura),
-  // seamlessly redirect to the exact database slug (e.g. /categories/vietnamese-human-hair)
-  if (slug.toLowerCase() !== category.slug.toLowerCase() && category.id !== 0) {
-    redirect(`/categories/${category.slug}`);
+  // 2. Determine preferred public route for this category
+  const targetPublicSlug = PREFERRED_PUBLIC_SLUGS[category.slug.toLowerCase()] || category.slug.toLowerCase();
+
+  // If accessed via an unmapped alias, redirect to the preferred public slug
+  if (cleanSlug !== targetPublicSlug && cleanSlug !== category.slug.toLowerCase() && category.id !== 0) {
+    redirect(`/categories/${targetPublicSlug}`);
   }
 
   const [productsResult, allCategories, allStyles] = await Promise.all([
-    getCategoryProducts(category.slug, currentPage),
+    getCategoryProducts(category.slug, currentPage, cleanSlug),
     getAllCategories(),
     getAllStyles(),
   ]);
 
   const seoContext = getCategorySeoContext(category);
-  const basePath = `/categories/${category.slug}`;
+  const basePath = `/categories/${targetPublicSlug}`;
   const canonicalUrl =
     currentPage > 1
-      ? `https://dallian.online/categories/${category.slug}?page=${currentPage}`
-      : `https://dallian.online/categories/${category.slug}`;
+      ? `https://dallian.online/categories/${targetPublicSlug}?page=${currentPage}`
+      : `https://dallian.online/categories/${targetPublicSlug}`;
 
   const collectionJsonLd = buildCategoryJsonLd(category, productsResult.products, canonicalUrl);
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(category.name, canonicalUrl);
