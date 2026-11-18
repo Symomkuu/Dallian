@@ -292,10 +292,4 @@ export const categoryMeta: Record<
     cta: 'SHOP FUTURA',
     image: '/6cac8a29-06d2-466c-b5ea-c7d4d8d00223.jpg',
   },
-  'new-premium-look': {
-    label: 'New Premium Look',
-    blurb: 'Salon-grade tailored cuts and modern hairlines for instant ready-to-wear confidence.',
-    cta: 'SHOP PREMIUM LOOK',
-    image: '/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg',
-  },
 };

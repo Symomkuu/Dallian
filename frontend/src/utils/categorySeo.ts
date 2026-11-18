@@ -42,7 +42,7 @@ export function getCategorySeoContext(category: { name: string; slug: string }):
         {
           question: 'Can I get same-day delivery for Vietnamese hair in Nairobi?',
           answer:
-            'Yes. Orders placed before 3:00 PM qualify for same-day doorstep rider delivery within Nairobi and Kiambu, with nationwide courier dispatch across Kenya in 24–48 hours.',
+            'Yes. Orders placed before 3:00 PM qualify for same-day doorstep rider delivery within Nairobi and Kiambu for KES 200 flat rate. Nationwide courier dispatch across Kenya takes 24–48 hours for KES 400, and free in-person collection is available at our Mountain Mall studio.',
         },
         {
           question: 'Can I inspect and try on the wig in person?',
@@ -79,7 +79,7 @@ export function getCategorySeoContext(category: { name: string; slug: string }):
         {
           question: 'Can I get same-day delivery for human hair wigs in Nairobi?',
           answer:
-            'Yes. Orders placed before 3:00 PM qualify for same-day doorstep rider delivery within Nairobi and Kiambu. We also offer nationwide courier parcel delivery across Kenya in 24–48 hours.',
+            'Yes. Orders placed before 3:00 PM qualify for same-day doorstep rider delivery within Nairobi and Kiambu for KES 200 flat rate. Nationwide courier delivery across Kenya takes 24–48 hours for KES 400, and studio pickup at Mountain Mall is free.',
         },
         {
           question: 'Can I visit and try on wigs before purchasing in Nairobi?',
@@ -116,34 +116,7 @@ export function getCategorySeoContext(category: { name: string; slug: string }):
         {
           question: 'How soon can I receive my Futura wig in Nairobi and Kenya?',
           answer:
-            'We provide same-day rider dispatch across Nairobi. Nationwide delivery to Mombasa, Kisumu, Nakuru, and other towns arrives within 24 to 48 hours via trusted courier.',
-        },
-      ],
-    };
-  }
-
-  if (slug.includes('premium') || slug.includes('look')) {
-    return {
-      intro:
-        'Step out in our New Premium Look collection. Precision salon cuts, contemporary color balances, and undetectable lace hairlines created for women who demand red-carpet presentation on a daily basis.',
-      careGuide:
-        'Hang on a wig stand overnight to keep the precision cut in place. Use a lightweight mist spray to revive natural bounce and volume between wears.',
-      highlights: [
-        'Contemporary Salon-Finished Silhouette',
-        'Undetectable Scalp Melted Hairline',
-        'Lightweight All-Day Comfort Cap',
-        'Instant Ready-to-Wear Elegance',
-      ],
-      faqs: [
-        {
-          question: 'What defines the New Premium Look collection?',
-          answer:
-            'These units are pre-styled and customized with tailored hairlines, sculpted densities, and modern silhouettes so you can put them on and go without hours of salon preparation.',
-        },
-        {
-          question: 'Can I get same-day delivery in Nairobi?',
-          answer:
-            'Yes. All in-stock Premium Look units are dispatched immediately with same-day doorstep delivery across Nairobi.',
+            'We provide same-day rider dispatch across Nairobi for KES 200 flat rate. Nationwide delivery to Mombasa, Kisumu, Nakuru, and other towns arrives within 24 to 48 hours for KES 400 via trusted courier. Free studio pickup is also available at Mountain Mall along Thika Road.',
         },
       ],
     };
@@ -168,7 +141,7 @@ export function getCategorySeoContext(category: { name: string; slug: string }):
       {
         question: `Do you deliver ${name.toLowerCase()} wigs outside Nairobi?`,
         answer:
-          'Yes, we ship nationwide across all 47 counties in Kenya via G4S, Fargo Courier, and local shuttle services with full tracking.',
+          'Yes, we ship nationwide across all 47 counties in Kenya for KES 400 flat rate via G4S and Fargo Courier (24–48 hours). Nairobi same-day doorstep rider delivery is KES 200, and studio pickup at Mountain Mall is free.',
       },
       {
         question: 'What payment methods do you accept?',
@@ -231,7 +204,7 @@ export function getStyleSeoContext(style: { name: string; slug: string }): Categ
       },
       {
         question: `Can I get same-day delivery for ${name} wigs in Nairobi?`,
-        answer: `Yes, orders within Nairobi and nearby suburbs are dispatched immediately via door-to-door rider.`,
+        answer: `Yes, in-stock units qualify for same-day door-to-door rider delivery across Nairobi for KES 200 flat rate, nationwide courier across Kenya for KES 400, or free pickup at our Mountain Mall studio along Thika Road.`,
       },
     ],
   };
@@ -252,18 +225,6 @@ export function getCategoryKeywords(category: { name: string; slug: string }): s
       '100% human hair wigs kenya',
       'mountain mall thika road wigs',
       'same day wig delivery nairobi',
-      'dallian luxe hair',
-    ];
-  }
-
-  if (slug.includes('premium')) {
-    return [
-      'new premium look wigs nairobi',
-      'premium styling wigs kenya',
-      'hd lace wigs mountain mall',
-      'salon grade wigs nairobi',
-      'ready to wear wigs kenya',
-      'wigs price in kenya',
       'dallian luxe hair',
     ];
   }
@@ -431,7 +392,7 @@ export function buildCategoryJsonLd(
               },
               shippingRate: {
                 '@type': 'MonetaryAmount',
-                value: '0',
+                value: '200',
                 currency: 'KES',
               },
               deliveryTime: {
@@ -440,13 +401,13 @@ export function buildCategoryJsonLd(
                   '@type': 'QuantitativeValue',
                   minValue: 0,
                   maxValue: 1,
-                  unitCode: 'D',
+                  unitCode: 'DAY',
                 },
                 transitTime: {
                   '@type': 'QuantitativeValue',
-                  minValue: 1,
+                  minValue: 0,
                   maxValue: 2,
-                  unitCode: 'D',
+                  unitCode: 'DAY',
                 },
               },
             },

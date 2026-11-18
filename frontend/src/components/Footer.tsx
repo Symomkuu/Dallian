@@ -13,7 +13,6 @@ const columns = [
       { label: 'Explore Categories', to: '/categories' },
       { label: 'Vietnamese Human Hair', to: '/categories/vietnamese-human-hair' },
       { label: 'Japanese Futura Unit', to: '/categories/japanese-futura-unit' },
-      { label: 'New Premium Look', to: '/categories/new-premium-look' },
       { label: 'All Wigs', to: '/shop' },
     ],
   },

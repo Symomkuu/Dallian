@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import {
   Sparkles,
-  Layers,
   ChevronRight,
   PhoneCall,
   CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
 
 import { brand } from '@/data/brand';
@@ -31,53 +31,135 @@ import { ProductGrid } from '@/components/ProductGrid';
 
 interface BrandPageProps {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ page?: string }>;
 }
 
 export const revalidate = 60;
+const PAGE_SIZE = 24;
+
+// Known intentional style alias clusters for user convenience & marketing URLs
+const STYLE_ALIAS_CLUSTERS: string[][] = [
+  [
+    '13x4-full-frontal-transparent-lace-feels-soft-like-human-hair',
+    '13x4',
+    'frontal',
+    '13x4-frontal',
+    'lace-frontal',
+    'transparent-lace',
+  ],
+  ['straight', 'bone-straight'],
+];
+
+// Fallback metadata for core styles to ensure official navigation never 404s
+const KNOWN_CORE_STYLES: Record<string, { name: string; slug: string }> = {
+  '13x4-full-frontal-transparent-lace-feels-soft-like-human-hair': {
+    name: '13x4 Full Frontal Transparent Lace. Feels Soft Like Human Hair.',
+    slug: '13x4-full-frontal-transparent-lace-feels-soft-like-human-hair',
+  },
+  'straight': {
+    name: 'Straight',
+    slug: 'straight',
+  },
+};
 
 // ==========================================
 // DATA FETCHING HELPERS
 // ==========================================
 
+export interface StyleProductsResult {
+  products: Product[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  hasError: boolean;
+}
+
 async function getStyle(slug: string): Promise<StoreHairStyle | null> {
-  const cleanSlug = slug.toLowerCase();
+  const cleanSlug = slug.toLowerCase().trim();
+  const cacheOptions: RequestInit =
+    process.env.NODE_ENV === 'development' ? { cache: 'no-store' } : { next: { revalidate: 60 } };
+
+  // 1. Direct fetch using the exact requested slug first
   try {
-    const res = await fetch(`${API_BASE_URL}/api/store/hairstyles/${slug}/`, {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(`${API_BASE_URL}/api/store/hairstyles/${encodeURIComponent(cleanSlug)}/`, cacheOptions);
     if (res.ok) return await res.json();
   } catch {}
 
-  // Fallback: match from full list (exact or intelligent slug containment)
+  // 2. Fetch full styles list to check exact match or cluster aliases
+  let styleList: StoreHairStyle[] = [];
   try {
-    const res = await fetch(`${API_BASE_URL}/api/store/hairstyles/`, {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(`${API_BASE_URL}/api/store/hairstyles/`, cacheOptions);
     if (res.ok) {
-      const list: StoreHairStyle[] = await res.json();
-      return (
-        list.find((s) => s.slug.toLowerCase() === cleanSlug) ||
-        list.find((s) => s.slug.toLowerCase().includes(cleanSlug)) ||
-        list.find((s) => cleanSlug.includes(s.slug.toLowerCase())) ||
-        null
-      );
+      styleList = await res.json();
+
+      // 2a. Exact match in full list
+      const directMatch = styleList.find((s) => s.slug.toLowerCase() === cleanSlug);
+      if (directMatch) return directMatch;
+
+      // 2b. Cluster alias match
+      const cluster = STYLE_ALIAS_CLUSTERS.find((c) => c.includes(cleanSlug));
+      if (cluster) {
+        const clusterMatch = styleList.find((s) => cluster.includes(s.slug.toLowerCase()));
+        if (clusterMatch) return clusterMatch;
+      }
     }
   } catch {}
+
+  // 3. Fallback for recognized styles
+  const cluster = STYLE_ALIAS_CLUSTERS.find((c) => c.includes(cleanSlug));
+  const core =
+    KNOWN_CORE_STYLES[cleanSlug] ||
+    (cluster ? KNOWN_CORE_STYLES[cluster[0]] : null);
+
+  if (core) {
+    return {
+      id: 0,
+      name: core.name,
+      slug: core.slug,
+      logo_url: '/ee976c31-e0c9-4d59-a85f-bc2c81c58448.jpg',
+      seo_name: `${core.name} Wigs Nairobi`,
+      seo_description: '',
+    };
+  }
+
   return null;
 }
 
-async function getStyleProducts(styleSlug: string): Promise<Product[]> {
+async function getStyleProducts(styleSlug: string, page = 1): Promise<StyleProductsResult> {
+  const safePage = Math.max(1, page);
   try {
     const res = await fetch(
-      `${API_BASE_URL}/api/store/products/?hairstyle=${encodeURIComponent(styleSlug)}&page_size=100`,
+      `${API_BASE_URL}/api/store/products/?hairstyle=${encodeURIComponent(styleSlug)}&page=${safePage}&page_size=${PAGE_SIZE}`,
       { next: { revalidate: 60 } }
     );
-    if (!res.ok) return [];
+
+    if (!res.ok) {
+      if (res.status === 404 && safePage > 1) {
+        return { products: [], totalCount: 0, currentPage: safePage, totalPages: 1, hasError: false };
+      }
+      return { products: [], totalCount: 0, currentPage: safePage, totalPages: 1, hasError: true };
+    }
+
     const data = await res.json();
+    const count: number =
+      typeof data.count === 'number'
+        ? data.count
+        : Array.isArray(data)
+          ? data.length
+          : data.results?.length || 0;
+
     const results: StoreProductListItem[] = data.results || (Array.isArray(data) ? data : []);
-    return results.map(formatProductFromBackend);
+    const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
+
+    return {
+      products: results.map(formatProductFromBackend),
+      totalCount: count,
+      currentPage: safePage,
+      totalPages,
+      hasError: false,
+    };
   } catch {
-    return [];
+    return { products: [], totalCount: 0, currentPage: safePage, totalPages: 1, hasError: true };
   }
 }
 
@@ -105,8 +187,10 @@ async function getAllCategories(): Promise<StoreCategory[]> {
 // METADATA GENERATION
 // ==========================================
 
-export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: BrandPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const rawParams = searchParams ? await searchParams : undefined;
+  const currentPage = Math.max(1, parseInt(rawParams?.page || '1', 10) || 1);
   const style = await getStyle(slug);
 
   if (!style) {
@@ -118,13 +202,18 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
   }
 
   const seoContext = getStyleSeoContext(style);
-  const displayName = style.seo_name?.trim() || `${style.name} Wigs & Textures Nairobi`;
+  const baseDisplayName = style.seo_name?.trim() || `${style.name} Wigs & Textures Nairobi`;
+  const displayName = currentPage > 1 ? `${baseDisplayName} (Page ${currentPage})` : baseDisplayName;
   const title = `${displayName} | Dallian Luxe Hair`;
+
   const metaDescription =
     style.seo_description?.trim() ||
     `${seoContext.intro.slice(0, 155).trim()} Available at Dallian Luxe Hair Nairobi with same-day delivery.`;
 
-  const canonicalUrl = `https://dallian.online/brands/${slug}`;
+  const canonicalUrl =
+    currentPage > 1
+      ? `https://dallian.online/brands/${style.slug}?page=${currentPage}`
+      : `https://dallian.online/brands/${style.slug}`;
   const keywords = getStyleKeywords(style);
 
   return {
@@ -143,10 +232,10 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
       type: 'website',
       images: [
         {
-          url: style.logo_url || 'https://dallian.online/shop-hero.jpg',
+          url: style.logo_url || 'https://dallian.online/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg',
           width: 1200,
           height: 630,
-          alt: `${style.name} Wigs Nairobi`,
+          alt: `${style.name} Wigs Nairobi - Dallian Luxe Hair`,
         },
       ],
     },
@@ -154,17 +243,13 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
       card: 'summary_large_image',
       title,
       description: metaDescription,
-      images: [style.logo_url || 'https://dallian.online/shop-hero.jpg'],
-    },
-    robots: {
-      index: true,
-      follow: true,
+      images: [style.logo_url || 'https://dallian.online/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg'],
     },
   };
 }
 
 // ==========================================
-// MODULAR VIEW COMPONENTS
+// MODULAR SUB-COMPONENTS
 // ==========================================
 
 function BrandJsonLdScripts({
@@ -172,9 +257,9 @@ function BrandJsonLdScripts({
   breadcrumbJsonLd,
   faqJsonLd,
 }: {
-  collectionJsonLd: unknown;
-  breadcrumbJsonLd: unknown;
-  faqJsonLd: unknown;
+  collectionJsonLd: Record<string, unknown>;
+  breadcrumbJsonLd: Record<string, unknown>;
+  faqJsonLd: Record<string, unknown>;
 }) {
   return (
     <>
@@ -218,11 +303,22 @@ function BrandBreadcrumbs({ styleName }: { styleName: string }) {
 
 function BrandHeader({
   title,
-  productCount,
+  totalCount,
+  currentPage,
+  pageSize,
 }: {
   title: string;
-  productCount: number;
+  totalCount: number;
+  currentPage: number;
+  pageSize: number;
 }) {
+  let countLabel = `${totalCount} ${totalCount === 1 ? 'piece' : 'pieces'} available`;
+  if (totalCount > pageSize) {
+    const start = (currentPage - 1) * pageSize + 1;
+    const end = Math.min(currentPage * pageSize, totalCount);
+    countLabel = `Showing ${start}–${end} of ${totalCount} pieces`;
+  }
+
   return (
     <header className="mb-6 border-b border-ink/8 pb-4 sm:mb-8 sm:pb-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
@@ -234,35 +330,110 @@ function BrandHeader({
         </div>
 
         <span className="text-xs font-medium text-ink/60">
-          {productCount} {productCount === 1 ? 'piece' : 'pieces'} available
+          {countLabel}
         </span>
       </div>
     </header>
   );
 }
 
+function ProductPagination({
+  currentPage,
+  totalPages,
+  basePath,
+}: {
+  currentPage: number;
+  totalPages: number;
+  basePath: string;
+}) {
+  if (totalPages <= 1) return null;
+
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  return (
+    <nav aria-label="Pagination Navigation" className="mt-10 sm:mt-12 flex items-center justify-center gap-2">
+      {currentPage > 1 ? (
+        <Link
+          href={`${basePath}${currentPage - 1 === 1 ? '' : `?page=${currentPage - 1}`}`}
+          className="inline-flex items-center gap-1 rounded-xl border border-ink/15 bg-white px-3.5 py-2 text-xs font-medium text-ink transition hover:bg-[#FAF7F2]"
+        >
+          ← Previous
+        </Link>
+      ) : (
+        <span className="inline-flex items-center gap-1 rounded-xl border border-ink/10 bg-white/50 px-3.5 py-2 text-xs font-medium text-ink/30 cursor-not-allowed">
+          ← Previous
+        </span>
+      )}
+
+      <div className="flex items-center gap-1.5">
+        {pages.map((p) => {
+          const isActive = p === currentPage;
+          return (
+            <Link
+              key={p}
+              href={`${basePath}${p === 1 ? '' : `?page=${p}`}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-xl text-xs font-medium transition ${
+                isActive
+                  ? 'bg-ink text-white font-semibold'
+                  : 'border border-ink/10 bg-white text-ink/80 hover:bg-[#FAF7F2]'
+              }`}
+            >
+              {p}
+            </Link>
+          );
+        })}
+      </div>
+
+      {currentPage < totalPages ? (
+        <Link
+          href={`${basePath}?page=${currentPage + 1}`}
+          className="inline-flex items-center gap-1 rounded-xl border border-ink/15 bg-white px-3.5 py-2 text-xs font-medium text-ink transition hover:bg-[#FAF7F2]"
+        >
+          Next →
+        </Link>
+      ) : (
+        <span className="inline-flex items-center gap-1 rounded-xl border border-ink/10 bg-white/50 px-3.5 py-2 text-xs font-medium text-ink/30 cursor-not-allowed">
+          Next →
+        </span>
+      )}
+    </nav>
+  );
+}
+
 function BrandProductsSection({
   products,
   styleName,
+  hasError,
+  currentPage,
+  totalPages,
+  basePath,
 }: {
   products: Product[];
   styleName: string;
+  hasError: boolean;
+  currentPage: number;
+  totalPages: number;
+  basePath: string;
 }) {
-  if (products.length === 0) {
+  if (hasError) {
     return (
-      <div className="rounded-2xl border border-dashed border-ink/20 bg-white p-12 text-center">
-        <Sparkles width={28} height={28} className="mx-auto text-[#C89D34]" />
-        <h3 className="mt-3 font-serif text-xl font-normal text-ink">New {styleName} Units Coming Soon</h3>
-        <p className="mx-auto mt-2 max-w-md text-sm text-ink/70">
-          We are currently crafting custom {styleName} pieces. Speak with our studio stylist to order your personalized texture and length.
+      <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-8 text-center sm:p-12">
+        <AlertCircle width={32} height={32} className="mx-auto text-amber-800" />
+        <h3 className="mt-3 font-serif text-xl font-normal text-ink">
+          Temporarily Unable to Load Pieces
+        </h3>
+        <p className="mx-auto mt-2 max-w-md text-sm text-ink/75">
+          We experienced a connection issue loading this collection. Please refresh the page or message our studio stylists directly on WhatsApp for real-time inventory and custom orders.
         </p>
-        <div className="mt-6 flex justify-center gap-3">
-          <Link
-            href="/contact"
-            className="rounded-xl bg-black px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-neutral-800"
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <a
+            href={`https://wa.me/${brand.phoneIntl}?text=Hello%20Dallian,%20I'm%20inquiring%20about%20the%20${encodeURIComponent(styleName)}%20collection`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-[#20ba59]"
           >
-            Contact Concierge
-          </Link>
+            WhatsApp Stylist
+          </a>
           <Link
             href="/shop"
             className="rounded-xl border border-ink/20 bg-white px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-ink hover:bg-[#FAF7F2]"
@@ -274,14 +445,45 @@ function BrandProductsSection({
     );
   }
 
+  if (products.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-ink/20 bg-white p-12 text-center">
+        <Sparkles width={28} height={28} className="mx-auto text-[#C89D34]" />
+        <h3 className="mt-3 font-serif text-xl font-normal text-ink">New Pieces Arriving Soon</h3>
+        <p className="mx-auto mt-2 max-w-md text-sm text-ink/70">
+          Our stylists are currently tailoring pieces in the {styleName} texture. Message our studio to custom reserve your unit.
+        </p>
+        <div className="mt-6 flex justify-center gap-3">
+          <Link
+            href="/contact"
+            className="rounded-xl bg-black px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-neutral-800"
+          >
+            Contact Stylist
+          </Link>
+          <Link
+            href="/shop"
+            className="rounded-xl border border-ink/20 bg-white px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-ink hover:bg-[#FAF7F2]"
+          >
+            Browse Other Textures
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section aria-label={`${styleName} Products`}>
       <ProductGrid products={products} columns={4} />
+      <ProductPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        basePath={basePath}
+      />
     </section>
   );
 }
 
-function BrandGuideSection({
+function BrandBuyerGuide({
   styleName,
   description,
   seoContext,
@@ -294,10 +496,10 @@ function BrandGuideSection({
     <section className="mt-14 sm:mt-20 rounded-2xl border border-ink/10 bg-white p-6 sm:p-8 lg:p-10">
       <div className="max-w-3xl">
         <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-xs">
-          TEXTURE SPOTLIGHT &amp; MAINTENANCE
+          TEXTURE &amp; LACE GUIDE
         </p>
         <h2 className="mt-2 font-serif text-xl font-normal text-ink sm:text-2xl">
-          About {styleName} Wigs
+          About {styleName} Pieces
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-ink/75 sm:text-base">
           {description || seoContext.intro}
@@ -323,23 +525,26 @@ function BrandGuideSection({
   );
 }
 
-function BrandCategoryLinks({ categories }: { categories: StoreCategory[] }) {
+function BrandCategoryCrossLinks({ categories }: { categories: StoreCategory[] }) {
   if (categories.length === 0) return null;
 
   return (
     <section className="mt-12 sm:mt-16">
       <h2 className="font-serif text-lg font-normal text-ink sm:text-xl">
-        Browse by Hair Material &amp; Range
+        Browse by Hair Range
       </h2>
-      <div className="mt-3 flex flex-wrap gap-2.5">
+      <p className="mt-1 text-xs text-ink/60">
+        Pair this style with our Vietnamese human hair or Japanese Futura units.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2.5">
         {categories.map((cat) => (
           <Link
             key={cat.id}
             href={`/categories/${cat.slug}`}
-            className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-3.5 py-1.5 text-xs font-medium text-ink transition hover:border-[#C89D34] hover:bg-[#FAF7F2] hover:text-[#8B3A2A]"
+            className="inline-flex items-center gap-2 rounded-xl border border-ink/10 bg-white px-4 py-2.5 text-xs font-medium text-ink transition hover:border-[#C89D34] hover:bg-white/80"
           >
-            <Layers width={12} height={12} className="text-[#C89D34]" />
             <span>{cat.name}</span>
+            <ChevronRight width={12} height={12} className="text-ink/40" />
           </Link>
         ))}
       </div>
@@ -351,18 +556,24 @@ function BrandRelatedStyles({ styles }: { styles: StoreHairStyle[] }) {
   if (styles.length === 0) return null;
 
   return (
-    <section className="mt-10 sm:mt-12 border-t border-ink/10 pt-8">
+    <section className="mt-12 sm:mt-16">
       <h2 className="font-serif text-lg font-normal text-ink sm:text-xl">
-        Explore Other Textures
+        Other Popular Textures
       </h2>
-      <div className="mt-3 flex flex-wrap gap-2.5">
-        {styles.map((item) => (
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {styles.map((s) => (
           <Link
-            key={item.id}
-            href={`/brands/${item.slug}`}
-            className="rounded-full border border-ink/15 bg-white px-4 py-2 text-xs font-semibold text-ink shadow-2xs transition hover:-translate-y-0.5 hover:border-[#C89D34] hover:bg-[#C89D34] hover:text-black"
+            key={s.id}
+            href={`/brands/${s.slug}`}
+            className="group flex items-center justify-between rounded-xl border border-ink/10 bg-white p-4 transition hover:border-[#C89D34] hover:shadow-xs"
           >
-            {item.name}
+            <div>
+              <p className="font-serif text-sm font-normal text-ink group-hover:text-[#C89D34] transition-colors">
+                {s.name}
+              </p>
+              <p className="text-[11px] text-ink/50">View all units →</p>
+            </div>
+            <ChevronRight width={14} height={14} className="text-ink/30 group-hover:text-[#C89D34] group-hover:translate-x-0.5 transition-all" />
           </Link>
         ))}
       </div>
@@ -377,18 +588,20 @@ function BrandFaqSection({
   styleName: string;
   faqs: Array<{ question: string; answer: string }>;
 }) {
+  if (faqs.length === 0) return null;
+
   return (
-    <section className="mt-14 sm:mt-20">
-      <div className="rounded-2xl border border-ink/10 bg-[#43231C] p-6 text-white sm:p-10 lg:p-12">
-        <div className="max-w-2xl">
-          <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#D99B26] sm:text-xs">
-            HELP &amp; EXPERT ADVICE
+    <section className="mt-12 sm:mt-16">
+      <div className="rounded-2xl border border-ink/20 bg-[#121212] p-6 text-white shadow-md sm:p-8 lg:p-10">
+        <div>
+          <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#D4AF37] sm:text-xs">
+            FREQUENTLY ASKED QUESTIONS
           </p>
-          <h2 className="mt-2 font-serif text-2xl font-normal text-white sm:text-3xl">
-            Frequently Asked Questions
+          <h2 className="mt-2 font-serif text-xl font-normal text-white sm:text-2xl">
+            {styleName} Questions &amp; Answers
           </h2>
-          <p className="mt-1.5 text-xs text-white/70 sm:text-sm">
-            Styling tips and maintenance guidance for {styleName} wigs.
+          <p className="mt-1 text-xs text-white/70 sm:text-sm">
+            Everything you need to know about caring for and wearing {styleName} wigs.
           </p>
         </div>
 
@@ -415,10 +628,10 @@ function BrandConciergeBanner({ styleName }: { styleName: string }) {
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="max-w-xl">
           <h3 className="font-serif text-xl font-normal text-ink sm:text-2xl">
-            Custom Styling &amp; Cap Fitting in Nairobi
+            Need Expert Hair Guidance?
           </h3>
           <p className="mt-2 text-xs leading-relaxed text-ink/70 sm:text-sm">
-            Visit our Mountain Mall boutique on Thika Road or speak to our stylists for personalized density, length, and lace matching.
+            Visit our boutique studio at Mountain Mall along Thika Road, Nairobi, or speak with our stylists for custom lace cutting, styling, and texture recommendations.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -447,32 +660,43 @@ function BrandConciergeBanner({ styleName }: { styleName: string }) {
 // PAGE ROOT COMPONENT
 // ==========================================
 
-export default async function BrandDetailPage({ params }: BrandPageProps) {
+export default async function BrandDetailPage({ params, searchParams }: BrandPageProps) {
   const { slug } = await params;
+  const rawParams = searchParams ? await searchParams : undefined;
+  const currentPage = Math.max(1, parseInt(rawParams?.page || '1', 10) || 1);
+
   const style = await getStyle(slug);
 
   if (!style) {
     notFound();
   }
 
-  // Canonical redirect: if accessed via an alias, cleanly redirect to exact database slug
-  if (slug.toLowerCase() !== style.slug.toLowerCase()) {
+  // Canonical redirect: if accessed via an intentional alias (e.g. /brands/13x4 or /brands/frontal),
+  // seamlessly redirect to the exact database slug
+  if (slug.toLowerCase() !== style.slug.toLowerCase() && style.id !== 0) {
     redirect(`/brands/${style.slug}`);
   }
 
-  const [products, allStyles, allCategories] = await Promise.all([
-    getStyleProducts(style.slug),
+  const [productsResult, allStyles, allCategories] = await Promise.all([
+    getStyleProducts(style.slug, currentPage),
     getAllStyles(),
     getAllCategories(),
   ]);
 
   const seoContext = getStyleSeoContext(style);
-  const canonicalUrl = `https://dallian.online/brands/${style.slug}`;
-  const styleKeywords = getStyleKeywords(style);
+  const basePath = `/brands/${style.slug}`;
+  const canonicalUrl =
+    currentPage > 1
+      ? `https://dallian.online/brands/${style.slug}?page=${currentPage}`
+      : `https://dallian.online/brands/${style.slug}`;
 
-  const collectionJsonLd = buildCategoryJsonLd(style, products, canonicalUrl, styleKeywords);
+  const collectionJsonLd = buildCategoryJsonLd(
+    { name: style.name, slug: style.slug, seo_name: style.seo_name, seo_description: style.seo_description },
+    productsResult.products,
+    canonicalUrl
+  );
   const breadcrumbJsonLd = {
-    '@context': 'https://schema.org/',
+    '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
       {
@@ -497,7 +721,7 @@ export default async function BrandDetailPage({ params }: BrandPageProps) {
   };
   const faqJsonLd = buildFaqJsonLd(seoContext.faqs);
 
-  const otherStyles = allStyles.filter((s) => s.slug !== style.slug).slice(0, 8);
+  const relatedStyles = allStyles.filter((s) => s.slug !== style.slug).slice(0, 6);
   const headerTitle = style.seo_name || `${style.name} Wigs`;
 
   return (
@@ -514,23 +738,29 @@ export default async function BrandDetailPage({ params }: BrandPageProps) {
 
         <BrandHeader
           title={headerTitle}
-          productCount={products.length}
+          totalCount={productsResult.totalCount}
+          currentPage={currentPage}
+          pageSize={PAGE_SIZE}
         />
 
         <BrandProductsSection
-          products={products}
+          products={productsResult.products}
           styleName={style.name}
+          hasError={productsResult.hasError}
+          currentPage={currentPage}
+          totalPages={productsResult.totalPages}
+          basePath={basePath}
         />
 
-        <BrandGuideSection
+        <BrandBuyerGuide
           styleName={style.name}
           description={style.seo_description}
           seoContext={seoContext}
         />
 
-        <BrandCategoryLinks categories={allCategories} />
+        <BrandCategoryCrossLinks categories={allCategories} />
 
-        <BrandRelatedStyles styles={otherStyles} />
+        <BrandRelatedStyles styles={relatedStyles} />
 
         <BrandFaqSection
           styleName={style.name}
