@@ -512,6 +512,8 @@ export interface StoreCategory {
   name: string;
   slug: string;
   image_url: string;
+  seo_name?: string;
+  seo_description?: string;
 }
 
 export interface StoreHairStyle {
@@ -519,6 +521,8 @@ export interface StoreHairStyle {
   name: string;
   slug: string;
   logo_url: string;
+  seo_name?: string;
+  seo_description?: string;
 }
 
 export interface StoreProductImage {
@@ -764,8 +768,16 @@ export function fetchStoreCategories() {
   return get<StoreCategory[]>('/api/store/categories/');
 }
 
+export function fetchStoreCategoryBySlug(slug: string) {
+  return get<StoreCategory>(`/api/store/categories/${slug}/`);
+}
+
 export function fetchStoreHairStyles() {
   return get<StoreHairStyle[]>('/api/store/hairstyles/');
+}
+
+export function fetchStoreHairStyleBySlug(slug: string) {
+  return get<StoreHairStyle>(`/api/store/hairstyles/${slug}/`);
 }
 
 export function createStoreProductReview(

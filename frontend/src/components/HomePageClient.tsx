@@ -84,26 +84,36 @@ export function HomePageClient() {
         className="w-full bg-[#FAF7F2] py-10 sm:py-16 lg:py-20"
       >
         <div className="mx-auto max-w-page px-4 sm:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="max-w-2xl"
-          >
-            <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
-              Shop by Category
-            </p>
-            <h2
-              id="categories-heading"
-              className="mt-2 font-serif text-2xl font-normal leading-tight text-ink sm:mt-3 sm:text-4xl lg:text-5xl"
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="max-w-2xl"
             >
-              Two ranges, one standard of finish
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-ink/70 sm:mt-4 sm:text-base">
-              Choose the range that suits how you wear your hair — real human hair you can style freely, or Japanese Futura wigs that holds its shape with almost no effort.
-            </p>
-          </motion.div>
+              <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#C89D34] sm:text-[11px]">
+                Shop by Category
+              </p>
+              <h2
+                id="categories-heading"
+                className="mt-2 font-serif text-2xl font-normal leading-tight text-ink sm:mt-3 sm:text-4xl lg:text-5xl"
+              >
+                Two ranges, one standard of finish
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-ink/70 sm:mt-4 sm:text-base">
+                Choose the range that suits how you wear your hair — real human hair you can style freely, or Japanese Futura wigs that hold their shape with almost no effort.
+              </p>
+            </motion.div>
+
+            <Link
+              href="/categories"
+              className="group inline-flex shrink-0 items-center gap-1.5 border-b border-[#C89D34] pb-1 text-[11px] font-semibold tracking-[0.2em] uppercase text-ink transition-colors duration-200 hover:text-chestnut"
+            >
+              <span>Explore Categories</span>
+              <ArrowRightIcon width={13} height={13} className="transition-transform duration-200 group-hover:translate-x-1" />
+            </Link>
+          </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6">
             <motion.div
@@ -114,10 +124,10 @@ export function HomePageClient() {
             >
               <CategoryCard
                 eyebrow="Range 01"
-                title={categoryMeta.futura.label}
-                body={categoryMeta.futura.blurb}
-                cta={categoryMeta.futura.cta}
-                to="/shop?category=futura"
+                title={categoryMeta['japanese-futura-unit']?.label || 'Japanese Futura Unit'}
+                body={categoryMeta['japanese-futura-unit']?.blurb || categoryMeta.futura.blurb}
+                cta={categoryMeta['japanese-futura-unit']?.cta || 'SHOP FUTURA'}
+                to="/categories/japanese-futura-unit"
                 image={categoryMeta.futura.image}
               />
             </motion.div>
@@ -130,10 +140,10 @@ export function HomePageClient() {
             >
               <CategoryCard
                 eyebrow="Range 02"
-                title="Premium Human Hair"
-                body={categoryMeta['human-hair'].blurb}
-                cta={categoryMeta['human-hair'].cta}
-                to="/shop?category=human-hair"
+                title="Vietnamese Human Hair"
+                body={categoryMeta['vietnamese-human-hair']?.blurb || categoryMeta['human-hair'].blurb}
+                cta={categoryMeta['vietnamese-human-hair']?.cta || 'SHOP HUMAN HAIR'}
+                to="/categories/vietnamese-human-hair"
                 image={categoryMeta['human-hair'].image}
               />
             </motion.div>

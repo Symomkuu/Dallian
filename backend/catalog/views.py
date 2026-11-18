@@ -58,6 +58,14 @@ class CategoryListView(PublicReadOnlyAPIView, generics.ListAPIView):
     queryset = Category.objects.filter(is_active=True)
 
 
+class CategoryDetailView(PublicReadOnlyAPIView, generics.RetrieveAPIView):
+    """Retrieve an active category by slug."""
+
+    serializer_class = CategorySerializer
+    queryset = Category.objects.filter(is_active=True)
+    lookup_field = "slug"
+
+
 class HairStyleListView(PublicReadOnlyAPIView, generics.ListAPIView):
     """List active hairstyles that have at least one active product."""
 
@@ -67,6 +75,14 @@ class HairStyleListView(PublicReadOnlyAPIView, generics.ListAPIView):
     def get_queryset(self):
         """Only hairstyles with at least one visible product are worth showing in a filter menu."""
         return HairStyle.objects.filter(is_active=True, products__is_active=True).distinct()
+
+
+class HairStyleDetailView(PublicReadOnlyAPIView, generics.RetrieveAPIView):
+    """Retrieve an active hairstyle by slug."""
+
+    serializer_class = HairStyleSerializer
+    queryset = HairStyle.objects.filter(is_active=True)
+    lookup_field = "slug"
 
 
 class ProductListView(PublicReadOnlyAPIView, generics.ListAPIView):

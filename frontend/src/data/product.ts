@@ -265,19 +265,37 @@ export function getProduct(slug: string): Product | undefined {
 }
 
 export const categoryMeta: Record<
-  'human-hair' | 'futura',
-  {label: string;blurb: string;cta: string;image: string;}> =
-{
+  string,
+  { label: string; blurb: string; cta: string; image: string }
+> = {
   'human-hair': {
-    label: 'Premium Human Hair',
-    blurb: 'Natural beauty, luxurious texture and timeless elegance.',
+    label: 'Vietnamese Human Hair',
+    blurb: '100% authentic raw single-donor hair with full cuticle alignment and timeless elegance.',
     cta: 'SHOP HUMAN HAIR',
-    image: "/7944b14b-3fd0-4899-8dbf-c03571669315.jpg"
+    image: '/7944b14b-3fd0-4899-8dbf-c03571669315.jpg',
+  },
+  'vietnamese-human-hair': {
+    label: 'Vietnamese Human Hair',
+    blurb: '100% authentic raw single-donor hair with full cuticle alignment and timeless elegance.',
+    cta: 'SHOP VIETNAMESE HAIR',
+    image: '/7944b14b-3fd0-4899-8dbf-c03571669315.jpg',
   },
   futura: {
-    label: 'Japanese Futura Unit ',
-    blurb: 'Beautiful, versatile and stylish  wigs for effortless looks.',
+    label: 'Japanese Futura Unit',
+    blurb: 'High-temperature heat-resistant synthetic fibres engineered for superior curl memory.',
     cta: 'SHOP FUTURA',
-    image: "/6cac8a29-06d2-466c-b5ea-c7d4d8d00223.jpg"
-  }
+    image: '/6cac8a29-06d2-466c-b5ea-c7d4d8d00223.jpg',
+  },
+  'japanese-futura-unit': {
+    label: 'Japanese Futura Unit',
+    blurb: 'High-temperature heat-resistant synthetic fibres engineered for superior curl memory.',
+    cta: 'SHOP FUTURA',
+    image: '/6cac8a29-06d2-466c-b5ea-c7d4d8d00223.jpg',
+  },
+  'new-premium-look': {
+    label: 'New Premium Look',
+    blurb: 'Salon-grade tailored cuts and modern hairlines for instant ready-to-wear confidence.',
+    cta: 'SHOP PREMIUM LOOK',
+    image: '/eefc5861-57ab-4e61-86c3-a90e1aa13f01.jpg',
+  },
 };

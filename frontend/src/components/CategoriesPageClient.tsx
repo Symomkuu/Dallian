@@ -131,11 +131,15 @@ export function CategoriesPageClient() {
           );
           return {
             name: h.name,
+            slug: h.slug,
             query: h.name,
             desc: matched?.desc || 'Hand-selected texture designed for effortless beauty and styling.',
           };
         })
-      : popularTextures;
+      : popularTextures.map((p) => ({
+          ...p,
+          slug: p.name.toLowerCase().replace(/\s+/g, '-'),
+        }));
 
   return (
     <main className="min-h-screen bg-[#FAF7F2] pb-16 pt-6 sm:pb-24 sm:pt-10">
@@ -216,7 +220,7 @@ export function CategoriesPageClient() {
                 {/* Bottom CTA Button */}
                 <div className="mt-8 border-t border-ink/8 pt-5">
                   <Link
-                    href={`/shop?category=${encodeURIComponent(cat.slug || cat.name)}`}
+                    href={`/categories/${encodeURIComponent(cat.slug || cat.name)}`}
                     className="inline-flex w-full items-center justify-between rounded-xl bg-black px-5 py-3.5 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-neutral-800 sm:px-6"
                   >
                     <span>Shop {cat.name}</span>
@@ -247,7 +251,7 @@ export function CategoriesPageClient() {
               {textureList.map((tex) => (
                 <Link
                   key={tex.name}
-                  href={`/shop?style=${encodeURIComponent(tex.query)}`}
+                  href={`/brands/${encodeURIComponent(tex.slug || tex.query.toLowerCase().replace(/\s+/g, '-'))}`}
                   className="group flex flex-col justify-between rounded-xl border border-ink/10 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#C89D34] hover:shadow-sm sm:p-5"
                 >
                   <div>
